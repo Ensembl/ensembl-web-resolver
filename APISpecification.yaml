@@ -23,26 +23,32 @@ paths:
           explode: true
           schema:
             type: string
-            example: ENSG00000139618
+            example: ENSG00000221914.11
         - name: type
           in: query
           description: Defines a type - gene/transcript/variant etc
           required: false
           schema:
             type: string
+            example:
+              gene
         - name: app
           in: query
           description: Choose between apps - Genome Browser/ Entity Viewer
           required: false
           schema:
             type: string
+          example:
+            genome_browser
         - name: gca
           in: query
           description: GCA assembly accession id of the genome
           required: false
           schema:
             type: string
-       responses:
+          example:
+            GCA_000001405.29
+      responses:
         '302':
           description: Redirect to resolved URL
           headers:
@@ -64,19 +70,28 @@ components:
         text/plain:
           schema:
             type: string
-            example: '{"status_code": 400, "details": "Not Bad Request"}'
+            example: "Bad request"
+        application/json:
+          schema:
+            example: '{"status_code": 400, "details": "Bad request"}'
     404:
       description: Requested url not found
       content:
         text/plain:
           schema:
             type: string
-            example: '{"status_code": 404, "details": "Not Found"}'
+            example: "Not found"
+        application/json:
+          schema:
+            example: '{"status_code": 404, "details": "Not found"}'
     500:
       description: Internal server error
       content:
         text/plain:
           schema:
             type: string
-            example: '{"status_code": 500, "details": "Internal Server Error"}'
-  
+            example: 
+              Internal server error
+        application/json:
+          schema:
+            example: '{"status_code": 500, "details": "Internal server error"}'
