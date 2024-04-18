@@ -30,6 +30,7 @@ paths:
           required: false
           schema:
             type: string
+            enum: [gene, transcript, variant]
             example:
               gene
         - name: app
@@ -38,16 +39,17 @@ paths:
           required: false
           schema:
             type: string
-          example:
-            genome_browser
+            enum: [genome_browser, entity_viewer]
+            example:
+              genome_browser
         - name: gca
           in: query
           description: GCA assembly accession id of the genome
           required: false
           schema:
             type: string
-          example:
-            GCA_000001405.29
+            example:
+              GCA_000001405.29
       responses:
         '302':
           description: Redirect to resolved URL
@@ -95,3 +97,4 @@ components:
         application/json:
           schema:
             example: '{"status_code": 500, "details": "Internal server error"}'
+  
