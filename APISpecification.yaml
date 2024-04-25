@@ -11,12 +11,12 @@ tags:
   - name: resolver
     description: Resolver API resolves external urls to Ensembl
 paths:
-  /resolve/{gene_stable_id}:
+  /resolve/{stable_id}:
     get:
       summary: Resolve stable ID with optional query params
       description: Resolves to a beta url when a stable id wih optional query params provided
       parameters:
-        - name: gene_stable_id
+        - name: stable_id
           in: path
           description: Gene stable id used to represent a gene in a genome.
           required: true
@@ -51,13 +51,27 @@ paths:
             example:
               GCA_000001405.29
       responses:
+        '200':
+          description: OK
+          headers:
+            Location:
+              schema:
+                type: string
+          content: {}          
         '302':
           description: Redirect to resolved URL
           headers:
             Location:
               schema:
                 type: string
-          content: {}
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  redirect_url:
+                    type: string
+                    description: Redirect url
         '400':
           $ref: '#/components/responses/400'
         '404':
