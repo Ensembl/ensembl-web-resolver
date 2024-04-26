@@ -57,13 +57,6 @@ paths:
             Location:
               schema:
                 type: string
-          content: {}          
-        '302':
-          description: Redirect to resolved URL
-          headers:
-            Location:
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -71,7 +64,14 @@ paths:
                 properties:
                   redirect_url:
                     type: string
-                    description: Redirect url
+                    description: Redirect url      
+        '302':
+          description: Redirect to resolved URL
+          headers:
+            Location:
+              schema:
+                type: string
+          content: {}
         '400':
           $ref: '#/components/responses/400'
         '404':
