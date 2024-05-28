@@ -15,27 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from fastapi import FastAPI
-from starlette.middleware.cors import CORSMiddleware
+from fastapi import APIRouter
 
-from api.resources.routes import router
-from core.config import API_PREFIX, ALLOWED_HOSTS, VERSION, PROJECT_NAME, DEBUG
+from api.resources import resolver_view
 
+router = APIRouter()
 
-def get_application() -> FastAPI:
-    application = FastAPI(title=PROJECT_NAME, debug=DEBUG, version=VERSION)
-
-    application.add_middleware(
-        CORSMiddleware,
-        allow_origins=ALLOWED_HOSTS or ["*"],
-        allow_credentials=True,
-        allow_methods=["GET"],
-        allow_headers=["*"],
-    )
-
-    application.include_router(router, prefix=API_PREFIX)
-
-    return application
-
-
-app = get_application()
+router.include_router(resolver_view.router, tags=["resolver"], prefix="/id")
