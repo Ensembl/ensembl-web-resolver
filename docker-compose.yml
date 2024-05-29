@@ -14,7 +14,6 @@
 #    limitations under the License.
 #
 
-version: '2'
 services:
   resolver_api:
     build: 
@@ -24,10 +23,8 @@ services:
       - .env
     environment:
       - PORT=${PORT}
+      - DEBUG=true
     container_name: resolver-api
-    tty: true
-    # init: true
-#    command: "/bin/bash"
     ports:
       - ${PORT}:${PORT}
     volumes:

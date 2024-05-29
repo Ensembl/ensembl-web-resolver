@@ -29,7 +29,7 @@ API_PREFIX = "/api"
 
 config = Config(".env")
 
-ENSEMBL_SEARCH_HUB_API: str = config("ENSEMBL_SEARCH_HUB_API", cast=str, default="0.0.0.0:8083/search-stable-id")
+ENSEMBL_SEARCH_HUB_API: str = config("ENSEMBL_SEARCH_HUB_API", cast=str, default="http://ensembl-search-hub-svc:8083/api/search/stable-id")
 DEFAULT_APP = config("DEFAULT_APP", cast=str, default="entity-viewer")
 ENSEMBL_URL = config("ENSEMBL_URL", cast=str, default="http://beta.ensembl.org")
 DEBUG: bool = config("DEBUG", cast=bool, default=False)
