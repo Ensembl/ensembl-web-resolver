@@ -44,7 +44,7 @@ variables:
   
 .deploy_rules:
   rules:
-    - if: '$CI_DEPLOY_FREEZE == null && $CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_DEPLOY_FREEZE == null && $CI_COMMIT_BRANCH == "add-api-endpoint"'
       when: on_success
 
 # Build docker image for all branches
