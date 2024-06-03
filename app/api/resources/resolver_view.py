@@ -41,6 +41,9 @@ def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca:
 
     genome_id = matches[0].get("genome_id")
 
-    url=f"{ENSEMBL_URL}/{app}/{genome_id}/{type}:{stable_id}"
+    if (app == "entity-viewer"):
+      url=f"{ENSEMBL_URL}/{app}/{genome_id}/{type}:{stable_id}"
+    else:
+      url=f"{ENSEMBL_URL}/{app}/{genome_id}?focus={type}:{stable_id}"
 
     return RedirectResponse(url)
