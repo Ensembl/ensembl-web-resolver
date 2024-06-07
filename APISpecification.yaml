@@ -11,7 +11,7 @@ tags:
   - name: resolver
     description: Resolver API resolves external urls to Ensembl
 paths:
-  /resolve/{stable_id}:
+  /id/{stable_id}:
     get:
       summary: Resolve stable ID with optional query params
       description: Resolves to a beta url when a stable id wih optional query params provided

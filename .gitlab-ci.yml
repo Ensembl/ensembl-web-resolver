@@ -1,0 +1,138 @@
+# Stages for the CI/CD job
+stages:
+  - setup
+  - build
+  - deploy
+
+variables:
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}
+  BASE: k8s/base
+
+# Template to build docker image
+.build:
+  stage: build
+  image: docker
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t ${DOCKER_IMAGE} --no-cache -f Dockerfile .
+    - docker push ${DOCKER_IMAGE}
+    # remove local image from shared runner
+    - docker rmi ${DOCKER_IMAGE}
+    - docker logout $CI_REGISTRY
+
+  rules:
+    - if: '$CI_DEPLOY_FREEZE == null'
+      when: always
+
+.deploy:
+  stage: deploy
+  image: dockerhub.ebi.ac.uk/ensembl-web/deploy-tools:latest
+  before_script:
+    - kubectl config use-context ${AGENT}
+    - kubectl config set-context --current --namespace=${NS}  
+  script:
+    - git clone https://gitlab.ebi.ac.uk/ensembl-web/ensembl-k8s-manifests.git
+    - git -C ensembl-k8s-manifests/ checkout resolver-k8s
+    - cd ensembl-k8s-manifests/ensembl-web-resolver
+    - kustomize edit set image DOCKER_IMAGE=${DOCKER_IMAGE}
+    - kubectl apply -k ./
+
+  
+.deploy_rules:
+  rules:
+    - if: '$CI_DEPLOY_FREEZE == null && $CI_COMMIT_BRANCH == "add-api-endpoint"'
+      when: on_success
+
+# Build docker image for all branches
+build:
+  extends: .build
+
+# Prod:WP40:HL:
+Prod:
+  extends:
+    - .deploy
+    - .deploy_rules
+  environment:
+    name: production
+  variables:
+    AGENT: ${PROD_AGENT}
+    NS: ${PROS_NS}
+
+# Deploy jobs for new k8s cluster
+#Staging:WP40:HL:
+Staging:
+  extends: 
+    - .deploy
+    - .deploy_rules
+  environment:
+    name: staging
+  variables:
+    AGENT: ${STAGING_AGENT}
+    NS: ${STAGING_NS}
+
+#Internal:WP40:HL:
+Internal:
+  extends:
+    - .deploy
+    - .deploy_rules
+  environment:
+    name: internal
+  variables:
+    AGENT: ${INTERNAL_AGENT}
+    NS: ${INTERMAL_NS}
+
+# Deployment for dev-2020.ensembl.org
+#Dev:WP51:HL:
+Dev:
+  extends: 
+    - .deploy
+    - .deploy_rules
+  environment:
+    name: development
+  variables:
+    AGENT: ${DEV_AGENT}
+    NS: ${DEV_NS}
+
+# Setup Review app in its own namespace named by branch name (CI_COMMIT_REF_SLUG)
+Setup:Review:
+  stage: setup
+  image: dockerhub.ebi.ac.uk/ensembl-web/deploy-tools:latest
+  environment:
+    name: development
+  script:
+    - kubectl create namespace ${CI_COMMIT_REF_SLUG} --dry-run=client -o yaml | kubectl apply -f -
+    - kubectl create configmap metadata-api-configmap --from-env-file=.env.sample --dry-run=client -o yaml | kubectl apply -f -
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && 
+          $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000" && 
+          $CI_COMMIT_REF_NAME !~  "/^nodeploy\/.*$/"
+      when: always
+
+#Review:WP51:HL:
+Review:
+  extends: .deploy
+  environment:
+    name: development
+  rules:
+    - if: '$CI_DEPLOY_FREEZE == null && $CI_COMMIT_BRANCH != "dev"  && $CI_COMMIT_BRANCH != "master"'
+      when: on_success
+  variables:
+    AGENT: ${REVIEW_AGENT}
+    NS: ${CI_COMMIT_REF_SLUG}
+
+#Prod:WP41:HX:
+Fallback:
+  extends: 
+    - .deploy
+    - .deploy_rules
+  environment:
+    name: fallback
+  variables:
+    AGENT: ${FALLABACK_AGENT}
+    NS: ${FALLBACK_NS}
+
+

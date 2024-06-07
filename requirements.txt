@@ -1,0 +1,6 @@
+aiohttp==3.9.5
+fastapi==0.111.0
+loguru==0.7.2
+pydantic==2.7.1
+Requests==2.32.2
+# starlette==0.37.2
