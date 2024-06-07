@@ -9,7 +9,3 @@ class SearchPayload(BaseModel):
   per_page: int = 1
   # gca: Optional[str] = Field (default = None, title = "GCA accession id for the genome")
   # app: Optional[Literal['genome_browser', 'entity_viewer']] = Field (default = "entity_viewer", title = "Preferred app to be redirected to")
-
-# class 
-# class ResultPayload(BaseModel):
-#   matches: []
