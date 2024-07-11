@@ -21,4 +21,4 @@ from api.resources import resolver_view
 
 router = APIRouter()
 
-router.include_router(resolver_view.router, tags=["resolver"], prefix="/id")
+router.include_router(resolver_view.router, tags=["resolver"])
