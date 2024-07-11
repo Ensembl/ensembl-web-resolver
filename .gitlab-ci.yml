@@ -60,7 +60,7 @@ Prod:
     name: production
   variables:
     AGENT: ${PROD_AGENT}
-    NS: ${PROS_NS}
+    NS: ${PROD_NS}
 
 # Deploy jobs for new k8s cluster
 #Staging:WP40:HL:
@@ -83,7 +83,7 @@ Internal:
     name: internal
   variables:
     AGENT: ${INTERNAL_AGENT}
-    NS: ${INTERMAL_NS}
+    NS: ${INTERNAL_NS}
 
 # Deployment for dev-2020.ensembl.org
 #Dev:WP51:HL:
