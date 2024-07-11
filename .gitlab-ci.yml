@@ -44,7 +44,7 @@ variables:
   
 .deploy_rules:
   rules:
-    - if: '$CI_DEPLOY_FREEZE == null && $CI_COMMIT_BRANCH == "add-api-endpoint"'
+    - if: '$CI_DEPLOY_FREEZE == null && $CI_COMMIT_BRANCH == "main"'
       when: on_success
 
 # Build docker image for all branches
@@ -62,40 +62,7 @@ Prod:
     AGENT: ${PROD_AGENT}
     NS: ${PROD_NS}
 
-# Deploy jobs for new k8s cluster
-#Staging:WP40:HL:
-Staging:
-  extends: 
-    - .deploy
-    - .deploy_rules
-  environment:
-    name: staging
-  variables:
-    AGENT: ${STAGING_AGENT}
-    NS: ${STAGING_NS}
 
-#Internal:WP40:HL:
-Internal:
-  extends:
-    - .deploy
-    - .deploy_rules
-  environment:
-    name: internal
-  variables:
-    AGENT: ${INTERNAL_AGENT}
-    NS: ${INTERNAL_NS}
-
-# Deployment for dev-2020.ensembl.org
-#Dev:WP51:HL:
-Dev:
-  extends: 
-    - .deploy
-    - .deploy_rules
-  environment:
-    name: development
-  variables:
-    AGENT: ${DEV_AGENT}
-    NS: ${DEV_NS}
 
 # Setup Review app in its own namespace named by branch name (CI_COMMIT_REF_SLUG)
 Setup:Review:
@@ -118,7 +85,7 @@ Review:
   environment:
     name: development
   rules:
-    - if: '$CI_DEPLOY_FREEZE == null && $CI_COMMIT_BRANCH != "dev"  && $CI_COMMIT_BRANCH != "master"'
+    - if: '$CI_DEPLOY_FREEZE == null && $CI_COMMIT_BRANCH != "dev"  && $CI_COMMIT_BRANCH != "main"'
       when: on_success
   variables:
     AGENT: ${REVIEW_AGENT}
