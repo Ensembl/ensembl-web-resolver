@@ -17,10 +17,10 @@ limitations under the License.
 
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from api.resources.routes import router
 from core.config import API_PREFIX, ALLOWED_HOSTS, VERSION, PROJECT_NAME, DEBUG
-
 
 def get_application() -> FastAPI:
     application = FastAPI(title=PROJECT_NAME, debug=DEBUG, version=VERSION)
@@ -39,3 +39,4 @@ def get_application() -> FastAPI:
 
 
 app = get_application()
+app.mount("/static/css", StaticFiles(directory="static/css"), name="css")

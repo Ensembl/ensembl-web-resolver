@@ -1,13 +1,17 @@
+import os
 from fastapi import APIRouter, Request
 from typing import Optional
 from fastapi.responses import RedirectResponse, HTMLResponse
 from loguru import logger
 import requests, logging
+import aiohttp
+from dotenv import load_dotenv
+from jinja2 import Environment, FileSystemLoader
+from jinja2 import Template
 from core.logging import InterceptHandler
 from api.models.resolver import SearchPayload
 from api.error_response import response_error_handler
 from core.config import ENSEMBL_SEARCH_HUB_API, DEFAULT_APP, ENSEMBL_URL
-import aiohttp
 
 logging.getLogger().handlers = [InterceptHandler()]
 
@@ -24,7 +28,6 @@ def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca:
   # Get genome_ids from search api
   try:
     session = requests.Session()
-    search_results = {}
     with session.post(url=ENSEMBL_SEARCH_HUB_API,json=params.dict()) as response:
       response.raise_for_status()
       search_results = response.json()
@@ -40,23 +43,20 @@ def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca:
   if not matches:
     return response_error_handler({"status": 404})
 
-  # Get assembly information
-  meta_session = requests.Session()
-  meta_results = {}
-  resolved_genome_info = []
-
+  # Get metadata for each genome
+  results = []
   for match in matches:
     genome_id = match.get("genome_id")
     try:
-      with meta_session.get(url=f"{ENSEMBL_URL}/api/metadata/genome/{genome_id}/details") as meta_response:
-        meta_response.raise_for_status()
+      with session.get(url=f"{ENSEMBL_URL}/api/metadata/genome/{genome_id}/details") as response:
+        response.raise_for_status()
     except requests.exceptions.HTTPError as HTTPError:
       return response_error_handler({"status": HTTPError.response.status_code})
     except Exception as e:
       logger.exception(e)
       return response_error_handler({"status": 500})
     else:
-      meta_results = meta_response.json()
+      meta_results = response.json()
 
       if not meta_results:
         return response_error_handler({"status": 404})
@@ -69,25 +69,28 @@ def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca:
       meta = {
         "accession_id": meta_results["assembly"]["accession_id"],
         "assembly_name": meta_results["assembly"]["name"],
-        "species_scientific_name": meta_results["scientific_name"],
-        "taxonomy_id": meta_results["taxonomy_id"],
+        "species": meta_results["scientific_name"] if meta_results["scientific_name"] else meta_results["common_name"],
+        "type": meta_results["type"],
         "resolved_url": url
       }
 
-      resolved_genome_info.append(meta)
-    
-  if request.headers.get("content-type") == "application/json":
-    return resolved_genome_info
+      results.append(meta)
 
-  if len(resolved_genome_info) == 1:
-    return RedirectResponse(resolved_genome_info[0]["resolved_url"])
+  # return request.headers
+
+  if "application/json" in request.headers.get("accept"):
+    return results
+
+  if len(results) == 1:
+    return RedirectResponse(results[0]["resolved_url"])
   else:
-    return HTMLResponse(generate_html_content(resolved_genome_info))
+    return HTMLResponse(generate_html_content(results))
 
-def generate_html_content(resolved_genome_info):
+def generate_html_content(results):
     # Create a simple HTML page with a list of URLs
-  html_content = "<html><body><h1>Resolved URLs</h1><table border='1' style='border-collapse: collapse;'><tr><th>Assembly Name</th><th>Accession ID</th><th>Ensembl URL</th></tr>"
-  for genome_info in resolved_genome_info:
-      html_content += f'<tr><td>{genome_info["assembly_name"]}</td><td>{genome_info["accession_id"]}</td><td><a href="{genome_info["resolved_url"]}">{genome_info["resolved_url"]}</a></td></tr>'
-  html_content += "</table></body></html>"
-  return html_content
+  load_dotenv()
+  CURR_DIR = os.path.dirname(os.path.abspath(__file__))
+  env = Environment(loader=FileSystemLoader(os.path.join(CURR_DIR,"templates")))
+  interstitial_template = env.get_template("interstitial.j2")
+  interstitial_html = interstitial_template.render(results = results)
+  return interstitial_html
