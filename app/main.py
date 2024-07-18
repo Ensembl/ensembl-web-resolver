@@ -39,4 +39,4 @@ def get_application() -> FastAPI:
 
 
 app = get_application()
-app.mount("/static/css", StaticFiles(directory="static/css"), name="css")
+app.mount("/static", StaticFiles(directory="static"), name="static files")

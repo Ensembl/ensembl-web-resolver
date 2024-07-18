@@ -75,8 +75,6 @@ def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca:
 
       results.append(meta)
 
-  # return request.headers
-
   if "application/json" in request.headers.get("accept"):
     return results
 
