@@ -7,7 +7,6 @@ import requests, logging
 import aiohttp
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
-from jinja2 import Template
 from core.logging import InterceptHandler
 from api.models.resolver import SearchPayload
 from api.error_response import response_error_handler
@@ -91,6 +90,6 @@ def generate_html_content(results):
   load_dotenv()
   CURR_DIR = os.path.dirname(os.path.abspath(__file__))
   env = Environment(loader=FileSystemLoader(os.path.join(CURR_DIR,"templates")))
-  interstitial_template = env.get_template("interstitial.j2")
-  interstitial_html = interstitial_template.render(results = results)
-  return interstitial_html
+  search_results_template = env.get_template("search_results.html")
+  search_results_html = search_results_template.render(results = results)
+  return search_results_html
