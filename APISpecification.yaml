@@ -60,11 +60,25 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  redirect_url:
-                    type: string
-                    description: Redirect url      
+                type: array
+                items:
+                  type: object
+                  properties:
+                    assembly_name:
+                      type: string
+                      description: Assembly name
+                    accession_id:
+                      type: string
+                      description: Assembly accession id
+                    species_scientific_name:
+                      type: string
+                      description: Species scientific name
+                    taxonomy_id:
+                      type: integer
+                      description: Taxonomy id
+                    resolved_url:
+                      type: string
+                      description: Resolved url to Ensembl site
         '302':
           description: Redirect to resolved URL
           headers:
