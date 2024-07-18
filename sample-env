@@ -1,5 +1,5 @@
 PORT=8001
-ENSEMBL_SEARCH_HUB_API=http://host.docker.internal:8083/stable-id
+ENSEMBL_SEARCH_HUB_API=https://beta.ensembl.org/api/search/stable-id
 DEFAULT_APP=entity-viewer
 ENSEMBL_URL=http://beta.ensembl.org
 DEBUG=true
