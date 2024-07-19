@@ -1,0 +1,9 @@
+table {
+  border: 1;
+  border-collapse: collapse;
+}
+
+td, th {
+  min-width: 150px;
+  text-align: left;
+}

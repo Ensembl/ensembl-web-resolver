@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" type="text/css" href="/static/css/search_results.css">
+    <title>Ensembl Resolver</title>
+  </head>
+  <body>
+    <h1>Resolved URLs</h1>
+    <table>
+      <tr>
+        <th>Assembly Name</th>
+        <th>Accession ID</th>
+        <th>Species</th>
+        <th>Type</th>
+        <th>Resolved URL</th>
+      </tr>
+      {% for item in results %}
+        <tr>
+          <td>{{ item['assembly_name'] }}</td>
+          <td>{{ item.accession_id }}</td>
+          <td>{{ item.species }}</td>
+          <td>{{ item.type }}</td>
+          <td>
+            <a href="{{ resolved_url }}">Ensembl</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>
