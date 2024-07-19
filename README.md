@@ -4,7 +4,7 @@ The resolver service generates new Ensembl website urls for different features b
  
  `$ git clone https://github.com/Ensembl/ensembl-web-resolver.git`
  
- `$  cd ensembl-web-metadata-api`
+ `$  cd ensembl-web-resolver`
  
  `$ mv sample-env .env`
  
