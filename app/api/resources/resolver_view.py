@@ -27,7 +27,7 @@ def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca:
   # Get genome_ids from search api
   try:
     session = requests.Session()
-    with session.post(url=ENSEMBL_SEARCH_HUB_API,json=params.dict()) as response:
+    with session.post(url=ENSEMBL_SEARCH_HUB_API,json=params.model_dump()) as response:
       response.raise_for_status()
       search_results = response.json()
   except requests.exceptions.HTTPError as HTTPError:
