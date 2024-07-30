@@ -30,6 +30,9 @@ def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca:
     with session.post(url=ENSEMBL_SEARCH_HUB_API,json=params.model_dump()) as response:
       response.raise_for_status()
       search_results = response.json()
+
+      print(f"Search API response matches: {search_results}")
+
   except requests.exceptions.HTTPError as HTTPError:
     return response_error_handler({"status": HTTPError.response.status_code})
 
@@ -42,6 +45,7 @@ def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca:
   if not matches:
     return response_error_handler({"status": 404})
 
+  print(matches)
   # Get metadata for each genome
   results = []
   for match in matches:
