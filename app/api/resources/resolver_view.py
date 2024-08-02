@@ -10,7 +10,9 @@ from jinja2 import Environment, FileSystemLoader
 from core.logging import InterceptHandler
 from api.models.resolver import SearchPayload
 from api.error_response import response_error_handler
-from core.config import ENSEMBL_SEARCH_HUB_API, DEFAULT_APP, ENSEMBL_URL
+from core.config import DEFAULT_APP, ENSEMBL_URL
+from api.utils.metadata import get_metadata
+from api.utils.search import get_search_results
 
 logging.getLogger().handlers = [InterceptHandler()]
 
@@ -25,59 +27,38 @@ def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca:
   )
 
   # Get genome_ids from search api
-  try:
-    session = requests.Session()
-    with session.post(url=ENSEMBL_SEARCH_HUB_API,json=params.model_dump()) as response:
-      response.raise_for_status()
-      search_results = response.json()
+  search_results = get_search_results(params)
 
-      print(f"Search API response matches: {search_results}")
+  if not search_results:
+      return response_error_handler({"status": 404})
 
-  except requests.exceptions.HTTPError as HTTPError:
-    return response_error_handler({"status": HTTPError.response.status_code})
-
-  except Exception as e:
-    logger.exception(e)
-    return response_error_handler({"status": 500})
-  else:
-    matches = search_results.get("matches")
-
+  matches = search_results.get("matches")
   if not matches:
-    return response_error_handler({"status": 404})
+      return response_error_handler({"status": 404})
 
-  print(matches)
   # Get metadata for each genome
   results = []
   for match in matches:
     genome_id = match.get("genome_id")
-    try:
-      with session.get(url=f"{ENSEMBL_URL}/api/metadata/genome/{genome_id}/details") as response:
-        response.raise_for_status()
-    except requests.exceptions.HTTPError as HTTPError:
-      return response_error_handler({"status": HTTPError.response.status_code})
-    except Exception as e:
-      logger.exception(e)
-      return response_error_handler({"status": 500})
+    meta_results = get_metadata(genome_id)
+    if not meta_results:
+      continue
+
+    if app == "entity-viewer":
+      url = f"{ENSEMBL_URL}/{app}/{genome_id}/{type}:{stable_id}"
     else:
-      meta_results = response.json()
+      url = f"{ENSEMBL_URL}/{app}/{genome_id}?focus={type}:{stable_id}"
 
-      if not meta_results:
-        return response_error_handler({"status": 404})
+    meta = {
+      "accession_id": meta_results["assembly"]["accession_id"],
+      "assembly_name": meta_results["assembly"]["name"],
+      "scientific_name": meta_results["scientific_name"],
+      "common_name": meta_results["common_name"],
+      "type": meta_results["type"],
+      "resolved_url": url
+    }
 
-      if app == "entity-viewer":
-        url = f"{ENSEMBL_URL}/{app}/{genome_id}/{type}:{stable_id}"
-      else:
-        url = f"{ENSEMBL_URL}/{app}/{genome_id}?focus={type}:{stable_id}"
-
-      meta = {
-        "accession_id": meta_results["assembly"]["accession_id"],
-        "assembly_name": meta_results["assembly"]["name"],
-        "species": meta_results["scientific_name"] if meta_results["scientific_name"] else meta_results["common_name"],
-        "type": meta_results["type"],
-        "resolved_url": url
-      }
-
-      results.append(meta)
+    results.append(meta)
 
   if "application/json" in request.headers.get("accept"):
     return results
