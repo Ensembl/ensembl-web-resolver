@@ -29,7 +29,7 @@ API_PREFIX = ""
 
 config = Config(".env")
 
-ENSEMBL_SEARCH_HUB_API: str = config("ENSEMBL_SEARCH_HUB_API", cast=str, default="https://jsonplaceholder.typicode.com/albums/1")
+ENSEMBL_SEARCH_HUB_API: str = config("ENSEMBL_SEARCH_HUB_API", cast=str, default="http://ensembl-search-hub-svc:8083/api/search/stable-id")
 DEFAULT_APP = config("DEFAULT_APP", cast=str, default="entity-viewer")
 ENSEMBL_URL = config("ENSEMBL_URL", cast=str, default="http://beta.ensembl.org")
 DEBUG: bool = config("DEBUG", cast=bool, default=False)
