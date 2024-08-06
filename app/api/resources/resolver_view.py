@@ -1,14 +1,12 @@
 import os
 from fastapi import APIRouter, Request
-from typing import Optional
+from typing import Optional, List
 from fastapi.responses import RedirectResponse, HTMLResponse
-from loguru import logger
-import requests, logging
-import aiohttp
+import logging
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
 from core.logging import InterceptHandler
-from api.models.resolver import SearchPayload
+from api.models.resolver import SearchPayload, MetadataResult
 from api.error_response import response_error_handler
 from core.config import DEFAULT_APP, ENSEMBL_URL
 from api.utils.metadata import get_metadata
@@ -28,7 +26,6 @@ def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca:
 
   # Get genome_ids from search api
   search_results = get_search_results(params)
-
   if not search_results:
       return response_error_handler({"status": 404})
 
@@ -37,11 +34,12 @@ def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca:
       return response_error_handler({"status": 404})
 
   # Get metadata for each genome
-  results = []
+  results: List[MetadataResult] = []
+
   for match in matches:
     genome_id = match.get("genome_id")
-    meta_results = get_metadata(genome_id)
-    if not meta_results:
+    meta_result = get_metadata(genome_id)
+    if not meta_result:
       continue
 
     if app == "entity-viewer":
@@ -49,22 +47,15 @@ def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca:
     else:
       url = f"{ENSEMBL_URL}/{app}/{genome_id}?focus={type}:{stable_id}"
 
-    meta = {
-      "accession_id": meta_results["assembly"]["accession_id"],
-      "assembly_name": meta_results["assembly"]["name"],
-      "scientific_name": meta_results["scientific_name"],
-      "common_name": meta_results["common_name"],
-      "type": meta_results["type"],
-      "resolved_url": url
-    }
-
+    meta_result["resolved_url"] = url
+    meta = MetadataResult(**meta_result)
     results.append(meta)
 
   if "application/json" in request.headers.get("accept"):
     return results
 
   if len(results) == 1:
-    return RedirectResponse(results[0]["resolved_url"])
+    return RedirectResponse(results[0].resolved_url)
   else:
     return HTMLResponse(generate_html_content(results))
 

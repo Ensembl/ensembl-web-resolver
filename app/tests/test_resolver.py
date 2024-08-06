@@ -13,7 +13,7 @@ class TestResolver:
         self.app = FastAPI()
         self.app.include_router(router)
         self.client = TestClient(self.app)
-        self.default_app = "entity-viewer"
+        self.default_app = DEFAULT_APP
         self.stable_id = "ENSG0001"
         self.type = "gene"
 
@@ -64,16 +64,20 @@ class TestResolver:
         assert response.status_code == 200
         assert response.json() == [
             {
-                "accession_id": "GCA_000001405.28",
-                "assembly_name": "GRCh38",
+                "assembly": {
+                    "accession_id": "GCA_000001405.28",
+                    "name": "GRCh38"
+                },
                 "scientific_name": "Homo sapiens",
                 "common_name": "Human",
                 "type": "Genome",
                 "resolved_url": self.mocked_url.get("genome1")
             },
             {
-                "accession_id": "GCA_000001635.9",
-                "assembly_name": "GRCm38",
+                "assembly": {
+                    "accession_id": "GCA_000001635.9",
+                    "name": "GRCm38"
+                },
                 "scientific_name": "Mus musculus",
                 "common_name": "Mouse",
                 "type": "Genome",

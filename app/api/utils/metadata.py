@@ -1,6 +1,5 @@
 from loguru import logger
 import requests
-from api.models.resolver import SearchPayload
 from core.config import ENSEMBL_URL
 
 def get_metadata(genome_id: str):
