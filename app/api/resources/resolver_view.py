@@ -2,11 +2,13 @@ import os
 from fastapi import APIRouter, Request
 from typing import Optional, List
 from fastapi.responses import RedirectResponse, HTMLResponse
-import logging
+from loguru import logger
+import requests, logging
+import aiohttp
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
 from core.logging import InterceptHandler
-from api.models.resolver import SearchPayload, MetadataResult
+from api.models.resolver import SearchPayload, ResolvedPayload, MetadataResult
 from api.error_response import response_error_handler
 from core.config import DEFAULT_APP, ENSEMBL_URL
 from api.utils.metadata import get_metadata
@@ -26,6 +28,7 @@ async def resolve(request: Request, stable_id: str, type: Optional[str] = "gene"
 
   # Get genome_ids from search api
   search_results = get_search_results(params)
+
   if not search_results:
       return response_error_handler({"status": 404})
 
@@ -33,13 +36,16 @@ async def resolve(request: Request, stable_id: str, type: Optional[str] = "gene"
   if not matches:
       return response_error_handler({"status": 404})
 
-  # Get metadata for each genome
-  results: List[MetadataResult] = []
+  # Get metadata for all genomes
+  metadata_results = get_metadata(matches)
 
-  for match in matches:
-    genome_id = match.get("genome_id")
-    meta_result = get_metadata(genome_id)
-    if not meta_result:
+  results: List[ResolvedPayload] = []
+
+  for genome_id in metadata_results:
+
+    metadata = metadata_results[genome_id]
+
+    if not metadata:
       continue
 
     if app == "entity-viewer":
@@ -47,15 +53,15 @@ async def resolve(request: Request, stable_id: str, type: Optional[str] = "gene"
     else:
       url = f"{ENSEMBL_URL}/{app}/{genome_id}?focus={type}:{stable_id}"
 
-    meta_result["resolved_url"] = url
-    meta = MetadataResult(**meta_result)
-    results.append(meta)
+    metadata["resolved_url"] = url
+    resolved_payload = ResolvedPayload(**metadata)
+    results.append(resolved_payload.model_dump())
 
   if "application/json" in request.headers.get("accept"):
     return results
 
   if len(results) == 1:
-    return RedirectResponse(results[0].resolved_url)
+    return RedirectResponse(results[0]["resolved_url"])
   else:
     return HTMLResponse(generate_html_content(results))
 

@@ -9,6 +9,12 @@ class SearchPayload(BaseModel):
   # gca: Optional[str] = Field (default = None, title = "GCA accession id for the genome")
   # app: Optional[Literal['genome_browser', 'entity_viewer']] = Field (default = "entity_viewer", title = "Preferred app to be redirected to")
 
+class SearchMatch(BaseModel):
+  genome: str
+
+class SearchResult(BaseModel):
+  matches: List[SearchMatch] = []
+
 class Assembly(BaseModel):
   name: str
   accession_id: str
@@ -18,4 +24,6 @@ class MetadataResult(BaseModel):
   scientific_name: str
   common_name: str
   type: str = None
+
+class ResolvedPayload(MetadataResult):
   resolved_url: str

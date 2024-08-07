@@ -1,108 +1,103 @@
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
+import unittest
 from unittest.mock import patch
-import pytest
+from fastapi.testclient import TestClient
+from core.config import ENSEMBL_URL, DEFAULT_APP
+from main import app
 
-from api.resources.resolver_view import router, get_search_results, get_metadata, ENSEMBL_URL, DEFAULT_APP, generate_html_content, response_error_handler, SearchPayload
+class TestResolverAPI(unittest.TestCase):
+  def setUp(self):
+    self.client = TestClient(app)
+    self.api_prefix = ""
+    self.mock_search_api_url = "/id"
+    self.stable_id = "ENSG00000139618"
 
+    self.mock_single_search_results_success = {
+      "matches": [
+        {"genome_id": "genome1"}
+      ]
+    }
+    self.mock_single_metadata_results_success = {
+      "genome1": {
+        "assembly": {"accession_id": "GCA_000001405.28", "name": "GRCh38"},
+        "scientific_name": "Homo sapiens",
+        "common_name": "Human",
+        "type": "genome"
+      }
+    }
+    
+    self.mock_multiple_search_results_success = {
+      "matches": [
+        {"genome_id": "genome1"},
+        {"genome_id": "genome2"}
+      ]
+    }
 
-class TestResolver:
+    # Mock metadata API
+    self.mock_multiple_metadata_results_success = {
+      "genome1": {
+        "assembly": {"accession_id": "GCA_000001405.28", "name": "GRCh38"},
+        "scientific_name": "Homo sapiens",
+        "common_name": "Human",
+        "type": "genome"
+      },
+      "genome2": {
+        "assembly": {"accession_id": "GCA_000001405.14", "name": "GRCh37"},
+        "scientific_name": "Homo sapiens",
+        "common_name": "Human",
+        "type": "genome"
+      }
+    }
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.app = FastAPI()
-        self.app.include_router(router)
-        self.client = TestClient(self.app)
-        self.default_app = DEFAULT_APP
-        self.stable_id = "ENSG0001"
-        self.type = "gene"
+    self.mock_resolved_url = {
+      "genome1": f"{ENSEMBL_URL}/{DEFAULT_APP}/genome1/gene:{self.stable_id}",
+      "genome2": f"{ENSEMBL_URL}/{DEFAULT_APP}/genome2/gene:{self.stable_id}"
+    }
 
-        self.mocked_url = {
-            "genome1": f"{ENSEMBL_URL}/{self.default_app}/genome1/{self.type}:{self.stable_id}",
-            "genome2": f"{ENSEMBL_URL}/{self.default_app}/genome2/{self.type}:{self.stable_id}"
-        }
+  @patch("api.resources.resolver_view.get_search_results")
+  @patch("api.resources.resolver_view.get_metadata")
+  def test_resolve_success_with_json_response(self, mock_get_metadata, mock_get_search_results):
 
-        self.mock_search_results = {
-            "matches": [
-                {"genome_id": "genome1"},
-                {"genome_id": "genome2"}
-            ]
-        }
+    mock_get_search_results.return_value = self.mock_multiple_search_results_success
+    mock_get_metadata.return_value = self.mock_multiple_metadata_results_success
 
-        self.mock_metadata = {
-            "genome1": {
-                "assembly": {"accession_id": "GCA_000001405.28", "name": "GRCh38"},
-                "scientific_name": "Homo sapiens",
-                "common_name": "Human",
-                "type": "Genome"
-            },
-            "genome2": {
-                "assembly": {"accession_id": "GCA_000001635.9", "name": "GRCm38"},
-                "scientific_name": "Mus musculus",
-                "common_name": "Mouse",
-                "type": "Genome"
-            }
-        }
+    # response = self.client.get(f"{self.mock_search_api_url}/{stable_id}", follow_redirects=False, headers={"Accept": "text/html"})
+    response = self.client.get(f"{self.mock_search_api_url}/{self.stable_id}", follow_redirects=False, headers={"Accept": "application/json"})
+    self.assertEqual(response.status_code, 200)
+    self.assertIn('application/json', response.headers['content-type'])
 
-    @pytest.fixture
-    def mock_get_search_results(self):
-        with patch('api.resources.resolver_view.get_search_results') as mock:
-            mock.return_value = self.mock_search_results
-            yield mock
+    json_response = response.json()
+    self.assertEqual(len(json_response), 2)
+    self.assertEqual(json_response[0], self.mock_multiple_metadata_results_success["genome1"])
+    self.assertEqual(json_response[0]['resolved_url'], self.mock_resolved_url["genome1"])
 
-    @pytest.fixture
-    def mock_get_metadata(self):
-        with patch('api.resources.resolver_view.get_metadata') as mock:
-            def side_effect(genome_id):
-                return self.mock_metadata.get(genome_id)
-            mock.side_effect = side_effect
-            yield mock
+  @patch("api.resources.resolver_view.get_search_results")
+  @patch("api.resources.resolver_view.get_metadata")
+  def test_resolve_success_with_redirect(self, mock_get_metadata, mock_get_search_results):
 
-    def test_resolve_success_with_json_response(self, mock_get_search_results, mock_get_metadata):
-        response = self.client.get(f"/{self.stable_id}", headers={"accept": "application/json"})
+    mock_get_search_results.return_value = self.mock_single_search_results_success
+    mock_get_metadata.return_value = self.mock_single_metadata_results_success
 
-        assert response.status_code == 200
-        assert response.json() == [
-            {
-                "assembly": {
-                    "accession_id": "GCA_000001405.28",
-                    "name": "GRCh38"
-                },
-                "scientific_name": "Homo sapiens",
-                "common_name": "Human",
-                "type": "Genome",
-                "resolved_url": self.mocked_url.get("genome1")
-            },
-            {
-                "assembly": {
-                    "accession_id": "GCA_000001635.9",
-                    "name": "GRCm38"
-                },
-                "scientific_name": "Mus musculus",
-                "common_name": "Mouse",
-                "type": "Genome",
-                "resolved_url": self.mocked_url.get("genome2")
-            }
-        ]
+    response = self.client.get(f"{self.mock_search_api_url}/{self.stable_id}", follow_redirects=False)
 
-    def test_resolve_success_with_redirect(self, mock_get_search_results, mock_get_metadata):
+    self.assertEqual(response.status_code, 307)  # Temporary Redirect
+    self.assertIn("location", response.headers)
+    self.assertEqual(response.headers["location"], self.mock_resolved_url["genome1"])
 
-        mock_get_search_results.return_value = {
-            "matches": [
-                {"genome_id": "genome1"}
-            ]
-        }
+  @patch("api.resources.resolver_view.get_search_results")
+  @patch("api.resources.resolver_view.get_metadata")
+  def test_resolve_success_with_html_response(self, mock_get_metadata, mock_get_search_results):
 
-        mock_get_metadata.return_value = self.mock_metadata.get("genome1")
-        
-        response = self.client.get(f"/{self.stable_id}", follow_redirects=False)
+    mock_get_search_results.return_value = self.mock_multiple_search_results_success
+    mock_get_metadata.return_value = self.mock_multiple_metadata_results_success
 
-        assert response.status_code == 307
-        assert response.headers["location"] == self.mocked_url.get("genome1")
+    response = self.client.get(f"{self.mock_search_api_url}/{self.stable_id}", follow_redirects=False)
+    self.assertEqual(response.status_code, 200)
+    self.assertIn(self.mock_resolved_url["genome1"], response.text, 'Failed resolving multiple results with html response')
 
-    def test_resolve_success_with_html_response(self, mock_get_search_results, mock_get_metadata):
+  @patch("api.resources.resolver_view.get_search_results")
+  def test_resolve_404(self, mock_get_search_results):
 
-        response = self.client.get(f"/{self.stable_id}")
+    mock_get_search_results.return_value = {}
 
-        assert response.status_code == 200
-        assert self.mocked_url.get("genome1") in response.text
+    response = self.client.get(f"{self.mock_search_api_url}/{self.stable_id}", follow_redirects=False)
+    self.assertEqual(response.status_code, 404)
