@@ -16,7 +16,7 @@ logging.getLogger().handlers = [InterceptHandler()]
 
 router = APIRouter()
 @router.get("/{stable_id}", name="Resolver")
-def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca: Optional[str] = "", app: Optional[str] = DEFAULT_APP):
+async def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca: Optional[str] = "", app: Optional[str] = DEFAULT_APP):
 
   params = SearchPayload(
     stable_id = stable_id,
