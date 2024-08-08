@@ -10,18 +10,21 @@
       <tr>
         <th>Assembly Name</th>
         <th>Accession ID</th>
-        <th>Species</th>
+        <th>Scientific name</th>
+        <th>Common name</th>
         <th>Type</th>
         <th>Resolved URL</th>
       </tr>
       {% for item in results %}
         <tr>
-          <td>{{ item['assembly_name'] }}</td>
-          <td>{{ item.accession_id }}</td>
+          <td>{{ item.assembly.name }}</td>
+          <td>{{ item.assembly.accession_id }}</td>
+          <td>{{ item.scientific_name }}</td>
+          <td>{{ item.common_name }}</td>
           <td>{{ item.species }}</td>
           <td>{{ item.type }}</td>
           <td>
-            <a href="{{ resolved_url }}">Ensembl</a>
+            <a href="{{ item.resolved_url }}">Ensembl</a>
           </td>
         </tr>
       {% endfor %}
