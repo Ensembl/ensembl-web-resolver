@@ -1,6 +1,6 @@
 import os
 from fastapi import APIRouter, Request
-from typing import Optional, List
+from typing import Optional, Literal, List
 from fastapi.responses import RedirectResponse, HTMLResponse
 from loguru import logger
 import requests, logging
@@ -18,7 +18,7 @@ logging.getLogger().handlers = [InterceptHandler()]
 
 router = APIRouter()
 @router.get("/{stable_id}", name="Resolver")
-async def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca: Optional[str] = "", app: Optional[str] = DEFAULT_APP):
+async def resolve(request: Request, stable_id: str, type: Optional[str] = "gene", gca: Optional[str] = "", app: Optional[Literal['genome-browser', 'entity-viewer']] = DEFAULT_APP):
 
   params = SearchPayload(
     stable_id = stable_id,

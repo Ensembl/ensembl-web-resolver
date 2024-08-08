@@ -7,7 +7,7 @@ class SearchPayload(BaseModel):
   type: Optional[Literal['gene']] = Field(default = None, title = "Type of stable id, e.g. gene" )
   per_page: int = 1
   # gca: Optional[str] = Field (default = None, title = "GCA accession id for the genome")
-  # app: Optional[Literal['genome_browser', 'entity_viewer']] = Field (default = "entity_viewer", title = "Preferred app to be redirected to")
+  app: Optional[Literal['genome-browser', 'entity-viewer']] = Field (default = "entity-viewer", title = "Preferred app to be redirected to")
 
 class SearchMatch(BaseModel):
   genome: str
@@ -23,7 +23,7 @@ class MetadataResult(BaseModel):
   assembly: Assembly
   scientific_name: str
   common_name: str
-  type: str = None
+  type: Optional[str] = None
 
 class ResolvedPayload(MetadataResult):
   resolved_url: str

@@ -22,4 +22,4 @@ def get_metadata(matches: List[SearchMatch] = []):
       logger.exception(e)
       return None
 
-    return metadata_results
+  return metadata_results
