@@ -3,3 +3,4 @@ fastapi==0.111.0
 loguru==0.7.2
 pydantic==2.7.1
 Requests==2.32.2
+flake8==7.1.1
