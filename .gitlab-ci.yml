@@ -1,9 +1,9 @@
 # Stages for the CI/CD job
 stages:
-  # - setup
+  - setup
   - test
-  # - build
-  # - deploy
+  - build
+  - deploy
 
 variables:
   DOCKER_TLS_CERTDIR: ""
@@ -87,17 +87,11 @@ Test:
   before_script:
     - pip install -r requirements.txt
     - cd app/
-    - cp .env.sample .env
-    - ls -al ../
+    - cp ../sample-env .env
   script:
     - python -m unittest
-  # coverage: '/^TOTAL.+?(\d+\%)$/'
   artifacts:
     when: always
-    # reports:
-      # junit: report.xml
-  except:
-    - /^skiptest\/.*$/
 
 #Review:WP51:HL:
 Review:
