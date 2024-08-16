@@ -1,8 +1,9 @@
 # Stages for the CI/CD job
 stages:
-  - setup
-  - build
-  - deploy
+  # - setup
+  - test
+  # - build
+  # - deploy
 
 variables:
   DOCKER_TLS_CERTDIR: ""
@@ -78,6 +79,25 @@ Setup:Review:
           $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000" && 
           $CI_COMMIT_REF_NAME !~  "/^nodeploy\/.*$/"
       when: always
+
+# Run Tests
+Test:
+  stage: test
+  image: python:3.10
+  before_script:
+    - pip install -r requirements.txt
+    - cd app/
+    - cp .env.sample .env
+    - ls -al ../
+  script:
+    - python -m unittest
+  # coverage: '/^TOTAL.+?(\d+\%)$/'
+  artifacts:
+    when: always
+    # reports:
+      # junit: report.xml
+  except:
+    - /^skiptest\/.*$/
 
 #Review:WP51:HL:
 Review:
