@@ -2,7 +2,6 @@
 stages:
   - setup
   - lint
-  - format
   - test
   - build
   - deploy
@@ -89,15 +88,6 @@ Lint:
     - pip install -r requirements.txt
   script:
     - flake8 .
-  only:
-    - branches
-    - merge_requests
-
-# Formatting
-Format:
-  stage: format
-  script:
-    - black .
   only:
     - branches
     - merge_requests
