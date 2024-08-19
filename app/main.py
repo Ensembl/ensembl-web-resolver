@@ -22,6 +22,7 @@ from fastapi.staticfiles import StaticFiles
 from api.resources.routes import router
 from core.config import API_PREFIX, ALLOWED_HOSTS, VERSION, PROJECT_NAME, DEBUG
 
+
 def get_application() -> FastAPI:
     application = FastAPI(title=PROJECT_NAME, debug=DEBUG, version=VERSION)
 
