@@ -84,6 +84,7 @@ Setup:Review:
 # Linting
 Lint:
   stage: lint
+  image: python:3.10
   before_script:
     - pip install -r requirements.txt
   script:
@@ -127,5 +128,3 @@ Fallback:
   variables:
     AGENT: ${FALLABACK_AGENT}
     NS: ${FALLBACK_NS}
-
-
