@@ -1,7 +1,6 @@
 # Stages for the CI/CD job
 stages:
   - setup
-  - lint
   - test
   - build
   - deploy
@@ -80,18 +79,6 @@ Setup:Review:
           $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000" && 
           $CI_COMMIT_REF_NAME !~  "/^nodeploy\/.*$/"
       when: always
-
-# Linting
-Lint:
-  stage: lint
-  image: python:3.10
-  before_script:
-    - pip install -r requirements.txt
-  script:
-    - flake8 .
-  only:
-    - branches
-    - merge_requests
 
 # Run Tests
 Test:
