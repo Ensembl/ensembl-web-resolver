@@ -1,6 +1,7 @@
 # Stages for the CI/CD job
 stages:
   - setup
+  - test
   - build
   - deploy
 
@@ -79,6 +80,19 @@ Setup:Review:
           $CI_COMMIT_REF_NAME !~  "/^nodeploy\/.*$/"
       when: always
 
+# Run Tests
+Test:
+  stage: test
+  image: python:3.10
+  before_script:
+    - pip install -r requirements.txt
+    - cd app/
+    - cp ../sample-env .env
+  script:
+    - python -m unittest
+  artifacts:
+    when: always
+
 #Review:WP51:HL:
 Review:
   extends: .deploy
@@ -101,5 +115,3 @@ Fallback:
   variables:
     AGENT: ${FALLABACK_AGENT}
     NS: ${FALLBACK_NS}
-
-
