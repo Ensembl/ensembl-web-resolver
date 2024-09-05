@@ -7,9 +7,14 @@ info:
   version: 0.0.1
 servers:
   - url: https://resolver.ensembl.org
+tags:
+  - name: resolver
+    description: Resolver API resolves external urls to Ensembl
 paths:
   /id/{stable_id}:
     get:
+      tags:
+        - resolver
       summary: Resolve stable ID with optional query params
       description: Resolves to a beta url when a stable id wih optional query params provided
       parameters:
