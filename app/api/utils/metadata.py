@@ -18,6 +18,9 @@ def get_metadata(matches: List[SearchMatch] = []):
             ) as response:
                 response.raise_for_status()
                 metadata_results[genome_id] = response.json()
+                metadata_results[genome_id]["unversioned_stable_id"] = match.get(
+                    "unversioned_stable_id"
+                )
         except requests.exceptions.HTTPError as HTTPError:
             logger.error(f"HTTPError: {HTTPError}")
             return None

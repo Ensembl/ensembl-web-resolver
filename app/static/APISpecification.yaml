@@ -61,18 +61,24 @@ paths:
                 items:
                   type: object
                   properties:
-                    assembly_name:
-                      type: string
-                      description: Assembly name
-                    accession_id:
-                      type: string
-                      description: Assembly accession id
-                    species_scientific_name:
+                    assembly:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Assembly name
+                        accession_id:
+                          type: string
+                          description: Assembly accession id
+                    scientific_name:
                       type: string
                       description: Species scientific name
-                    taxonomy_id:
-                      type: integer
-                      description: Taxonomy id
+                    common_name:
+                      type: string
+                      description: Species common name
+                    type:
+                      type: string
+                      description: Genome type
                     resolved_url:
                       type: string
                       description: Resolved url to Ensembl site
