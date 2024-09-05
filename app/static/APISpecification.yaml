@@ -7,9 +7,6 @@ info:
   version: 0.0.1
 servers:
   - url: https://resolver.ensembl.org
-tags:
-  - name: resolver
-    description: Resolver API resolves external urls to Ensembl
 paths:
   /id/{stable_id}:
     get:
@@ -39,9 +36,9 @@ paths:
           required: false
           schema:
             type: string
-            enum: [genome_browser, entity_viewer]
+            enum: [genome-browser, entity-viewer]
             example:
-              genome_browser
+              genome-browser
         - name: gca
           in: query
           description: GCA assembly accession id of the genome
