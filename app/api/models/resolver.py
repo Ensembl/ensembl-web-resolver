@@ -15,6 +15,7 @@ class SearchPayload(BaseModel):
 
 class SearchMatch(BaseModel):
     genome: str
+    unversioned_stable_id: str
 
 
 class SearchResult(BaseModel):

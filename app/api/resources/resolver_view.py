@@ -51,9 +51,9 @@ async def resolve(
             continue
 
         if app == "entity-viewer":
-            url = f"{ENSEMBL_URL}/{app}/{genome_id}/{type}:{stable_id}"
+            url = f"{ENSEMBL_URL}/{app}/{genome_id}/{type}:{metadata['unversioned_stable_id']}"
         else:
-            url = f"{ENSEMBL_URL}/{app}/{genome_id}?focus={type}:{stable_id}"
+            url = f"{ENSEMBL_URL}/{app}/{genome_id}?focus={type}:{metadata['unversioned_stable_id']}"
 
         metadata["resolved_url"] = url
         resolved_payload = ResolvedPayload(**metadata)

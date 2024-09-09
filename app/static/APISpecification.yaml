@@ -13,6 +13,8 @@ tags:
 paths:
   /id/{stable_id}:
     get:
+      tags:
+        - resolver
       summary: Resolve stable ID with optional query params
       description: Resolves to a beta url when a stable id wih optional query params provided
       parameters:
@@ -39,9 +41,9 @@ paths:
           required: false
           schema:
             type: string
-            enum: [genome_browser, entity_viewer]
+            enum: [genome-browser, entity-viewer]
             example:
-              genome_browser
+              genome-browser
         - name: gca
           in: query
           description: GCA assembly accession id of the genome
@@ -64,18 +66,24 @@ paths:
                 items:
                   type: object
                   properties:
-                    assembly_name:
-                      type: string
-                      description: Assembly name
-                    accession_id:
-                      type: string
-                      description: Assembly accession id
-                    species_scientific_name:
+                    assembly:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Assembly name
+                        accession_id:
+                          type: string
+                          description: Assembly accession id
+                    scientific_name:
                       type: string
                       description: Species scientific name
-                    taxonomy_id:
-                      type: integer
-                      description: Taxonomy id
+                    common_name:
+                      type: string
+                      description: Species common name
+                    type:
+                      type: string
+                      description: Genome type
                     resolved_url:
                       type: string
                       description: Resolved url to Ensembl site

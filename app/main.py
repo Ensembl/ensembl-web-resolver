@@ -18,13 +18,21 @@ limitations under the License.
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.openapi.docs import get_swagger_ui_html
 
 from api.resources.routes import router
 from core.config import API_PREFIX, ALLOWED_HOSTS, VERSION, PROJECT_NAME, DEBUG
 
 
 def get_application() -> FastAPI:
-    application = FastAPI(title=PROJECT_NAME, debug=DEBUG, version=VERSION)
+    application = FastAPI(
+        title=PROJECT_NAME,
+        debug=DEBUG,
+        version=VERSION,
+        openapi_url=None,  # Disable the default OpenAPI spec generation
+        docs_url=None,  # Disable the default Swagger UI docs
+        redoc_url=None,  # Disable the default ReDoc UI
+    )
 
     application.add_middleware(
         CORSMiddleware,
@@ -41,3 +49,10 @@ def get_application() -> FastAPI:
 
 app = get_application()
 app.mount("/static", StaticFiles(directory="static"), name="static_files")
+
+
+@app.get("/", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url="/static/APISpecification.yaml", title="API Docs"
+    )
