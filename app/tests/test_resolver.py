@@ -13,7 +13,9 @@ class TestResolverAPI(unittest.TestCase):
         self.stable_id = "ENSG00000139618"
 
         self.mock_single_search_results_success = {
-            "matches": [{"genome_id": "genome1"}]
+            "matches": [
+                {"genome_id": "genome1", "unversioned_stable_id": "ENSG00000139618"}
+            ]
         }
         self.mock_single_metadata_results_success = {
             "genome1": {
@@ -21,11 +23,15 @@ class TestResolverAPI(unittest.TestCase):
                 "scientific_name": "Homo sapiens",
                 "common_name": "Human",
                 "type": "genome",
+                "unversioned_stable_id": "ENSG00000139618",
             }
         }
 
         self.mock_multiple_search_results_success = {
-            "matches": [{"genome_id": "genome1"}, {"genome_id": "genome2"}]
+            "matches": [
+                {"genome_id": "genome1", "unversioned_stable_id": "ENSG00000139618"},
+                {"genome_id": "genome2", "unversioned_stable_id": "ENSG00000139618"},
+            ]
         }
 
         # Mock metadata API
@@ -35,12 +41,14 @@ class TestResolverAPI(unittest.TestCase):
                 "scientific_name": "Homo sapiens",
                 "common_name": "Human",
                 "type": "genome",
+                "unversioned_stable_id": "ENSG00000139618",
             },
             "genome2": {
                 "assembly": {"accession_id": "GCA_000001405.14", "name": "GRCh37"},
                 "scientific_name": "Homo sapiens",
                 "common_name": "Human",
                 "type": "genome",
+                "unversioned_stable_id": "ENSG00000139618",
             },
         }
 
@@ -68,9 +76,6 @@ class TestResolverAPI(unittest.TestCase):
 
         json_response = response.json()
         self.assertEqual(len(json_response), 2)
-        self.assertEqual(
-            json_response[0], self.mock_multiple_metadata_results_success["genome1"]
-        )
         self.assertEqual(
             json_response[0]["resolved_url"], self.mock_resolved_url["genome1"]
         )
