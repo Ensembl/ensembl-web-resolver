@@ -29,3 +29,21 @@ def get_metadata(matches: List[SearchMatch] = []):
             return None
 
     return metadata_results
+
+
+def get_genome_id_from_accession(accession_id: str):
+
+    try:
+        session = requests.Session()
+        with session.get(
+            url=f"{ENSEMBL_URL}/api/metadata/genomeid/{accession_id}"
+        ) as response:
+            response.raise_for_status()
+            response_json = response.json()
+            return response_json
+    except requests.exceptions.HTTPError as HTTPError:
+        logger.error(f"HTTPError: {HTTPError}")
+        return None
+    except Exception as e:
+        logger.exception(e)
+        return None
