@@ -31,13 +31,14 @@ def get_metadata(matches: List[SearchMatch] = []):
     return metadata_results
 
 
-def get_genome_id_from_accession(accession_id: str):
+def get_genome_id_from_assembly_accession_id(accession_id: str):
 
     try:
         session = requests.Session()
-        with session.get(
-            url=f"{ENSEMBL_URL}/api/metadata/genomeid/{accession_id}"
-        ) as response:
+        metadata_api_url = (
+            f"{ENSEMBL_URL}/api/metadata/genome?assembly_accession_id={accession_id}"
+        )
+        with session.get(url=metadata_api_url) as response:
             response.raise_for_status()
             response_json = response.json()
             return response_json
