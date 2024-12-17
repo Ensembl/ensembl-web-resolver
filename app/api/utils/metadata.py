@@ -32,7 +32,6 @@ def get_metadata(matches: List[SearchMatch] = []):
 
 
 def get_genome_id_from_assembly_accession_id(accession_id: str):
-
     try:
         session = requests.Session()
         metadata_api_url = (
