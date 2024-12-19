@@ -1,7 +1,7 @@
 from loguru import logger
 import requests
 from typing import List
-from core.config import ENSEMBL_URL
+from core.config import ENSEMBL_URL, NCBI_DATASETS_URL
 from api.models.resolver import SearchMatch
 
 
@@ -23,10 +23,10 @@ def get_metadata(matches: List[SearchMatch] = []):
                 )
         except requests.exceptions.HTTPError as HTTPError:
             logger.error(f"HTTPError: {HTTPError}")
-            return None
+            raise HTTPError
         except Exception as e:
             logger.exception(e)
-            return None
+            raise e
 
     return metadata_results
 
@@ -35,15 +35,37 @@ def get_genome_id_from_assembly_accession_id(accession_id: str):
     try:
         session = requests.Session()
         metadata_api_url = (
-            f"{ENSEMBL_URL}/api/metadata/genome?assembly_accession_id={accession_id}"
+            f"{ENSEMBL_URL}/api/metadata/genomeid?assembly_accession_id={accession_id}"
         )
         with session.get(url=metadata_api_url) as response:
             response.raise_for_status()
-            response_json = response.json()
-            return response_json
+            return response.json()
     except requests.exceptions.HTTPError as HTTPError:
         logger.error(f"HTTPError: {HTTPError}")
-        return None
+        raise HTTPError
     except Exception as e:
         logger.exception(e)
-        return None
+        raise e
+
+
+def get_assembly_accession_from_ncbi(accession_id: str):
+    try:
+        session = requests.Session()
+        ncbi_dataset_api_url = (
+            f"{NCBI_DATASETS_URL}/genome/accession/{accession_id}/dataset_report"
+        )
+
+        with session.get(url=ncbi_dataset_api_url) as response:
+            response.raise_for_status()
+            response_json = response.json()
+            if response_json and response_json["reports"]:
+                return response_json["reports"][0]
+            else:
+                return None
+
+    except requests.exceptions.HTTPError as HTTPError:
+        logger.error(f"HTTPError: {HTTPError}")
+        raise HTTPError
+    except Exception as e:
+        logger.exception(e)
+        raise e

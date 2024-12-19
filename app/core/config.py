@@ -36,6 +36,10 @@ ENSEMBL_SEARCH_HUB_API: str = config(
 )
 DEFAULT_APP = config("DEFAULT_APP", cast=str, default="entity-viewer")
 ENSEMBL_URL = config("ENSEMBL_URL", cast=str, default="https://beta.ensembl.org")
+NCBI_DATASETS_URL = config(
+    "NCBI_DATASETS_URL", cast=str, default="https://api.ncbi.nlm.nih.gov/datasets/v2"
+)
+
 DEBUG: bool = config("DEBUG", cast=bool, default=False)
 PROJECT_NAME: str = config("PROJECT_NAME", default="Ensembl Web Resolver")
 ALLOWED_HOSTS: list[str] = config(
