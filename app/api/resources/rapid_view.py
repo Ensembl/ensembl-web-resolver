@@ -20,7 +20,6 @@ router = APIRouter()
 async def resolve_species(
     request: Request, species_url_name: str, subpath: str = "", r: str = Query(None)
 ):
-
     assembly_accession_id = format_assembly_accession(species_url_name)
 
     genome_object = get_genome_id_from_assembly_accession_id(assembly_accession_id)
@@ -36,7 +35,7 @@ async def resolve_species(
         r = query_params.get("r", [None])[0]
         g = query_params.get("g", [None])[0]
 
-        if subpath == "":
+        if subpath == "" or re.search("Info/Index", subpath, re.IGNORECASE):
             url = f"{ENSEMBL_URL}/species/{genome_id}"
         elif re.search("Location", subpath):
             url = f"{ENSEMBL_URL}/genome-browser/{genome_id}?focus=location:{r}"
