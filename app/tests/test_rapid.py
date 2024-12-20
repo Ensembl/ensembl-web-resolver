@@ -25,7 +25,7 @@ class TestRapid(unittest.TestCase):
             "genome_tag": "xyz",
         }
 
-        self.mock_ncbi_accession = {"paired_accession": "GCF_000001405.40"}
+        self.mock_ncbi_accession = "GCF_000001405.40"
 
         self.mock_resolved_url = {
             "genome1": f"{ENSEMBL_URL}/species/genome_uuid1",
@@ -33,10 +33,10 @@ class TestRapid(unittest.TestCase):
         }
 
     @patch("api.resources.rapid_view.get_genome_id_from_assembly_accession_id")
-    @patch("api.resources.rapid_view.get_assembly_accession_from_ncbi")
+    @patch("api.resources.rapid_view.format_assembly_accession")
     def test_rapid_species_home_success(
         self,
-        mock_get_assembly_accession_from_ncbi,
+        mock_format_assembly_accession,
         mock_get_genome_id_from_assembly_accession_id,
     ):
 
@@ -44,7 +44,7 @@ class TestRapid(unittest.TestCase):
         mock_get_genome_id_from_assembly_accession_id.return_value = (
             self.mock_genome_id_response1
         )
-        mock_get_assembly_accession_from_ncbi.return_value = self.mock_ncbi_accession
+        mock_format_assembly_accession.return_value = self.mock_ncbi_accession
 
         response = self.client.get(
             f"{self.mock_rapid_api_url}/{self.species_url_name}/",

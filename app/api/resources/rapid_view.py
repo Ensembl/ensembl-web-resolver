@@ -1,59 +1,61 @@
-from fastapi import APIRouter, Request, HTTPException
+from urllib.parse import parse_qs
+from fastapi import APIRouter, Request, HTTPException, Query
 from fastapi.responses import RedirectResponse
 import logging
 import re
 from core.logging import InterceptHandler
 from core.config import ENSEMBL_URL
-from api.utils.metadata import (
-    get_genome_id_from_assembly_accession_id,
-    get_assembly_accession_from_ncbi,
-)
+from api.utils.metadata import get_genome_id_from_assembly_accession_id
+from api.utils.rapid import format_assembly_accession
 
 logging.getLogger().handlers = [InterceptHandler()]
 
 router = APIRouter()
 
 
-# Resolve species home
-# https://rapid.ensembl.org/Homo_sapiens_GCA_009914755.4/
-# https://rapid.ensembl.org/Homo_sapiens_GCA_009914755.4/Info/Index
+# Resolve rapid urls
+@router.get("/{species_url_name}", name="Rapid Species Home")
+@router.get("/{species_url_name}/", name="Rapid Species Home")
 @router.get("/{species_url_name}/{subpath:path}", name="Rapid Species Home")
-async def resolve_species(request: Request, species_url_name: str, subpath: str):
-    if re.search("_GCA_|_GCF_", species_url_name):
-        _, accession_id = re.split("_GCA_|_GCF_", species_url_name)
-    else:
-        logging.error("Genome url name missing GCA assembly accession id")
-        raise HTTPException(
-            status_code=400, detail="Genome url name missing GCA assembly accession id"
-        )
+async def resolve_species(
+    request: Request, species_url_name: str, subpath: str = "", r: str = Query(None)
+):
 
-    assembly_accession_id = "GCA_" + accession_id
-
-    # RefSeqs have GCF prefix but version could be different. So fetch it from ncbi
-    if assembly_accession_id.endswith("rs"):
-        trimmed_assembly_accession_id = re.sub("rs$", "", assembly_accession_id)
-        ncbi_dataset_report = get_assembly_accession_from_ncbi(
-            trimmed_assembly_accession_id
-        )
-
-        if ncbi_dataset_report:
-            assembly_accession_id = ncbi_dataset_report["paired_accession"]
-        else:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Genome not found for accession {assembly_accession_id}",
-            )
+    assembly_accession_id = format_assembly_accession(species_url_name)
 
     genome_object = get_genome_id_from_assembly_accession_id(assembly_accession_id)
 
     if genome_object:
-        genome_id = genome_object["genome_uuid"]
-        genome_tag = genome_object["genome_tag"]
-        if genome_tag:
-            url = f"{ENSEMBL_URL}/species/{genome_tag}"
-        else:
+        genome_id = genome_object["genome_tag"] or genome_object["genome_uuid"]
+
+        # Extract specific parameters because Ensembl url uses ; instead of &
+        raw_query_string = request.scope["query_string"].decode()
+        query_string = raw_query_string.replace(";", "&")
+        query_params = parse_qs(query_string)
+
+        r = query_params.get("r", [None])[0]
+        g = query_params.get("g", [None])[0]
+
+        if subpath == "":
             url = f"{ENSEMBL_URL}/species/{genome_id}"
+        elif re.search("Location", subpath):
+            url = f"{ENSEMBL_URL}/genome-browser/{genome_id}?focus=location:{r}"
+        elif re.search("Gene", subpath):
+            if re.search("Gene/Compara_Homolog", subpath):
+                url = f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{g}?view=homology"
+            else:
+                url = f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{g}"
+
+        elif re.search("Transcript", subpath):
+            if re.search("Domains|ProteinSummary", subpath):
+                url = f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{g}?view=protein"
+            else:
+                url = f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{g}"
+        else:
+            url = ENSEMBL_URL
+
         return RedirectResponse(url)
+
     else:
         raise HTTPException(status_code=404, detail="Genome not found")
 
