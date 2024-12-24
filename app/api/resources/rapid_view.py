@@ -2,11 +2,10 @@ from urllib.parse import parse_qs
 from fastapi import APIRouter, Request, HTTPException, Query
 from fastapi.responses import RedirectResponse
 import logging
-import re
 from core.logging import InterceptHandler
 from core.config import ENSEMBL_URL
 from api.utils.metadata import get_genome_id_from_assembly_accession_id
-from api.utils.rapid import format_assembly_accession
+from api.utils.rapid import construct_url, format_assembly_accession
 
 logging.getLogger().handlers = [InterceptHandler()]
 
@@ -55,26 +54,3 @@ async def resolve_species(
 @router.get("/", name="Rapid Home")
 async def resolve_home(request: Request):
     return RedirectResponse(ENSEMBL_URL)
-
-
-def construct_url(genome_id, subpath, query_params):
-    location = query_params.get("r", [None])[0]
-    gene_id = query_params.get("g", [None])[0]
-
-    if subpath == "" or re.search("Info/Index", subpath, re.IGNORECASE):
-        return f"{ENSEMBL_URL}/species/{genome_id}"
-    elif re.search("Location", subpath):
-        return f"{ENSEMBL_URL}/genome-browser/{genome_id}?focus=location:{location}"
-    elif re.search("Gene", subpath):
-        if re.search("Gene/Compara_Homolog", subpath):
-            return (
-                f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{gene_id}?view=homology"
-            )
-        return f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{gene_id}"
-    elif re.search("Transcript", subpath):
-        if re.search("Domains|ProteinSummary", subpath):
-            return (
-                f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{gene_id}?view=protein"
-            )
-        return f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{gene_id}"
-    return ENSEMBL_URL
