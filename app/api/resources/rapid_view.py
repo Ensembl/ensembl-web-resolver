@@ -13,7 +13,6 @@ router = APIRouter()
 
 
 # Resolve rapid urls
-@router.get("/{species_url_name}", name="Rapid Species Resources")
 @router.get("/{species_url_name}/", name="Rapid Species Resources")
 @router.get("/{species_url_name}/{subpath:path}", name="Rapid Species Resources")
 async def resolve_species(
