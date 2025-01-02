@@ -3,3 +3,4 @@ ENSEMBL_SEARCH_HUB_API=https://beta.ensembl.org/api/search/stable-id
 DEFAULT_APP=entity-viewer
 ENSEMBL_URL=http://beta.ensembl.org
 DEBUG=true
+NCBI_DATASETS_URL=https://api.ncbi.nlm.nih.gov/datasets/v2

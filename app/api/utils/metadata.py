@@ -23,9 +23,26 @@ def get_metadata(matches: List[SearchMatch] = []):
                 )
         except requests.exceptions.HTTPError as HTTPError:
             logger.error(f"HTTPError: {HTTPError}")
-            return None
+            raise HTTPError
         except Exception as e:
             logger.exception(e)
-            return None
+            raise e
 
     return metadata_results
+
+
+def get_genome_id_from_assembly_accession_id(accession_id: str):
+    try:
+        session = requests.Session()
+        metadata_api_url = (
+            f"{ENSEMBL_URL}/api/metadata/genomeid?assembly_accession_id={accession_id}"
+        )
+        with session.get(url=metadata_api_url) as response:
+            response.raise_for_status()
+            return response.json()
+    except requests.exceptions.HTTPError as HTTPError:
+        logger.error(f"HTTPError: {HTTPError}")
+        raise HTTPError
+    except Exception as e:
+        logger.exception(e)
+        raise e
