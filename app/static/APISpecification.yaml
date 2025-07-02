@@ -8,13 +8,15 @@ info:
 servers:
   - url: https://resolver.ensembl.org
 tags:
-  - name: resolver
+  - name: Resolver
     description: Resolver API resolves external urls to Ensembl
+  - name: Rapid
+    description: Resolver API to resolve rapid site URL to Ensembl
 paths:
   /id/{stable_id}:
     get:
       tags:
-        - resolver
+        - Resolver
       summary: Resolve stable ID with optional query params
       description: Resolves to a beta url when a stable id wih optional query params provided
       parameters:
@@ -94,6 +96,235 @@ paths:
               schema:
                 type: string
           content: {}
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /rapid:
+    get:
+      summary: Resolve rapid site url
+      description: Resolves to Ensembl site url (home page).
+      tags:
+        - Rapid
+      responses:
+        '301':
+          description: Redirect to resolved URL
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Ensembl URL
+          content: {}
+        '200':
+          description: OK
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Ensembl URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    resolved_url:
+                      type: string
+                      description: Resolved url to Ensembl site
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /rapid/Blast:
+    get:
+      summary: Resolve rapid site blast url
+      description: Resolves to Ensembl site blast url.
+      tags:
+        - Rapid
+      responses:
+        '301':
+          description: Redirect to Ensembl blast page
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Ensembl blast URL
+          content: {}
+        '200':
+          description: OK
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Ensembl blast URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    resolved_url:
+                      type: string
+                      description: Resolved url to Ensembl site help page
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /rapid/{species_url_name}:
+    get:
+      summary: Resolve rapid site url with species url name (with assembly accession)
+      description: Resolves to Ensembl site url with the species url name provided.
+      tags:
+        - Rapid
+      parameters:
+        - name: species_url_name
+          in: path
+          description: Species name with assembly accession
+          required: true
+          schema:
+            type: string
+            example: Camarhynchus_parvulus_GCA_902806625.1
+      responses:
+        '301':
+          description: Redirect to resolved URL
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Ensembl URL
+          content: {}
+        '200':
+          description: OK
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Ensembl URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    resolved_url:
+                      type: string
+                      description: Resolved url to Ensembl site
+        '422':
+          description: Unprocessable Content
+          content:
+            application/json:
+              schema:
+                example: '{"status_code": 422, "detail": "Unable to process input accession ID"}'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /rapid/{species_url_name}/{subpath}:
+    get:
+      summary: Resolve rapid site url with species url name and subpath
+      description: Resolves to Ensembl site url with the species url name and subpath provided.
+      tags:
+        - Rapid
+      parameters:
+        - name: species_url_name
+          in: path
+          description: Species name with assembly accession
+          required: true
+          schema:
+            type: string
+            example: Camarhynchus_parvulus_GCA_902806625.1
+        - name: subpath
+          in: path
+          description: Additional path under species_url_name
+          required: true
+          schema:
+            type: string
+            example: Location/View
+        - name: r
+          in: query
+          required: false
+          description: Region string
+          schema:
+            type: string
+            example: 2:361680-384534
+      responses:
+        '301':
+          description: Redirect to resolved URL
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Ensembl URL
+          content: {}
+        '200':
+          description: OK
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Ensembl URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    resolved_url:
+                      type: string
+                      description: Resolved url to Ensembl site
+        '422':
+          description: Unprocessable Content
+          content:
+            application/json:
+              schema:
+                example: '{"status_code": 422, "detail": "Unable to process input accession ID"}'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /rapid/info/{subpath}:
+    get:
+      summary: Resolve rapid site help and docs url
+      description: Resolves to Ensembl site help page url.
+      tags:
+        - Rapid
+      parameters:
+        - name: subpath
+          in: path
+          required: true
+          schema:
+            type: string
+            example: index.html
+      responses:
+        '301':
+          description: Redirect to Ensembl help page
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Ensembl help page URL
+          content: {}
+        '200':
+          description: OK
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Ensembl help page URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    resolved_url:
+                      type: string
+                      description: Resolved url to Ensembl site help page
         '400':
           $ref: '#/components/responses/400'
         '404':

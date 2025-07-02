@@ -36,3 +36,6 @@ class MetadataResult(BaseModel):
 
 class ResolvedPayload(MetadataResult):
     resolved_url: str
+
+class ResolvedURLResponse(BaseModel):
+    resolved_url: str

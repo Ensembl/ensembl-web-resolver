@@ -2,6 +2,7 @@ from urllib.parse import parse_qs
 from fastapi import APIRouter, Request, HTTPException, Query
 from fastapi.responses import RedirectResponse
 import logging
+from api.models.resolver import ResolvedURLResponse
 from core.logging import InterceptHandler
 from core.config import ENSEMBL_URL
 from api.utils.metadata import get_genome_id_from_assembly_accession_id
@@ -12,12 +13,24 @@ logging.getLogger().handlers = [InterceptHandler()]
 router = APIRouter()
 
 
+@router.get("/info/{subpath:path}", name="Resolve rapid help page")
+async def resolve_rapid_help(request: Request, subpath: str = ""):
+    help_page_url = f"{ENSEMBL_URL}/help"
+    return resolved_response(help_page_url, request)
+
+
+@router.get("/Blast", name="Resolve rapid blast page")
+async def resolve_rapid_blast(request: Request):
+    blast_page_url = f"{ENSEMBL_URL}/blast"
+    return resolved_response(blast_page_url, request)
+
+
 # Resolve rapid urls
-@router.get("/{species_url_name}/", name="Rapid Species Resources")
+@router.get("/{species_url_name}", name="Rapid Species Resources")
 @router.get("/{species_url_name}/{subpath:path}", name="Rapid Species Resources")
 async def resolve_species(
     request: Request, species_url_name: str, subpath: str = "", r: str = Query(None)
-) -> RedirectResponse:
+):
     assembly_accession_id = format_assembly_accession(species_url_name)
 
     if assembly_accession_id is None:
@@ -35,7 +48,7 @@ async def resolve_species(
             query_params = parse_qs(query_string, separator=";")
 
             url = construct_url(genome_id, subpath, query_params)
-            return RedirectResponse(url)
+            return resolved_response(url, request)
         else:
             raise HTTPException(status_code=404, detail="Genome not found")
 
@@ -52,4 +65,10 @@ async def resolve_species(
 
 @router.get("/", name="Rapid Home")
 async def resolve_home(request: Request):
-    return RedirectResponse(ENSEMBL_URL)
+    return resolved_response(ENSEMBL_URL, request)
+
+
+def resolved_response(url: str, request: Request):
+    if "application/json" in request.headers.get("accept"):
+        return ResolvedURLResponse(resolved_url=url)
+    return RedirectResponse(url)
