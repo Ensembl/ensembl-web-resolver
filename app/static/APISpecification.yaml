@@ -10,8 +10,8 @@ servers:
 tags:
   - name: Resolver
     description: Resolver API resolves external urls to Ensembl
-  - name: Rapid
-    description: Resolver API to resolve rapid site URL to Ensembl
+  - name: Rapid Resolver
+    description: Resolver API to resolve rapid site urls to Ensembl
 paths:
   /id/{stable_id}:
     get:
@@ -107,7 +107,7 @@ paths:
       summary: Resolve rapid site url
       description: Resolves to Ensembl site url (home page).
       tags:
-        - Rapid
+        - Rapid Resolver
       responses:
         '301':
           description: Redirect to resolved URL
@@ -143,7 +143,7 @@ paths:
       summary: Resolve rapid site blast url
       description: Resolves to Ensembl site blast url.
       tags:
-        - Rapid
+        - Rapid Resolver
       responses:
         '301':
           description: Redirect to Ensembl blast page
@@ -179,7 +179,7 @@ paths:
       summary: Resolve rapid site url with species url name (with assembly accession)
       description: Resolves to Ensembl site url with the species url name provided.
       tags:
-        - Rapid
+        - Rapid Resolver
       parameters:
         - name: species_url_name
           in: path
@@ -229,7 +229,7 @@ paths:
       summary: Resolve rapid site url with species url name and subpath
       description: Resolves to Ensembl site url with the species url name and subpath provided.
       tags:
-        - Rapid
+        - Rapid Resolver
       parameters:
         - name: species_url_name
           in: path
@@ -293,7 +293,7 @@ paths:
       summary: Resolve rapid site help and docs url
       description: Resolves to Ensembl site help page url.
       tags:
-        - Rapid
+        - Rapid Resolver
       parameters:
         - name: subpath
           in: path
