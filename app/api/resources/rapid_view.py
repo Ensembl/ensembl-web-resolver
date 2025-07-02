@@ -71,4 +71,4 @@ async def resolve_home(request: Request):
 def resolved_response(url: str, request: Request):
     if "application/json" in request.headers.get("accept"):
         return ResolvedURLResponse(resolved_url=url)
-    return RedirectResponse(url)
+    return RedirectResponse(url=url, status_code=301)
