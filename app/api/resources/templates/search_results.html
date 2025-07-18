@@ -21,8 +21,7 @@
           <td>{{ item.assembly.accession_id }}</td>
           <td>{{ item.scientific_name }}</td>
           <td>{{ item.common_name }}</td>
-          <td>{{ item.species }}</td>
-          <td>{{ item.type }}</td>
+          <td>{{ item.type.kind }} - {{ item.type.value }}</td>
           <td>
             <a href="{{ item.resolved_url }}">Ensembl</a>
           </td>
