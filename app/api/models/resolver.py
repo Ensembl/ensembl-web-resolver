@@ -32,6 +32,7 @@ class MetadataResult(BaseModel):
     scientific_name: str
     common_name: str
     type: Optional[Dict[str, str]] = None
+    is_reference: bool = False
 
 
 class ResolvedPayload(MetadataResult):
