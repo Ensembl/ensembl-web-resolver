@@ -1,4 +1,4 @@
-from typing import Optional, Literal, List
+from typing import Optional, Literal, List, Dict
 from pydantic import BaseModel, Field
 
 
@@ -31,7 +31,8 @@ class MetadataResult(BaseModel):
     assembly: Assembly
     scientific_name: str
     common_name: str
-    type: Optional[str] = None
+    type: Optional[Dict[str, str]] = None
+    is_reference: bool = False
 
 
 class ResolvedPayload(MetadataResult):

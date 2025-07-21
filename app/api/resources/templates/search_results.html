@@ -21,8 +21,17 @@
           <td>{{ item.assembly.accession_id }}</td>
           <td>{{ item.scientific_name }}</td>
           <td>{{ item.common_name }}</td>
-          <td>{{ item.species }}</td>
-          <td>{{ item.type }}</td>
+          <td>
+            {% if item.type and item.is_reference %}
+              {{ item.type.kind }} - {{ item.type.value }}, Reference
+            {% elif item.is_reference %}
+              Reference
+            {% elif item.type %}
+              {{ item.type.kind }} - {{ item.type.value }}
+            {% else %}
+              -
+            {% endif %}
+          </td>
           <td>
             <a href="{{ item.resolved_url }}">Ensembl</a>
           </td>

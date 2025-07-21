@@ -87,6 +87,9 @@ paths:
                     resolved_url:
                       type: string
                       description: Resolved url to Ensembl site
+                    is_reference:
+                      type: boolean
+                      description: Whether a genome is reference or not
         '302':
           description: Redirect to resolved URL
           headers:
