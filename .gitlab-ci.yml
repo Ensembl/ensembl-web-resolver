@@ -27,7 +27,6 @@ variables:
 
   rules:
     - if: '$CI_DEPLOY_FREEZE == null'
-      when: always
 
 .deploy:
   stage: deploy
@@ -51,6 +50,7 @@ variables:
 # Build docker image for all branches
 build:
   extends: .build
+  needs: ["Test"]
 
 # Prod:WP40:HL:
 Prod:

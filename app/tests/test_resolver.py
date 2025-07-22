@@ -10,45 +10,45 @@ class TestResolverAPI(unittest.TestCase):
         self.client = TestClient(app)
         self.api_prefix = ""
         self.mock_search_api_url = "/id"
-        self.stable_id = "ENSG00000139618"
+        self.stable_id = "ENSAROG00010015245"
 
         self.mock_single_search_results_success = {
             "matches": [
-                {"genome_id": "genome1", "unversioned_stable_id": "ENSG00000139618"}
+                {"genome_id": "genome1", "unversioned_stable_id": "ENSAROG00010015245"}
             ]
         }
         self.mock_single_metadata_results_success = {
             "genome1": {
-                "assembly": {"accession_id": "GCA_000001405.28", "name": "GRCh38"},
-                "scientific_name": "Homo sapiens",
-                "common_name": "Human",
-                "type": "genome",
-                "unversioned_stable_id": "ENSG00000139618",
+                "assembly": {"accession_id": "GCA_018555375.2", "name": "ASM1855537v1.1"},
+                "scientific_name": "Anguilla rostrata",
+                "common_name": "American eel",
+                "type": {"kind": "strain", "value": "reference"},
+                "unversioned_stable_id": "ENSAROG00010015245",
             }
         }
 
         self.mock_multiple_search_results_success = {
             "matches": [
-                {"genome_id": "genome1", "unversioned_stable_id": "ENSG00000139618"},
-                {"genome_id": "genome2", "unversioned_stable_id": "ENSG00000139618"},
+                {"genome_id": "genome1", "unversioned_stable_id": "ENSAROG00010015245"},
+                {"genome_id": "genome2", "unversioned_stable_id": "ENSAROG00010015245"},
             ]
         }
 
         # Mock metadata API
         self.mock_multiple_metadata_results_success = {
             "genome1": {
-                "assembly": {"accession_id": "GCA_000001405.28", "name": "GRCh38"},
-                "scientific_name": "Homo sapiens",
-                "common_name": "Human",
-                "type": "genome",
-                "unversioned_stable_id": "ENSG00000139618",
+                "assembly": {"accession_id": "GCA_018555375.2", "name": "ASM1855537v1.1"},
+                "scientific_name": "Anguilla rostrata",
+                "common_name": "American eel",
+                "type": {"kind": "strain", "value": "reference"},
+                "unversioned_stable_id": "ENSAROG00010015245",
             },
             "genome2": {
-                "assembly": {"accession_id": "GCA_000001405.14", "name": "GRCh37"},
-                "scientific_name": "Homo sapiens",
-                "common_name": "Human",
-                "type": "genome",
-                "unversioned_stable_id": "ENSG00000139618",
+                "assembly": {"accession_id": "GCA_018555375.3", "name": "ASM1855537v3"},
+                "scientific_name": "Anguilla rostrata",
+                "common_name": "American eel",
+                "type": {"kind": "strain", "value": "reference"},
+                "unversioned_stable_id": "ENSAROG00010015245",
             },
         }
 
