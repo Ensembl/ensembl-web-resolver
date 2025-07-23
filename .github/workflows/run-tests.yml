@@ -1,0 +1,27 @@
+name: Run Tests on PR
+
+on:
+  pull_request:
+    branches: [ "main" ]  # Runs when PR targets 'main'
+    types: [opened, synchronize]  # Runs when PR is opened or updated
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4  # Check out the repository
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          cd app/
+          cp ../sample-env .env
+          python -m unittest
