@@ -206,7 +206,7 @@ paths:
           $ref: '#/components/responses/500'
   /rapid/info/{subpath}:
     get:
-      summary: Resolve rapid site help and docs url test
+      summary: Resolve rapid site help and docs url
       description: Resolves to Ensembl site help page url.
       tags:
         - Rapid Resolver
