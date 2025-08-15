@@ -34,7 +34,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [gene, transcript, variant]
+            enum: [ gene, transcript, variant ]
             example:
               gene
         - name: app
@@ -43,7 +43,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [genome-browser, entity-viewer]
+            enum: [ genome-browser, entity-viewer ]
             example:
               genome-browser
         - name: gca
@@ -110,28 +110,9 @@ paths:
         - Rapid Resolver
       responses:
         '301':
-          description: Redirect to resolved URL
-          headers:
-            Location:
-              schema:
-                type: string
-              description: Ensembl URL
-          content: {}
+          $ref: '#/components/responses/301'
         '200':
-          description: OK
-          headers:
-            Location:
-              schema:
-                type: string
-              description: Ensembl URL
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                    resolved_url:
-                      type: string
-                      description: Resolved url to Ensembl site
+          $ref: '#/components/responses/200'
         '400':
           $ref: '#/components/responses/400'
         '404':
@@ -146,28 +127,9 @@ paths:
         - Rapid Resolver
       responses:
         '301':
-          description: Redirect to Ensembl blast page
-          headers:
-            Location:
-              schema:
-                type: string
-              description: Ensembl blast URL
-          content: {}
+          $ref: '#/components/responses/301'
         '200':
-          description: OK
-          headers:
-            Location:
-              schema:
-                type: string
-              description: Ensembl blast URL
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                    resolved_url:
-                      type: string
-                      description: Resolved url to Ensembl site help page
+          $ref: '#/components/responses/200'
         '400':
           $ref: '#/components/responses/400'
         '404':
@@ -190,34 +152,11 @@ paths:
             example: Camarhynchus_parvulus_GCA_902806625.1
       responses:
         '301':
-          description: Redirect to resolved URL
-          headers:
-            Location:
-              schema:
-                type: string
-              description: Ensembl URL
-          content: {}
+          $ref: '#/components/responses/301'
         '200':
-          description: OK
-          headers:
-            Location:
-              schema:
-                type: string
-              description: Ensembl URL
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                    resolved_url:
-                      type: string
-                      description: Resolved url to Ensembl site
+          $ref: '#/components/responses/200'
         '422':
-          description: Unprocessable Content
-          content:
-            application/json:
-              schema:
-                example: '{"status_code": 422, "detail": "Unable to process input accession ID"}'
+          $ref: '#/components/responses/422'
         '400':
           $ref: '#/components/responses/400'
         '404':
@@ -254,34 +193,11 @@ paths:
             example: 2:361680-384534
       responses:
         '301':
-          description: Redirect to resolved URL
-          headers:
-            Location:
-              schema:
-                type: string
-              description: Ensembl URL
-          content: {}
+          $ref: '#/components/responses/301'
         '200':
-          description: OK
-          headers:
-            Location:
-              schema:
-                type: string
-              description: Ensembl URL
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                    resolved_url:
-                      type: string
-                      description: Resolved url to Ensembl site
+          $ref: '#/components/responses/200'
         '422':
-          description: Unprocessable Content
-          content:
-            application/json:
-              schema:
-                example: '{"status_code": 422, "detail": "Unable to process input accession ID"}'
+          $ref: '#/components/responses/422'
         '400':
           $ref: '#/components/responses/400'
         '404':
@@ -290,7 +206,7 @@ paths:
           $ref: '#/components/responses/500'
   /rapid/info/{subpath}:
     get:
-      summary: Resolve rapid site help and docs url
+      summary: Resolve rapid site help and docs url test
       description: Resolves to Ensembl site help page url.
       tags:
         - Rapid Resolver
@@ -303,28 +219,9 @@ paths:
             example: index.html
       responses:
         '301':
-          description: Redirect to Ensembl help page
-          headers:
-            Location:
-              schema:
-                type: string
-              description: Ensembl help page URL
-          content: {}
+          $ref: '#/components/responses/301'
         '200':
-          description: OK
-          headers:
-            Location:
-              schema:
-                type: string
-              description: Ensembl help page URL
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                    resolved_url:
-                      type: string
-                      description: Resolved url to Ensembl site help page
+          $ref: '#/components/responses/200'
         '400':
           $ref: '#/components/responses/400'
         '404':
@@ -332,7 +229,31 @@ paths:
         '500':
           $ref: '#/components/responses/500'
 components:
+  headers:
+    Location:
+      description: Ensembl URL
+      schema:
+        type: string
   responses:
+    200:
+      description: OK
+      headers:
+        Location:
+          $ref: '#/components/headers/Location'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              resolved_url:
+                type: string
+                description: Resolved URL to the Ensembl site
+    301:
+      description: Redirect to resolved URL
+      headers:
+        Location:
+          $ref: '#/components/headers/Location'
+      content: { }
     400:
       description: Bad Request. Missing stable id in the url
       content:
@@ -353,13 +274,19 @@ components:
         application/json:
           schema:
             example: '{"status_code": 404, "details": "Not found"}'
+    422:
+      description: Unprocessable Content
+      content:
+        application/json:
+          schema:
+            example: '{"status_code": 422, "detail": "Unable to process input accession ID"}'
     500:
       description: Internal server error
       content:
         text/plain:
           schema:
             type: string
-            example: 
+            example:
               Internal server error
         application/json:
           schema:
