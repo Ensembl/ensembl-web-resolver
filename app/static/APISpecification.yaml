@@ -8,13 +8,15 @@ info:
 servers:
   - url: https://resolver.ensembl.org
 tags:
-  - name: resolver
+  - name: Resolver
     description: Resolver API resolves external urls to Ensembl
+  - name: Rapid Resolver
+    description: Resolver API to resolve rapid site urls to Ensembl
 paths:
   /id/{stable_id}:
     get:
       tags:
-        - resolver
+        - Resolver
       summary: Resolve stable ID with optional query params
       description: Resolves to a beta url when a stable id wih optional query params provided
       parameters:
@@ -32,7 +34,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [gene, transcript, variant]
+            enum: [ gene, transcript, variant ]
             example:
               gene
         - name: app
@@ -41,7 +43,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [genome-browser, entity-viewer]
+            enum: [ genome-browser, entity-viewer ]
             example:
               genome-browser
         - name: gca
@@ -103,8 +105,158 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /rapid:
+    get:
+      summary: Resolve rapid site url
+      description: Resolves to Ensembl site url (home page).
+      tags:
+        - Rapid Resolver
+      responses:
+        '301':
+          $ref: '#/components/responses/301'
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /rapid/Blast:
+    get:
+      summary: Resolve rapid site blast url
+      description: Resolves to Ensembl site blast url.
+      tags:
+        - Rapid Resolver
+      responses:
+        '301':
+          $ref: '#/components/responses/301'
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /rapid/{species_url_name}:
+    get:
+      summary: Resolve rapid site url with species url name (with assembly accession)
+      description: Resolves to Ensembl site url with the species url name provided.
+      tags:
+        - Rapid Resolver
+      parameters:
+        - name: species_url_name
+          in: path
+          description: Species name with assembly accession
+          required: true
+          schema:
+            type: string
+            example: Camarhynchus_parvulus_GCA_902806625.1
+      responses:
+        '301':
+          $ref: '#/components/responses/301'
+        '200':
+          $ref: '#/components/responses/200'
+        '422':
+          $ref: '#/components/responses/422'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /rapid/{species_url_name}/{subpath}:
+    get:
+      summary: Resolve rapid site url with species url name and subpath
+      description: Resolves to Ensembl site url with the species url name and subpath provided.
+      tags:
+        - Rapid Resolver
+      parameters:
+        - name: species_url_name
+          in: path
+          description: Species name with assembly accession
+          required: true
+          schema:
+            type: string
+            example: Camarhynchus_parvulus_GCA_902806625.1
+        - name: subpath
+          in: path
+          description: Additional path under species_url_name
+          required: true
+          schema:
+            type: string
+            example: Location/View
+        - name: r
+          in: query
+          required: false
+          description: Region string
+          schema:
+            type: string
+            example: 2:361680-384534
+      responses:
+        '301':
+          $ref: '#/components/responses/301'
+        '200':
+          $ref: '#/components/responses/200'
+        '422':
+          $ref: '#/components/responses/422'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /rapid/info/{subpath}:
+    get:
+      summary: Resolve rapid site help and docs url
+      description: Resolves to Ensembl site help page url.
+      tags:
+        - Rapid Resolver
+      parameters:
+        - name: subpath
+          in: path
+          required: true
+          schema:
+            type: string
+            example: index.html
+      responses:
+        '301':
+          $ref: '#/components/responses/301'
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
 components:
+  headers:
+    Location:
+      description: Ensembl URL
+      schema:
+        type: string
   responses:
+    200:
+      description: OK
+      headers:
+        Location:
+          $ref: '#/components/headers/Location'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              resolved_url:
+                type: string
+                description: Resolved URL to the Ensembl site
+    301:
+      description: Redirect to resolved URL
+      headers:
+        Location:
+          $ref: '#/components/headers/Location'
+      content: { }
     400:
       description: Bad Request. Missing stable id in the url
       content:
@@ -125,13 +277,19 @@ components:
         application/json:
           schema:
             example: '{"status_code": 404, "details": "Not found"}'
+    422:
+      description: Unprocessable Content
+      content:
+        application/json:
+          schema:
+            example: '{"status_code": 422, "detail": "Unable to process input accession ID"}'
     500:
       description: Internal server error
       content:
         text/plain:
           schema:
             type: string
-            example: 
+            example:
               Internal server error
         application/json:
           schema:
