@@ -22,7 +22,7 @@ router = APIRouter()
 @router.get("/info/{subpath:path}", name="Resolve rapid help page")
 async def resolve_rapid_help(request: Request, subpath: str = ""):
     response = ResolvedURLResponse(
-        response_type=RapidRedirectResponseType.HELP_PAGE,
+        response_type=RapidRedirectResponseType.HELP,
         status_code=308,
         resolved_url=f"{ENSEMBL_URL}/help",
     )
@@ -32,7 +32,7 @@ async def resolve_rapid_help(request: Request, subpath: str = ""):
 @router.get("/Blast", name="Resolve rapid blast page")
 async def resolve_rapid_blast(request: Request):
     response = ResolvedURLResponse(
-        response_type=RapidRedirectResponseType.BLAST_PAGE,
+        response_type=RapidRedirectResponseType.BLAST,
         status_code=308,
         resolved_url=f"{ENSEMBL_URL}/blast",
     )
@@ -69,7 +69,7 @@ async def resolve_species(
 
             url = construct_url(genome_id, subpath, query_params)
             response = ResolvedURLResponse(
-                response_type=RapidRedirectResponseType.REDIRECT_PAGE,
+                response_type=RapidRedirectResponseType.INFO,
                 status_code=308,
                 resolved_url=url,
                 species_name=species_url_name,
@@ -103,7 +103,7 @@ async def resolve_species(
 @router.get("/", name="Rapid Home")
 async def resolve_home(request: Request):
     response = ResolvedURLResponse(
-        response_type=RapidRedirectResponseType.HOME_PAGE,
+        response_type=RapidRedirectResponseType.HOME,
         status_code=308,
         resolved_url=ENSEMBL_URL,
     )

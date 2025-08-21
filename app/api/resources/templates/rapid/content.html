@@ -1,20 +1,10 @@
+{% import "url.html" as url_helper %}
+
 <div class="redirect-content">
     <div class="redirect-info">
-        {% if response.response_type == "BLAST" %}
-            <div>
-                <span class="search-param-label">Redirecting to </span>
-                <a target="_blank" rel="noopener noreferrer" class="link" href="{{ response.resolved_url }}">
-                    {{ response.resolved_url }}
-                </a>
-            </div>
-        {% elif response.response_type == "HELP" %}
-            <div>
-                <span class="search-param-label">Redirecting to </span>
-                <a target="_blank" rel="noopener noreferrer" class="link" href="{{ response.resolved_url }}">
-                    {{ response.resolved_url }}
-                </a>
-            </div>
-        {% elif response.response_type == "REDIRECT" %}
+        {% if response.response_type == "BLAST" or response.response_type == "HELP" %}
+            {{ url_helper.render_url(response.resolved_url) }}
+        {% elif response.response_type == "INFO" %}
             <div class="search-param">
                 <span class="search-param-label">Species</span> {{ response.species_name }}
             </div>
@@ -28,12 +18,7 @@
                     <span class="search-param-label">Location</span> {{ response.location }}
                 </div>
             {% endif %}
-            <div>
-                <span class="search-param-label">Redirecting to </span>
-                <a href="{{ response.resolved_url }}" target="_blank" rel="noopener noreferrer" class="link">
-                    {{ response.resolved_url }}
-                </a>
-            </div>
+            {{ url_helper.render_url(response.resolved_url) }}
         {% elif response.response_type == "ERROR" %}
             <div class="search-param">
                 <span class="search-param-label">Species</span> {{ response.species_name }}
@@ -41,19 +26,9 @@
             <div class="error-message">
                 {{ response.message }}
             </div>
-            <div>
-                <span class="search-param-label">Redirecting to </span>
-                <a href="https://beta.ensembl.org/" target="_blank" rel="noopener noreferrer" class="link">
-                    beta.ensembl.org
-                </a>
-            </div>
+            {{ url_helper.render_url("https://beta.ensembl.org/") }}
         {% else %}
-            <div>
-                <span class="search-param-label">Redirecting to </span>
-                <a href="https://beta.ensembl.org/" target="_blank" rel="noopener noreferrer" class="link">
-                    beta.ensembl.org
-                </a>
-            </div>
+            {{ url_helper.render_url("https://beta.ensembl.org/") }}
         {% endif %}
     </div>
     <div class="redirect-text">

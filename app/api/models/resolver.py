@@ -41,11 +41,11 @@ class ResolvedPayload(MetadataResult):
 
 
 class RapidRedirectResponseType(str, Enum):
-    HOME_PAGE = "HOME"
+    HOME = "HOME"
     ERROR = "ERROR"
-    BLAST_PAGE = "BLAST"
-    HELP_PAGE = "HELP"
-    REDIRECT_PAGE = "REDIRECT"
+    BLAST = "BLAST"
+    HELP = "HELP"
+    INFO = "INFO"
 
 
 class ResolvedURLResponse(BaseModel):
