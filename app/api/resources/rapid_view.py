@@ -114,7 +114,7 @@ def resolved_response(response: ResolvedURLResponse, request: Request):
     if "application/json" in request.headers.get("accept"):
         if response.response_type == RapidRedirectResponseType.ERROR:
             raise HTTPException(
-                status_code=response.status_code,
+                status_code=response.code,
                 detail=response.message or "An error occurred",
             )
         return ResolvedURLResponse(resolved_url=response.resolved_url)
