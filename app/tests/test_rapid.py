@@ -35,11 +35,6 @@ class TestRapid(unittest.TestCase):
     
     # Test rapid home page
     def test_rapid_home_success(self):
-        response = self.client.get(f"{self.mock_rapid_api_url}/", follow_redirects=False)
-        self.assertEqual(response.status_code, 301)
-        self.assertIn("location", response.headers)
-        self.assertEqual(response.headers["location"], ENSEMBL_URL)
-
         # test with accept header for JSON response
         response = self.client.get(
             f"{self.mock_rapid_api_url}/",
@@ -55,15 +50,6 @@ class TestRapid(unittest.TestCase):
 
     # Test rapid help page
     def test_rapid_help_success(self):
-        response = self.client.get(
-            f"{self.mock_rapid_api_url}/info/index.html", follow_redirects=False
-        )
-        self.assertEqual(response.status_code, 301)
-        self.assertIn("location", response.headers)
-        self.assertEqual(
-            response.headers["location"], f"{ENSEMBL_URL}/help"
-        )
-
         # test with accept header for JSON response
         response = self.client.get(
             f"{self.mock_rapid_api_url}/info/index.html",
@@ -79,15 +65,6 @@ class TestRapid(unittest.TestCase):
 
     # Test rapid blast page
     def test_rapid_blast_success(self):
-        response = self.client.get(
-            f"{self.mock_rapid_api_url}/Blast", follow_redirects=False
-        )
-        self.assertEqual(response.status_code, 301)
-        self.assertIn("location", response.headers)
-        self.assertEqual(
-            response.headers["location"], f"{ENSEMBL_URL}/blast"
-        )
-
         # test with accept header for JSON response
         response = self.client.get(
             f"{self.mock_rapid_api_url}/Blast",
@@ -106,39 +83,6 @@ class TestRapid(unittest.TestCase):
     def test_rapid_species_home_success(
         self, mock_get_genome_id_from_assembly_accession_id
     ):
-
-        # test web-metadata-api response without genome_tag
-        mock_get_genome_id_from_assembly_accession_id.return_value = (
-            self.mock_genome_id_response1
-        )
-
-        response = self.client.get(
-            f"{self.mock_rapid_api_url}/{self.species_url_name}/",
-            follow_redirects=False,
-        )
-
-        self.assertEqual(response.status_code, 301)  # Redirect
-        self.assertIn("location", response.headers)
-        self.assertEqual(
-            response.headers["location"], self.mock_resolved_url["genome1"]
-        )
-
-        # test web-metadata-api response with genome_tag
-        mock_get_genome_id_from_assembly_accession_id.return_value = (
-            self.mock_genome_id_response2
-        )
-
-        response = self.client.get(
-            f"{self.mock_rapid_api_url}/{self.species_url_name}/",
-            follow_redirects=False,
-        )
-
-        self.assertEqual(response.status_code, 301)  # Redirect
-        self.assertIn("location", response.headers)
-        self.assertEqual(
-            response.headers["location"], self.mock_resolved_url["genome2"]
-        )
-
         # test with accept header for JSON response
         mock_get_genome_id_from_assembly_accession_id.return_value = (
             self.mock_genome_id_response1
@@ -162,24 +106,6 @@ class TestRapid(unittest.TestCase):
     def test_rapid_species_location_success(
         self, mock_get_genome_id_from_assembly_accession_id
     ):
-
-        # test web-metadata-api response without genome_tag
-        mock_get_genome_id_from_assembly_accession_id.return_value = (
-            self.mock_genome_id_response1
-        )
-
-        response = self.client.get(
-            f"{self.mock_rapid_api_url}/{self.species_url_name}/Location/View",
-            params={"r": "1:1000-2000"},
-            follow_redirects=False,
-        )
-
-        self.assertEqual(response.status_code, 301)  # Redirect
-        self.assertIn(
-            f"{ENSEMBL_URL}/genome-browser/genome_uuid1?focus=location:1:1000-2000",
-            response.headers["location"],
-        )
-
         # test with accept header for JSON response
         mock_get_genome_id_from_assembly_accession_id.return_value = (
             self.mock_genome_id_response1
@@ -203,22 +129,6 @@ class TestRapid(unittest.TestCase):
     def test_rapid_species_gene_compara_homolog(
         self, mock_get_genome_id_from_assembly_accession_id
     ):
-        mock_get_genome_id_from_assembly_accession_id.return_value = (
-            self.mock_genome_id_response1
-        )
-
-        response = self.client.get(
-            f"{self.mock_rapid_api_url}/{self.species_url_name}/Gene/Compara_Homolog",
-            params={"g": "GENE123"},
-            follow_redirects=False,
-        )
-
-        self.assertEqual(response.status_code, 301)  # Redirect
-        self.assertIn(
-            f"{ENSEMBL_URL}/entity-viewer/genome_uuid1/gene:GENE123?view=homology",
-            response.headers["location"],
-        )
-
         # test with accept header for JSON response
         mock_get_genome_id_from_assembly_accession_id.return_value = (
             self.mock_genome_id_response1
@@ -247,19 +157,21 @@ class TestRapid(unittest.TestCase):
         mock_get_genome_id_from_assembly_accession_id.return_value = {}
 
         response = self.client.get(
-            f"{self.mock_rapid_api_url}/{self.species_url_name}/Invalid_GCA"
+            f"{self.mock_rapid_api_url}/{self.species_url_name}/Invalid_GCA",
+            headers={"accept": "application/json"},
         )
         self.assertEqual(response.status_code, 404)
 
     # Test invalid url entity
     def test_rapid_species_422_unprocessable_entity(self):
-        response = self.client.get(f"{self.mock_rapid_api_url}/Invalid_Name/")
+        response = self.client.get(f"{self.mock_rapid_api_url}/Invalid_Name/", headers={"accept": "application/json"},)
         self.assertEqual(response.status_code, 422)
 
     # Test POST
     def test_rapid_species_post_method_not_allowed(self):
         response = self.client.post(
-            f"{self.mock_rapid_api_url}/{self.species_url_name}/"
+            f"{self.mock_rapid_api_url}/{self.species_url_name}/",
+            headers={"accept": "application/json"},
         )
         self.assertEqual(response.status_code, 405)
 
@@ -277,6 +189,7 @@ class TestRapid(unittest.TestCase):
         )
 
         response = self.client.get(
-            f"{self.mock_rapid_api_url}/{self.species_url_name}/"
+            f"{self.mock_rapid_api_url}/{self.species_url_name}/",
+            headers={"accept": "application/json"},
         )
         self.assertEqual(response.status_code, 500)

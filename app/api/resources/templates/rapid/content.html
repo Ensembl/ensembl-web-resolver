@@ -1,0 +1,64 @@
+<div class="redirect-content">
+    <div class="redirect-info">
+        {% if response.response_type == "BLAST" %}
+            <div>
+                <span class="search-param-label">Redirecting to </span>
+                <a target="_blank" rel="noopener noreferrer" class="link" href="{{ response.resolved_url }}">
+                    {{ response.resolved_url }}
+                </a>
+            </div>
+        {% elif response.response_type == "HELP" %}
+            <div>
+                <span class="search-param-label">Redirecting to </span>
+                <a target="_blank" rel="noopener noreferrer" class="link" href="{{ response.resolved_url }}">
+                    {{ response.resolved_url }}
+                </a>
+            </div>
+        {% elif response.response_type == "REDIRECT" %}
+            <div class="search-param">
+                <span class="search-param-label">Species</span> {{ response.species_name }}
+            </div>
+            {% if response.gene_id %}
+                <div class="search-param">
+                    <span class="search-param-label">Gene</span> {{ response.gene_id }}
+                </div>
+            {% endif %}
+            {% if response.location %}
+                <div class="search-param">
+                    <span class="search-param-label">Location</span> {{ response.location }}
+                </div>
+            {% endif %}
+            <div>
+                <span class="search-param-label">Redirecting to </span>
+                <a href="{{ response.resolved_url }}" target="_blank" rel="noopener noreferrer" class="link">
+                    {{ response.resolved_url }}
+                </a>
+            </div>
+        {% elif response.response_type == "ERROR" %}
+            <div class="search-param">
+                <span class="search-param-label">Species</span> {{ response.species_name }}
+            </div>
+            <div class="error-message">
+                {{ response.message }}
+            </div>
+            <div>
+                <span class="search-param-label">Redirecting to </span>
+                <a href="https://beta.ensembl.org/" target="_blank" rel="noopener noreferrer" class="link">
+                    beta.ensembl.org
+                </a>
+            </div>
+        {% else %}
+            <div>
+                <span class="search-param-label">Redirecting to </span>
+                <a href="https://beta.ensembl.org/" target="_blank" rel="noopener noreferrer" class="link">
+                    beta.ensembl.org
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    <div class="redirect-text">
+        <span>
+            You will be redirected to the new Ensembl website, where you will find the latest genomic information
+        </span>
+    </div>
+</div>

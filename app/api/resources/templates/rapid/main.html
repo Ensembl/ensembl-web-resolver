@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Ensembl Rapid Resolver</title>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="10;url={{ response.resolved_url }}" />
+
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png" />
+    <link rel="stylesheet" type="text/css" href="/static/css/rapid_page.css">
+  </head>
+  <body>
+    {% include "appbar.html" %}
+    <div class="container">
+      {% include "venn.html" %}
+      {% include "content.html" %}
+      {% include "_footer.html" %}
+    </div>
+  </body>
+</html>

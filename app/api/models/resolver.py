@@ -1,4 +1,5 @@
-from typing import Optional, Literal, List, Dict
+from enum import Enum
+from typing import Optional, Literal, List, Dict, Annotated
 from pydantic import BaseModel, Field
 
 
@@ -38,5 +39,23 @@ class MetadataResult(BaseModel):
 class ResolvedPayload(MetadataResult):
     resolved_url: str
 
+
+class RapidRedirectResponseType(str, Enum):
+    HOME_PAGE = "HOME"
+    ERROR = "ERROR"
+    BLAST_PAGE = "BLAST"
+    HELP_PAGE = "HELP"
+    REDIRECT_PAGE = "REDIRECT"
+
+
 class ResolvedURLResponse(BaseModel):
+    response_type: Annotated[Optional[RapidRedirectResponseType], Field(exclude=True)] = None
+    status_code: Annotated[Optional[int], Field(exclude=True)] = None
     resolved_url: str
+    species_name: Annotated[Optional[str], Field(exclude=True)] = None
+    gene_id: Annotated[Optional[str], Field(exclude=True)] = None
+    location: Annotated[Optional[str], Field(exclude=True)] = None
+    message: Annotated[Optional[str], Field(exclude=True)] = None
+
+    class Config:
+        use_enum_values = True
