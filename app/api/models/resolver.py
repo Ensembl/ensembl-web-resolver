@@ -50,7 +50,7 @@ class RapidRedirectResponseType(str, Enum):
 
 class ResolvedURLResponse(BaseModel):
     response_type: Annotated[Optional[RapidRedirectResponseType], Field(exclude=True)] = None
-    status_code: Annotated[Optional[int], Field(exclude=True)] = None
+    code: Annotated[Optional[int], Field(exclude=True)] = None
     resolved_url: str
     species_name: Annotated[Optional[str], Field(exclude=True)] = None
     gene_id: Annotated[Optional[str], Field(exclude=True)] = None

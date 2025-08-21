@@ -23,7 +23,7 @@ router = APIRouter()
 async def resolve_rapid_help(request: Request, subpath: str = ""):
     response = ResolvedURLResponse(
         response_type=RapidRedirectResponseType.HELP,
-        status_code=308,
+        code=308,
         resolved_url=f"{ENSEMBL_URL}/help",
     )
     return resolved_response(response, request)
@@ -33,7 +33,7 @@ async def resolve_rapid_help(request: Request, subpath: str = ""):
 async def resolve_rapid_blast(request: Request):
     response = ResolvedURLResponse(
         response_type=RapidRedirectResponseType.BLAST,
-        status_code=308,
+        code=308,
         resolved_url=f"{ENSEMBL_URL}/blast",
     )
     return resolved_response(response, request)
@@ -50,7 +50,7 @@ async def resolve_species(
     if assembly_accession_id is None:
         input_error_response = ResolvedURLResponse(
             response_type=RapidRedirectResponseType.ERROR,
-            status_code=422,
+            code=422,
             resolved_url=ENSEMBL_URL,
             message="Invalid input accession ID",
             species_name=species_url_name,
@@ -70,7 +70,7 @@ async def resolve_species(
             url = construct_url(genome_id, subpath, query_params)
             response = ResolvedURLResponse(
                 response_type=RapidRedirectResponseType.INFO,
-                status_code=308,
+                code=308,
                 resolved_url=url,
                 species_name=species_url_name,
                 gene_id=query_params.get("g", [None])[0],
@@ -83,7 +83,7 @@ async def resolve_species(
         logging.debug(e)
         response = ResolvedURLResponse(
             response_type=RapidRedirectResponseType.ERROR,
-            status_code=e.status_code,
+            code=e.status_code,
             resolved_url=ENSEMBL_URL,
             message=e.detail,
             species_name=species_url_name,
@@ -93,7 +93,7 @@ async def resolve_species(
         logging.debug(f"Unexpected error occurred: {e}")
         response = ResolvedURLResponse(
             response_type=RapidRedirectResponseType.ERROR,
-            status_code=500,
+            code=500,
             resolved_url=ENSEMBL_URL,
             message="Unexpected error occurred",
         )
@@ -104,7 +104,7 @@ async def resolve_species(
 async def resolve_home(request: Request):
     response = ResolvedURLResponse(
         response_type=RapidRedirectResponseType.HOME,
-        status_code=308,
+        code=308,
         resolved_url=ENSEMBL_URL,
     )
     return resolved_response(response, request)
