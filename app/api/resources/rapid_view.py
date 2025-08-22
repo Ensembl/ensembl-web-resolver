@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 from starlette.responses import HTMLResponse
 
 import logging
-from api.models.resolver import ResolvedURLResponse, RapidRedirectResponseType
+from api.models.resolver import RapidResolverResponse, RapidResolverHtmlResponseType
 from core.logging import InterceptHandler
 from core.config import ENSEMBL_URL
 from api.utils.metadata import get_genome_id_from_assembly_accession_id
@@ -21,8 +21,8 @@ router = APIRouter()
 
 @router.get("/info/{subpath:path}", name="Resolve rapid help page")
 async def resolve_rapid_help(request: Request, subpath: str = ""):
-    response = ResolvedURLResponse(
-        response_type=RapidRedirectResponseType.HELP,
+    response = RapidResolverResponse(
+        response_type=RapidResolverHtmlResponseType.HELP,
         code=308,
         resolved_url=f"{ENSEMBL_URL}/help",
     )
@@ -31,8 +31,8 @@ async def resolve_rapid_help(request: Request, subpath: str = ""):
 
 @router.get("/Blast", name="Resolve rapid blast page")
 async def resolve_rapid_blast(request: Request):
-    response = ResolvedURLResponse(
-        response_type=RapidRedirectResponseType.BLAST,
+    response = RapidResolverResponse(
+        response_type=RapidResolverHtmlResponseType.BLAST,
         code=308,
         resolved_url=f"{ENSEMBL_URL}/blast",
     )
@@ -48,8 +48,8 @@ async def resolve_species(
     assembly_accession_id = format_assembly_accession(species_url_name)
 
     if assembly_accession_id is None:
-        input_error_response = ResolvedURLResponse(
-            response_type=RapidRedirectResponseType.ERROR,
+        input_error_response = RapidResolverResponse(
+            response_type=RapidResolverHtmlResponseType.ERROR,
             code=422,
             resolved_url=ENSEMBL_URL,
             message="Invalid input accession ID",
@@ -68,8 +68,8 @@ async def resolve_species(
             query_params = parse_qs(query_string, separator=";")
 
             url = construct_url(genome_id, subpath, query_params)
-            response = ResolvedURLResponse(
-                response_type=RapidRedirectResponseType.INFO,
+            response = RapidResolverResponse(
+                response_type=RapidResolverHtmlResponseType.INFO,
                 code=308,
                 resolved_url=url,
                 species_name=species_url_name,
@@ -81,8 +81,8 @@ async def resolve_species(
             raise HTTPException(status_code=404, detail="Genome not found")
     except HTTPException as e:
         logging.debug(e)
-        response = ResolvedURLResponse(
-            response_type=RapidRedirectResponseType.ERROR,
+        response = RapidResolverResponse(
+            response_type=RapidResolverHtmlResponseType.ERROR,
             code=e.status_code,
             resolved_url=ENSEMBL_URL,
             message=e.detail,
@@ -91,8 +91,8 @@ async def resolve_species(
         return resolved_response(response, request)
     except Exception as e:
         logging.debug(f"Unexpected error occurred: {e}")
-        response = ResolvedURLResponse(
-            response_type=RapidRedirectResponseType.ERROR,
+        response = RapidResolverResponse(
+            response_type=RapidResolverHtmlResponseType.ERROR,
             code=500,
             resolved_url=ENSEMBL_URL,
             message="Unexpected error occurred",
@@ -102,22 +102,28 @@ async def resolve_species(
 
 @router.get("/", name="Rapid Home")
 async def resolve_home(request: Request):
-    response = ResolvedURLResponse(
-        response_type=RapidRedirectResponseType.HOME,
+    response = RapidResolverResponse(
+        response_type=RapidResolverHtmlResponseType.HOME,
         code=308,
         resolved_url=ENSEMBL_URL,
     )
     return resolved_response(response, request)
 
 
-def resolved_response(response: ResolvedURLResponse, request: Request):
+def resolved_response(response: RapidResolverResponse, request: Request):
+    # Return JSON response if requested
     if "application/json" in request.headers.get("accept"):
-        if response.response_type == RapidRedirectResponseType.ERROR:
+        # Handle error responses for JSON requests
+        if response.response_type == RapidResolverHtmlResponseType.ERROR:
             raise HTTPException(
                 status_code=response.code,
                 detail=response.message or "An error occurred",
             )
-        return ResolvedURLResponse(resolved_url=response.resolved_url)
+        # Doesn't raise redirect for JSON requests, just return the URL. Because swagger UI doesn't handle redirects well.
+        # So code is always 200 for successful JSON response.
+        return response
+
+    # Default to HTML response
     return HTMLResponse(generate_html_content(response))
 
 

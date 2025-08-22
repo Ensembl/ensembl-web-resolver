@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 from fastapi.testclient import TestClient
-from api.models.resolver import ResolvedURLResponse
+from api.models.resolver import RapidResolverResponse
 from core.config import ENSEMBL_URL
 from main import app
 
@@ -44,7 +44,7 @@ class TestRapid(unittest.TestCase):
         self.assertEqual(response.status_code, 200)  # OK
         self.assertEqual(
             response.json(),
-            ResolvedURLResponse(resolved_url=ENSEMBL_URL).model_dump(mode='json')
+            RapidResolverResponse(resolved_url=ENSEMBL_URL).model_dump(mode='json')
         )
 
 
@@ -59,7 +59,7 @@ class TestRapid(unittest.TestCase):
         self.assertEqual(response.status_code, 200)  # OK
         self.assertEqual(
             response.json(),
-            ResolvedURLResponse(resolved_url=f"{ENSEMBL_URL}/help").model_dump(mode='json')
+            RapidResolverResponse(resolved_url=f"{ENSEMBL_URL}/help").model_dump(mode='json')
         )
 
 
@@ -74,7 +74,7 @@ class TestRapid(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
-            ResolvedURLResponse(resolved_url=f"{ENSEMBL_URL}/blast").model_dump(mode='json')
+            RapidResolverResponse(resolved_url=f"{ENSEMBL_URL}/blast").model_dump(mode='json')
         )
 
 
@@ -97,7 +97,7 @@ class TestRapid(unittest.TestCase):
         self.assertEqual(response.status_code, 200)  # OK
         self.assertEqual(
             response.json(), 
-            ResolvedURLResponse(resolved_url = self.mock_resolved_url["genome1"]).model_dump(mode='json')
+            RapidResolverResponse(resolved_url = self.mock_resolved_url["genome1"]).model_dump(mode='json')
         )
 
 
@@ -121,7 +121,7 @@ class TestRapid(unittest.TestCase):
         self.assertEqual(response.status_code, 200)  # OK
         self.assertEqual(
             response.json(), 
-            ResolvedURLResponse(resolved_url = f"{ENSEMBL_URL}/genome-browser/genome_uuid1?focus=location:1:1000-2000").model_dump(mode='json')
+            RapidResolverResponse(resolved_url = f"{ENSEMBL_URL}/genome-browser/genome_uuid1?focus=location:1:1000-2000").model_dump(mode='json')
         )
 
     # Test Gene pages
@@ -144,7 +144,7 @@ class TestRapid(unittest.TestCase):
         self.assertEqual(response.status_code, 200)  # OK
         self.assertEqual(
             response.json(),
-            ResolvedURLResponse(
+            RapidResolverResponse(
                 resolved_url=f"{ENSEMBL_URL}/entity-viewer/genome_uuid1/gene:GENE123?view=homology"
             ).model_dump(mode='json'),
         )
