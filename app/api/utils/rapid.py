@@ -1,6 +1,6 @@
 from loguru import logger
 import requests
-from core.config import ENSEMBL_URL, NCBI_DATASETS_URL
+from core.config import ENSEMBL_URL, NCBI_DATASETS_URL, RAPID_ARCHIVE_URL
 import re
 
 
@@ -75,3 +75,22 @@ def construct_url(genome_id, subpath, query_params):
             )
         return f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{gene_id}"
     return ENSEMBL_URL
+
+
+def construct_rapid_archive_url(species_url_name, subpath, query_params):
+    url = f"{RAPID_ARCHIVE_URL}/{species_url_name}"
+
+    if not query_params:
+        return url
+
+    params = []
+    for key, values in query_params.items():
+        value = values[0] if values else ""
+        if value:
+            params.append(f"{key}={value}")
+    if params and subpath:
+        # ; separator for rapid
+        url += f"/{subpath}?" + ";".join(params)
+
+    return url
+

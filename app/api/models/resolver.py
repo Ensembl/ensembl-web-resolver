@@ -56,6 +56,7 @@ class RapidResolverResponse(BaseModel):
     gene_id: Annotated[Optional[str], Field(exclude=True)] = None
     location: Annotated[Optional[str], Field(exclude=True)] = None
     message: Annotated[Optional[str], Field(exclude=True)] = None
+    rapid_archive_url: Annotated[Optional[str], Field(exclude=True)] = None
 
     class Config:
         use_enum_values = True

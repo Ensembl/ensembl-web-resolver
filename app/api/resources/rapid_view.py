@@ -12,7 +12,7 @@ from api.models.resolver import RapidResolverResponse, RapidResolverHtmlResponse
 from core.logging import InterceptHandler
 from core.config import ENSEMBL_URL
 from api.utils.metadata import get_genome_id_from_assembly_accession_id
-from api.utils.rapid import construct_url, format_assembly_accession
+from api.utils.rapid import construct_url, format_assembly_accession, construct_rapid_archive_url
 
 logging.getLogger().handlers = [InterceptHandler()]
 
@@ -68,6 +68,7 @@ async def resolve_species(
             query_params = parse_qs(query_string, separator=";")
 
             url = construct_url(genome_id, subpath, query_params)
+            rapid_archive_url = construct_rapid_archive_url(species_url_name, subpath, query_params)
             response = RapidResolverResponse(
                 response_type=RapidResolverHtmlResponseType.INFO,
                 code=308,
@@ -75,6 +76,7 @@ async def resolve_species(
                 species_name=species_url_name,
                 gene_id=query_params.get("g", [None])[0],
                 location=query_params.get("r", [None])[0],
+                rapid_archive_url=rapid_archive_url,
             )
             return resolved_response(response, request)
         else:
