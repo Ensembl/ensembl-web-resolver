@@ -1,4 +1,5 @@
-from typing import Optional, Literal, List, Dict
+from enum import Enum
+from typing import Optional, Literal, List, Dict, Annotated
 from pydantic import BaseModel, Field
 
 
@@ -38,5 +39,24 @@ class MetadataResult(BaseModel):
 class ResolvedPayload(MetadataResult):
     resolved_url: str
 
-class ResolvedURLResponse(BaseModel):
+
+class RapidResolverHtmlResponseType(str, Enum):
+    HOME = "HOME"
+    ERROR = "ERROR"
+    BLAST = "BLAST"
+    HELP = "HELP"
+    INFO = "INFO"
+
+ # Exclude all fields except resolved_url in JSON response.
+class RapidResolverResponse(BaseModel):
     resolved_url: str
+    response_type: Annotated[Optional[RapidResolverHtmlResponseType], Field(exclude=True)] = None
+    code: Annotated[Optional[int], Field(exclude=True)] = None
+    species_name: Annotated[Optional[str], Field(exclude=True)] = None
+    gene_id: Annotated[Optional[str], Field(exclude=True)] = None
+    location: Annotated[Optional[str], Field(exclude=True)] = None
+    message: Annotated[Optional[str], Field(exclude=True)] = None
+    rapid_archive_url: Annotated[Optional[str], Field(exclude=True)] = None
+
+    class Config:
+        use_enum_values = True

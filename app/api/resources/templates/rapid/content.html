@@ -1,0 +1,44 @@
+{% import "url.html" as url_helper %}
+
+<div class="redirect-content">
+    <div class="redirect-info">
+        {% if response.response_type == "BLAST" or response.response_type == "HELP" %}
+            {% if response.species_name %}
+                <div class="search-param">
+                    <span class="search-param-label">Species</span> {{ response.species_name }}
+                </div>
+            {% endif %}
+            {{ url_helper.render_url(response.resolved_url) }}
+        {% elif response.response_type == "INFO" %}
+            <div class="search-param">
+                <span class="search-param-label">Species</span> {{ response.species_name }}
+            </div>
+            {% if response.gene_id %}
+                <div class="search-param">
+                    <span class="search-param-label">Gene</span> {{ response.gene_id }}
+                </div>
+            {% endif %}
+            {% if response.location %}
+                <div class="search-param">
+                    <span class="search-param-label">Location</span> {{ response.location }}
+                </div>
+            {% endif %}
+            {{ url_helper.render_url(response.resolved_url) }}
+        {% elif response.response_type == "ERROR" %}
+            <div class="search-param">
+                <span class="search-param-label">Species</span> {{ response.species_name }}
+            </div>
+            <div class="error-message">
+                {{ response.message }}
+            </div>
+            {{ url_helper.render_url(response.resolved_url) }}
+        {% else %}
+            {{ url_helper.render_url("https://beta.ensembl.org/") }}
+        {% endif %}
+    </div>
+    <div class="redirect-text">
+        <span>
+            You will be redirected to the new Ensembl website, where you will find the latest genomic information
+        </span>
+    </div>
+</div>
