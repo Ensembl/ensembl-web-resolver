@@ -3,6 +3,11 @@
 <div class="redirect-content">
     <div class="redirect-info">
         {% if response.response_type == "BLAST" or response.response_type == "HELP" %}
+            {% if response.species_name %}
+                <div class="search-param">
+                    <span class="search-param-label">Species</span> {{ response.species_name }}
+                </div>
+            {% endif %}
             {{ url_helper.render_url(response.resolved_url) }}
         {% elif response.response_type == "INFO" %}
             <div class="search-param">
@@ -26,7 +31,7 @@
             <div class="error-message">
                 {{ response.message }}
             </div>
-            {{ url_helper.render_url("https://beta.ensembl.org/species-selector") }}
+            {{ url_helper.render_url(response.resolved_url) }}
         {% else %}
             {{ url_helper.render_url("https://beta.ensembl.org/") }}
         {% endif %}

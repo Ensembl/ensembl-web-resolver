@@ -120,6 +120,21 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /rapid/Multi/Tools/Blast:
+    get:
+      summary: Resolve rapid site blast url
+      description: Resolves to Ensembl site blast url.
+      tags:
+        - Rapid Resolver
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
   /rapid/Blast:
     get:
       summary: Resolve rapid site blast url
@@ -193,6 +208,29 @@ paths:
           $ref: '#/components/responses/200'
         '422':
           $ref: '#/components/responses/422'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /rapid/{species_url_name}/Tools/Blast:
+    get:
+      summary: Resolve rapid site blast url
+      description: Resolve rapid site blast url
+      tags:
+        - Rapid Resolver
+      parameters:
+        - name: species_url_name
+          in: path
+          description: Species name with assembly accession
+          required: true
+          schema:
+            type: string
+            example: Camarhynchus_parvulus_GCA_902806625.1
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
         '400':
           $ref: '#/components/responses/400'
         '404':

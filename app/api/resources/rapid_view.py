@@ -30,6 +30,7 @@ async def resolve_rapid_help(request: Request, subpath: str = ""):
 
 
 @router.get("/Blast", name="Resolve rapid blast page")
+@router.get("/Multi/Tools/Blast", name="Resolve rapid blast page")
 async def resolve_rapid_blast(request: Request):
     response = RapidResolverResponse(
         response_type=RapidResolverHtmlResponseType.BLAST,
@@ -45,13 +46,23 @@ async def resolve_rapid_blast(request: Request):
 async def resolve_species(
     request: Request, species_url_name: str, subpath: str = "", r: str = Query(None)
 ):
+    # Check if its blast redirect
+    if "tools/blast" in subpath.lower():
+        response = RapidResolverResponse(
+            response_type=RapidResolverHtmlResponseType.BLAST,
+            code=308,
+            resolved_url=f"{ENSEMBL_URL}/blast",
+            species_name=species_url_name,
+        )
+        return resolved_response(response, request)
+
     assembly_accession_id = format_assembly_accession(species_url_name)
 
     if assembly_accession_id is None:
         input_error_response = RapidResolverResponse(
             response_type=RapidResolverHtmlResponseType.ERROR,
             code=422,
-            resolved_url=ENSEMBL_URL,
+            resolved_url=f"{ENSEMBL_URL}/species-selector",
             message="Invalid input accession ID",
             species_name=species_url_name,
         )
@@ -86,7 +97,7 @@ async def resolve_species(
         response = RapidResolverResponse(
             response_type=RapidResolverHtmlResponseType.ERROR,
             code=e.status_code,
-            resolved_url=ENSEMBL_URL,
+            resolved_url=f"{ENSEMBL_URL}/species-selector",
             message=e.detail,
             species_name=species_url_name,
         )
@@ -94,10 +105,11 @@ async def resolve_species(
     except Exception as e:
         logging.debug(f"Unexpected error occurred: {e}")
         response = RapidResolverResponse(
+            species_name=species_url_name,
             response_type=RapidResolverHtmlResponseType.ERROR,
             code=500,
-            resolved_url=ENSEMBL_URL,
-            message="Unexpected error occurred",
+            resolved_url=f"{ENSEMBL_URL}/species-selector",
+            message=str(e),
         )
         return resolved_response(response, request)
 

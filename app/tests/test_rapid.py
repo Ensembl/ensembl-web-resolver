@@ -66,14 +66,36 @@ class TestRapid(unittest.TestCase):
     # Test rapid blast page
     def test_rapid_blast_success(self):
         # test with accept header for JSON response
-        response = self.client.get(
+        response1 = self.client.get(
             f"{self.mock_rapid_api_url}/Blast",
             headers={"accept": "application/json"},
             follow_redirects=False,
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response1.status_code, 200)
         self.assertEqual(
-            response.json(),
+            response1.json(),
+            RapidResolverResponse(resolved_url=f"{ENSEMBL_URL}/blast").model_dump(mode='json')
+        )
+
+        response2 = self.client.get(
+            f"{self.mock_rapid_api_url}/Multi/Tools/Blast",
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+        self.assertEqual(response2.status_code, 200)
+        self.assertEqual(
+            response2.json(),
+            RapidResolverResponse(resolved_url=f"{ENSEMBL_URL}/blast").model_dump(mode='json')
+        )
+
+        response3 = self.client.get(
+            f"{self.mock_rapid_api_url}/{self.species_url_name}/Tools/Blast",
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+        self.assertEqual(response3.status_code, 200)
+        self.assertEqual(
+            response3.json(),
             RapidResolverResponse(resolved_url=f"{ENSEMBL_URL}/blast").model_dump(mode='json')
         )
 
