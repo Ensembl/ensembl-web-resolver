@@ -135,21 +135,6 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-  /rapid/Blast:
-    get:
-      summary: Resolve rapid site blast url
-      description: Resolves to Ensembl site blast url.
-      tags:
-        - Rapid Resolver
-      responses:
-        '200':
-          $ref: '#/components/responses/200'
-        '400':
-          $ref: '#/components/responses/400'
-        '404':
-          $ref: '#/components/responses/404'
-        '500':
-          $ref: '#/components/responses/500'
   /rapid/{species_url_name}:
     get:
       summary: Resolve rapid site url with species url name (with assembly accession)

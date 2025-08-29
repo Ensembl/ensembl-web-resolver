@@ -29,7 +29,6 @@ async def resolve_rapid_help(request: Request, subpath: str = ""):
     return resolved_response(response, request)
 
 
-@router.get("/Blast", name="Resolve rapid blast page")
 @router.get("/Multi/Tools/Blast", name="Resolve rapid blast page")
 async def resolve_rapid_blast(request: Request):
     response = RapidResolverResponse(
