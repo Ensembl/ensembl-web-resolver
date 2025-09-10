@@ -6,7 +6,8 @@ info:
     email: ensembl-webteam@ebi.ac.uk
   version: 0.0.1
 servers:
-  - url: https://resolver.ensembl.org
+#  - url: https://resolver.ensembl.org
+    - url: http://localhost:8001
 tags:
   - name: Resolver
     description: Resolver API resolves external urls to Ensembl
@@ -114,6 +115,67 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /rapid/id/{stable_id}:
+    get:
+      tags:
+        - Rapid Resolver
+      summary: Resolve Rapid stable ID
+      description: Resolves to a beta url when a stable id
+      parameters:
+        - name: stable_id
+          in: path
+          description: Gene stable id used to represent a gene in a genome.
+          required: true
+          schema:
+            type: string
+            example: ENSG00000221914.11
+      responses:
+        '200':
+          description: OK
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    assembly:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Assembly name
+                        accession_id:
+                          type: string
+                          description: Assembly accession id
+                    scientific_name:
+                      type: string
+                      description: Species scientific name
+                    common_name:
+                      type: string
+                      description: Species common name
+                    type:
+                      type: string
+                      description: Genome type
+                    entity_viewer_url:
+                      type: string
+                      description: Resolved Ensembl entity viewer url
+                    genome_browser_url:
+                      type: string
+                      description: Resolved Ensembl genome browser url
+                    is_reference:
+                      type: boolean
+                      description: Whether a genome is reference or not
         '400':
           $ref: '#/components/responses/400'
         '404':

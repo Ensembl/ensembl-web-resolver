@@ -19,6 +19,6 @@ The resolver service generates new Ensembl website urls for different features b
 
 ### Run unit tests:
 ```
-cd app
+python -m unittest tests.test_resolver
 python -m unittest tests.test_rapid
 ```

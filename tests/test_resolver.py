@@ -1,8 +1,9 @@
 import unittest
 from unittest.mock import patch
 from fastapi.testclient import TestClient
-from core.config import ENSEMBL_URL, DEFAULT_APP
-from main import app
+
+from app.core.config import ENSEMBL_URL, DEFAULT_APP
+from app.main import app
 
 
 class TestResolverAPI(unittest.TestCase):
@@ -57,8 +58,8 @@ class TestResolverAPI(unittest.TestCase):
             "genome2": f"{ENSEMBL_URL}/{DEFAULT_APP}/genome2/gene:{self.stable_id}",
         }
 
-    @patch("api.resources.resolver_view.get_search_results")
-    @patch("api.resources.resolver_view.get_metadata")
+    @patch("app.api.resources.resolver_view.get_search_results")
+    @patch("app.api.resources.resolver_view.get_metadata")
     def test_resolve_success_with_json_response(
         self, mock_get_metadata, mock_get_search_results
     ):
@@ -77,11 +78,11 @@ class TestResolverAPI(unittest.TestCase):
         json_response = response.json()
         self.assertEqual(len(json_response), 2)
         self.assertEqual(
-            json_response[0]["resolved_url"], self.mock_resolved_url["genome1"]
+            json_response[0]["entity_viewer_url"], self.mock_resolved_url["genome1"]
         )
 
-    @patch("api.resources.resolver_view.get_search_results")
-    @patch("api.resources.resolver_view.get_metadata")
+    @patch("app.api.resources.resolver_view.get_search_results")
+    @patch("app.api.resources.resolver_view.get_metadata")
     def test_resolve_success_with_redirect(
         self, mock_get_metadata, mock_get_search_results
     ):
@@ -99,8 +100,8 @@ class TestResolverAPI(unittest.TestCase):
             response.headers["location"], self.mock_resolved_url["genome1"]
         )
 
-    @patch("api.resources.resolver_view.get_search_results")
-    @patch("api.resources.resolver_view.get_metadata")
+    @patch("app.api.resources.resolver_view.get_search_results")
+    @patch("app.api.resources.resolver_view.get_metadata")
     def test_resolve_success_with_html_response(
         self, mock_get_metadata, mock_get_search_results
     ):
@@ -118,12 +119,13 @@ class TestResolverAPI(unittest.TestCase):
             "Failed resolving multiple results with html response",
         )
 
-    @patch("api.resources.resolver_view.get_search_results")
+    @patch("app.api.resources.resolver_view.get_search_results")
     def test_resolve_404(self, mock_get_search_results):
 
         mock_get_search_results.return_value = {}
 
         response = self.client.get(
-            f"{self.mock_search_api_url}/{self.stable_id}", follow_redirects=False
+            f"{self.mock_search_api_url}/{self.stable_id}", follow_redirects=False,
+            headers = {"accept": "application/json"}
         )
         self.assertEqual(response.status_code, 404)

@@ -1,9 +1,10 @@
 import unittest
 from unittest.mock import patch
 from fastapi.testclient import TestClient
-from api.models.resolver import RapidResolverResponse
-from core.config import ENSEMBL_URL
-from main import app
+
+from app.api.models.resolver import RapidResolverResponse
+from app.core.config import ENSEMBL_URL
+from app.main import app
 
 
 class TestRapid(unittest.TestCase):
@@ -11,6 +12,7 @@ class TestRapid(unittest.TestCase):
         self.client = TestClient(app)
         self.api_prefix = ""
         self.mock_rapid_api_url = "/rapid"
+        self.stable_id = "ENSAROG00010015245"
         self.species_url_name = "Human_GCA_123.1"
         self.species_url_name_refseq = "DogRefSeq_GCA_123.1rs"
 
@@ -90,7 +92,7 @@ class TestRapid(unittest.TestCase):
 
 
     # Test species home page
-    @patch("api.resources.rapid_view.get_genome_id_from_assembly_accession_id")
+    @patch("app.api.resources.rapid_view.get_genome_id_from_assembly_accession_id")
     def test_rapid_species_home_success(
         self, mock_get_genome_id_from_assembly_accession_id
     ):
@@ -113,7 +115,7 @@ class TestRapid(unittest.TestCase):
 
 
     # Test Region in detail page
-    @patch("api.resources.rapid_view.get_genome_id_from_assembly_accession_id")
+    @patch("app.api.resources.rapid_view.get_genome_id_from_assembly_accession_id")
     def test_rapid_species_location_success(
         self, mock_get_genome_id_from_assembly_accession_id
     ):
@@ -136,7 +138,7 @@ class TestRapid(unittest.TestCase):
         )
 
     # Test Gene pages
-    @patch("api.resources.rapid_view.get_genome_id_from_assembly_accession_id")
+    @patch("app.api.resources.rapid_view.get_genome_id_from_assembly_accession_id")
     def test_rapid_species_gene_compara_homolog(
         self, mock_get_genome_id_from_assembly_accession_id
     ):
@@ -161,7 +163,7 @@ class TestRapid(unittest.TestCase):
         )
 
     # Test 404
-    @patch("api.resources.rapid_view.get_genome_id_from_assembly_accession_id")
+    @patch("app.api.resources.rapid_view.get_genome_id_from_assembly_accession_id")
     def test_rapid_species_404_not_found(
         self, mock_get_genome_id_from_assembly_accession_id
     ):
@@ -187,7 +189,7 @@ class TestRapid(unittest.TestCase):
         self.assertEqual(response.status_code, 405)
 
     # Test 500
-    @patch("api.resources.rapid_view.get_genome_id_from_assembly_accession_id")
+    @patch("app.api.resources.rapid_view.get_genome_id_from_assembly_accession_id")
     def test_rapid_species_500_internal_server_error(
         self, mock_get_genome_id_from_assembly_accession_id
     ):
@@ -204,3 +206,15 @@ class TestRapid(unittest.TestCase):
             headers={"accept": "application/json"},
         )
         self.assertEqual(response.status_code, 500)
+
+
+    @patch("app.api.resources.rapid_view.get_search_results")
+    def test_rapid_id_resolve_404(self, mock_get_search_results):
+
+        mock_get_search_results.return_value = {}
+
+        response = self.client.get(
+            f"{self.mock_rapid_api_url}/id/{self.stable_id}", follow_redirects=False,
+            headers = {"accept": "application/json"}
+        )
+        self.assertEqual(response.status_code, 404)

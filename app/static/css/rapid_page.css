@@ -83,7 +83,7 @@ body {
 .redirect-content {
   margin-top: 30px;
   text-align: center;
-  width: 350px;
+  width: 100%;
 }
 
 .redirect-text {
@@ -115,6 +115,7 @@ body {
 .error-message {
   color: var(--color-red);
   font-size: 13px;
+  margin-top: 20px;
   margin-bottom: 20px;
 }
 
@@ -181,4 +182,63 @@ body {
 .search-param-label {
   font-size: 13px;
   color: var(--color-medium-dark-grey);
+}
+
+.search-param-value {
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+.id-detail-container {
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+.id-detail {
+  font-size: 12px;
+  color: var(--color-light-blue);
+}
+
+.id-detail-margin-left {
+  margin-left: 5px;
+}
+
+.id-detail-italic {
+  font-style: italic;
+}
+
+.tooltip-content {
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 12px;
+  border-radius: 1px;
+  position: relative;
+  background-color: #1b2c39;
+  width: 150px;
+  height: 20px;
+  box-shadow: 2px 2px 2px rgba(0,0,0,0.1);
+  text-align: left;
+}
+
+#tooltip .tooltip-content::after {
+  content: "";
+  position: absolute;
+  top: 40%;
+  left: 0%;
+  margin-left: -14px;
+  border-width: 7px;
+  border-style: solid;
+  border-color: transparent #1b2c39 transparent transparent;
+}
+
+.tooltip-content-title {
+  font-size: 12px;
+  color: var(--color-medium-light-grey);
+  font-weight: var(--font-weight-light);
+}
+
+.tooltip-links {
+  background-color: var(--color-light-blue);
+  padding: 3px;
+  margin-left: 20px;
 }

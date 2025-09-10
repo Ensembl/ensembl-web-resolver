@@ -1,4 +1,4 @@
-{% import "url.html" as url_helper %}
+{% import "shared/url.html" as url_helper %}
 
 <div class="redirect-content">
     <div class="redirect-info">
@@ -8,7 +8,7 @@
                     <span class="search-param-label">Species</span> {{ response.species_name }}
                 </div>
             {% endif %}
-            {{ url_helper.render_url(response.resolved_url) }}
+            {{ url_helper.render_url("Redirecting to", response.resolved_url) }}
         {% elif response.response_type == "INFO" %}
             <div class="search-param">
                 <span class="search-param-label">Species</span> {{ response.species_name }}
@@ -23,7 +23,7 @@
                     <span class="search-param-label">Location</span> {{ response.location }}
                 </div>
             {% endif %}
-            {{ url_helper.render_url(response.resolved_url) }}
+            {{ url_helper.render_url("Redirecting to", response.resolved_url) }}
         {% elif response.response_type == "ERROR" %}
             <div class="search-param">
                 <span class="search-param-label">Species</span> {{ response.species_name }}
@@ -31,9 +31,9 @@
             <div class="error-message">
                 {{ response.message }}
             </div>
-            {{ url_helper.render_url(response.resolved_url) }}
+            {{ url_helper.render_url("Redirecting to", response.resolved_url) }}
         {% else %}
-            {{ url_helper.render_url("https://beta.ensembl.org/") }}
+            {{ url_helper.render_url("Redirecting to", "https://beta.ensembl.org/") }}
         {% endif %}
     </div>
     <div class="redirect-text">

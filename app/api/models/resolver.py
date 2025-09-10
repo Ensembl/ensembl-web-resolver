@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import Optional, Literal, List, Dict, Annotated
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class SearchPayload(BaseModel):
@@ -29,11 +29,11 @@ class Assembly(BaseModel):
 
 
 class MetadataResult(BaseModel):
-    assembly: Assembly
-    scientific_name: str
-    common_name: str
+    assembly: Optional[Assembly] = None
+    scientific_name: Optional[str] = None
+    common_name: Optional[str] = None
     type: Optional[Dict[str, str]] = None
-    is_reference: bool = False
+    is_reference: Optional[bool] = False
 
 
 class ResolvedPayload(MetadataResult):
@@ -47,16 +47,41 @@ class RapidResolverHtmlResponseType(str, Enum):
     HELP = "HELP"
     INFO = "INFO"
 
- # Exclude all fields except resolved_url in JSON response.
+
 class RapidResolverResponse(BaseModel):
     resolved_url: str
-    response_type: Annotated[Optional[RapidResolverHtmlResponseType], Field(exclude=True)] = None
-    code: Annotated[Optional[int], Field(exclude=True)] = None
-    species_name: Annotated[Optional[str], Field(exclude=True)] = None
-    gene_id: Annotated[Optional[str], Field(exclude=True)] = None
-    location: Annotated[Optional[str], Field(exclude=True)] = None
-    message: Annotated[Optional[str], Field(exclude=True)] = None
-    rapid_archive_url: Annotated[Optional[str], Field(exclude=True)] = None
+    response_type: Optional[RapidResolverHtmlResponseType] = None
+    code: Optional[int] = None
+    species_name: Optional[str] = None
+    gene_id: Optional[str] = None
+    location: Optional[str] = None
+    message: Optional[str] = None
+    rapid_archive_url: Optional[str] = None
 
     class Config:
         use_enum_values = True
+
+    _excluded_fields = {
+        "response_type", "code", "species_name", "gene_id",
+        "location", "message", "rapid_archive_url"
+    }
+
+    def model_dump(self, *args, **kwargs):
+        kwargs.setdefault("exclude", self._excluded_fields)
+        return super().model_dump(*args, **kwargs)
+
+    def model_dump_json(self, *args, **kwargs):
+        kwargs.setdefault("exclude", self._excluded_fields)
+        return super().model_dump_json(*args, **kwargs)
+
+
+class StableIdResolverContent(MetadataResult):
+    entity_viewer_url: Optional[str] = None
+    genome_browser_url: Optional[str] = None
+
+class StableIdResolverResponse(BaseModel):
+    stable_id: str
+    code: Optional[int] = None
+    message: Optional[str] = None
+    rapid_archive_url: Optional[str] = None
+    content: Optional[List[StableIdResolverContent]] = []

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Ensembl Rapid Resolver</title>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--  Automatically refresh/redirects to the target url (resolved rapid url) after 10 seconds -->
+    <meta http-equiv="refresh" content="10;url={{ response.resolved_url }}" />
+
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/css/rapid_page.css">
+  </head>
+  <body>
+    {% include "shared/appbar.html" %}
+    <div class="container">
+      {% include "shared/venn.html" %}
+      {% include "rapid/rapid_content.html" %}
+      {% include "rapid/footer.html" %}
+    </div>
+  </body>
+</html>

@@ -1,12 +1,10 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <title>Ensembl Rapid Resolver</title>
+    <title>Ensembl Rapid Stable ID Resolver</title>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--  Automatically refresh/redirects to the target url (resolved rapid url) after 10 seconds -->
-    <meta http-equiv="refresh" content="10;url={{ response.resolved_url }}" />
 
     <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png" />
@@ -16,11 +14,11 @@
     <link rel="stylesheet" type="text/css" href="/static/css/rapid_page.css">
   </head>
   <body>
-    {% include "appbar.html" %}
+    {% include "shared/appbar.html" %}
     <div class="container">
-      {% include "venn.html" %}
-      {% include "content.html" %}
-      {% include "footer.html" %}
+      {% include "shared/venn.html" %}
+      {% include "rapid/rapid_id_content.html" %}
+      {% include "rapid/footer.html" %}
     </div>
   </body>
 </html>
