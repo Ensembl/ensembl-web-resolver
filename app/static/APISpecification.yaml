@@ -6,8 +6,7 @@ info:
     email: ensembl-webteam@ebi.ac.uk
   version: 0.0.1
 servers:
-#  - url: https://resolver.ensembl.org
-    - url: http://localhost:8001
+  - url: https://resolver.ensembl.org
 tags:
   - name: Resolver
     description: Resolver API resolves external urls to Ensembl
