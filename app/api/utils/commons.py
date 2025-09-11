@@ -1,7 +1,7 @@
 from typing import List
 
 from app.api.models.resolver import StableIdResolverContent
-from app.core.config import ENSEMBL_URL
+from app.core.config import ENSEMBL_URL, RAPID_ARCHIVE_URL
 
 
 def build_stable_id_resolver_content(metadata_results) -> List[StableIdResolverContent]:
@@ -29,3 +29,7 @@ def build_entity_viewer_url(genome_id: str, stable_id: str) -> str:
 
 def build_genome_browser_url(genome_id: str, stable_id: str) -> str:
     return f"{ENSEMBL_URL}/genome-browser/{genome_id}?focus=gene:{stable_id}"
+
+
+def is_json_request(request) -> bool:
+    return "application/json" in request.headers.get("accept")

@@ -5,7 +5,7 @@ import logging
 
 from app.api.error_response import response_error_handler
 from app.api.models.resolver import SearchPayload, StableIdResolverResponse
-from app.api.utils.commons import build_stable_id_resolver_content
+from app.api.utils.commons import build_stable_id_resolver_content, is_json_request
 from app.api.utils.metadata import get_metadata
 from app.api.utils.resolver import generate_resolver_id_page
 from app.api.utils.search import get_search_results
@@ -30,7 +30,7 @@ async def resolve(
     search_results = get_search_results(params)
 
     if not search_results or not search_results.get("matches"):
-        if "application/json" in request.headers.get("accept"):
+        if is_json_request(request):
             return response_error_handler({"status": 404})
 
         res = StableIdResolverResponse(
@@ -53,7 +53,7 @@ async def resolve(
     results = build_stable_id_resolver_content(metadata_results)
     stable_id_resolver_response.content = results
 
-    if "application/json" in request.headers.get("accept"):
+    if is_json_request(request):
         return results
 
     if len(results) == 1:
