@@ -1,4 +1,3 @@
-from typing import List
 from urllib.parse import parse_qs
 
 from fastapi import APIRouter, Request, Query, HTTPException
@@ -9,7 +8,8 @@ import logging
 
 from app.api.error_response import response_error_handler
 from app.api.models.resolver import RapidResolverResponse, RapidResolverHtmlResponseType, SearchPayload, \
-    StableIdResolverResponse, StableIdResolverContent
+    StableIdResolverResponse
+from app.api.utils.commons import build_stable_id_resolver_content
 from app.api.utils.metadata import get_genome_id_from_assembly_accession_id, get_metadata
 from app.api.utils.rapid import format_assembly_accession, construct_rapid_archive_url, construct_url, \
     generate_rapid_id_page, generate_rapid_page
@@ -47,22 +47,7 @@ async def resolve_rapid_stable_id(request: Request, stable_id: str):
         code=308,
         rapid_archive_url=f"{RAPID_ARCHIVE_URL}/id/{stable_id}"
     )
-    results: List[StableIdResolverContent] = []
-
-    for genome_id in metadata_results:
-        metadata = metadata_results[genome_id]
-        if not metadata:
-            continue
-
-        entity_viewer_url = f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{metadata['unversioned_stable_id']}"
-        genome_browser_url = f"{ENSEMBL_URL}/genome-browser/{genome_id}?focus=gene:{metadata['unversioned_stable_id']}"
-        content = StableIdResolverContent(
-            entity_viewer_url=entity_viewer_url,
-            genome_browser_url=genome_browser_url,
-            **metadata,
-        )
-        results.append(content)
-
+    results = build_stable_id_resolver_content(metadata_results)
     stable_id_resolver_response.content = results
 
     if "application/json" in request.headers.get("accept"):

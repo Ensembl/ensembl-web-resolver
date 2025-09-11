@@ -1,14 +1,15 @@
 from fastapi import APIRouter, Request
-from typing import Optional, Literal, List
+from typing import Optional, Literal
 from fastapi.responses import RedirectResponse, HTMLResponse
 import logging
 
 from app.api.error_response import response_error_handler
-from app.api.models.resolver import SearchPayload, StableIdResolverResponse, StableIdResolverContent
+from app.api.models.resolver import SearchPayload, StableIdResolverResponse
+from app.api.utils.commons import build_stable_id_resolver_content
 from app.api.utils.metadata import get_metadata
 from app.api.utils.resolver import generate_resolver_id_page
 from app.api.utils.search import get_search_results
-from app.core.config import DEFAULT_APP, ENSEMBL_URL
+from app.core.config import DEFAULT_APP
 from app.core.logging import InterceptHandler
 
 logging.getLogger().handlers = [InterceptHandler()]
@@ -49,23 +50,7 @@ async def resolve(
         stable_id=stable_id,
         code=308,
     )
-    results: List[StableIdResolverContent] = []
-
-    for genome_id in metadata_results:
-        metadata = metadata_results[genome_id]
-
-        if not metadata:
-            continue
-
-        entity_viewer_url = f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{metadata['unversioned_stable_id']}"
-        genome_browser_url = f"{ENSEMBL_URL}/genome-browser/{genome_id}?focus=gene:{metadata['unversioned_stable_id']}"
-        content = StableIdResolverContent(
-            entity_viewer_url=entity_viewer_url,
-            genome_browser_url=genome_browser_url,
-            **metadata,
-        )
-        results.append(content)
-
+    results = build_stable_id_resolver_content(metadata_results)
     stable_id_resolver_response.content = results
 
     if "application/json" in request.headers.get("accept"):

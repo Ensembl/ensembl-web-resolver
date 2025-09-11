@@ -83,6 +83,12 @@ body {
 .redirect-content {
   margin-top: 30px;
   text-align: center;
+  width: 50%;
+}
+
+.id-redirect-content {
+  margin-top: 30px;
+  text-align: center;
   width: 100%;
 }
 
@@ -93,11 +99,11 @@ body {
 }
 
 .footer {
-    font-size: 12px;
-    color: var(--color-medium-dark-grey);
-    margin-top: 50px;
-    width: 300px;
-    text-align: center;
+  font-size: 12px;
+  color: var(--color-medium-dark-grey);
+  margin-top: 50px;
+  width: 300px;
+  text-align: center;
 }
 
 .footer-link a {
@@ -125,10 +131,10 @@ body {
 }
 
 .venn-header {
-    font-size: 14px;
-    margin-right: 50px;
-    margin-bottom: 20px;
-    margin-left: 50px;
+  font-size: 14px;
+  margin-right: 50px;
+  margin-bottom: 20px;
+  margin-left: 50px;
 }
 
 .venn {
@@ -190,12 +196,12 @@ body {
 }
 
 .id-detail-container {
-  cursor: pointer;
   margin-top: 15px;
 }
 
 .id-detail {
   font-size: 12px;
+  cursor: pointer;
   color: var(--color-light-blue);
 }
 

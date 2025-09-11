@@ -1,6 +1,6 @@
 {% import "shared/url.html" as url_helper %}
 
-<div class="redirect-content">
+<div class="id-redirect-content">
     <div class="redirect-info">
         <div class="search-param">
             <span class="search-param-label">Gene</span>
@@ -13,41 +13,40 @@
             {{ url_helper.render_url("Go to", "https://beta.ensembl.org/species-selector") }}
         {% else %}
             {% for item in response.content %}
-                <div class="id-detail-container">
+                <div class="id-detail-container"
+                    data-genome-browser-url="{{ item.genome_browser_url }}"
+                    data-entity-viewer-url="{{ item.entity_viewer_url }}">
                     <span class="id-detail">{{ item.common_name }},</span>
                     <span class="id-detail id-detail-margin-left id-detail-italic">{{ item.scientific_name }},</span>
                     <span class="id-detail id-detail-margin-left id-detail-italic">
                         {% if item.type and item.is_reference %}
-                          {{ item.type.kind }} - {{ item.type.value }}, Reference
+                          {{ item.type.kind }} - {{ item.type.value }}, Reference,
                         {% elif item.is_reference %}
-                          Reference
+                          Reference,
                         {% elif item.type %}
-                          {{ item.type.kind }} - {{ item.type.value }}
-                        {% else %}
-                          -
+                          {{ item.type.kind }} - {{ item.type.value }},
                         {% endif %}
-                        ,
                     </span>
                     <span class="id-detail id-detail-margin-left">{{ item.assembly.name }},</span>
                     <span class="id-detail id-detail-margin-left id-detail-tooltip">{{ item.assembly.accession_id }}</span>
                 </div>
-                <div id="tooltip" style="display:none; position:absolute;">
-                    <div class="tooltip-content">
-                        <span class="tooltip-content-title">View in</span>
-                        <span class="tooltip-links">
-                            <a href="{{ item.genome_browser_url }}">
-                                {% include "shared/_genome_browser.html" %}
-                            </a>
-                        </span>
-                        <span class="tooltip-links">
-                            <a href="{{ item.entity_viewer_url }}">
-                                {% include "shared/_entity_viewer.html" %}
-                            </a>
-                        </span>
-                    </div>
-                    <div class="tooltip-arrow"></div>
-                </div>
             {% endfor %}
+            <div id="tooltip" style="display:none; position:absolute;">
+                <div class="tooltip-content">
+                    <span class="tooltip-content-title">View in</span>
+                    <span class="tooltip-links">
+                        <a id="genome-browser-link" href="#">
+                            {% include "shared/_genome_browser_icon.html" %}
+                        </a>
+                    </span>
+                    <span class="tooltip-links">
+                        <a id="entity-viewer-link" href="#">
+                            {% include "shared/_entity_viewer_icon.html" %}
+                        </a>
+                    </span>
+                </div>
+                <div class="tooltip-arrow"></div>
+            </div>
         {% endif %}
     </div>
     <div class="redirect-text">
@@ -61,7 +60,13 @@
     document.querySelectorAll('.id-detail-container').forEach(function(el) {
       el.addEventListener('click', function(e) {
         e.stopPropagation();
+
+        if (!e.target.classList.contains('id-detail')) return;
+
         var tooltip = document.getElementById('tooltip');
+        document.getElementById('genome-browser-link').href = el.dataset.genomeBrowserUrl
+        document.getElementById('entity-viewer-link').href = el.dataset.entityViewerUrl;
+
         var target = el.querySelector('.id-detail-tooltip');
         tooltip.style.display = 'block';
         var rect = target.getBoundingClientRect();
@@ -72,7 +77,14 @@
 
     document.addEventListener('click', function(e) {
       var tooltip = document.getElementById('tooltip');
-      if (!e.target.closest('.id-detail-container') && !e.target.closest('#tooltip')) {
+      if (!e.target.closest('.id-detail-container') && !e.target.closest('#tooltip') && tooltip) {
+        tooltip.style.display = 'none';
+      }
+    });
+
+    window.addEventListener('resize', function() {
+      var tooltip = document.getElementById('tooltip');
+      if (tooltip) {
         tooltip.style.display = 'none';
       }
     });
