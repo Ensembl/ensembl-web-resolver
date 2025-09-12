@@ -5,6 +5,7 @@
   --font-weight-light: 300;
   --color-medium-dark-grey: #9aa7b1;
   --color-red: #d90000;
+  --color-black: #1b2c39;
   --color-medium-light-grey: #d4d9de;
 }
 
@@ -13,6 +14,7 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
+  min-width: 1024px; /* Limit Desktop */
   font-family: Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
@@ -195,33 +197,30 @@ body {
   margin-left: 5px;
 }
 
-.id-detail-container {
+.genome-detail-container {
   margin-top: 15px;
 }
 
-.id-detail {
-  font-size: 12px;
+.genome-detail {
+  font-size: 13px;
   cursor: pointer;
   color: var(--color-light-blue);
 }
 
-.id-detail-margin-left {
+.genome-detail-margin-left {
   margin-left: 5px;
 }
 
-.id-detail-italic {
+.italic {
   font-style: italic;
 }
 
 .tooltip-content {
-  background: #fff;
-  border: 1px solid #ccc;
   padding: 12px;
-  border-radius: 1px;
   position: relative;
-  background-color: #1b2c39;
-  width: 150px;
-  height: 20px;
+  background-color: var(--color-black);
+  width: 140px;
+  min-height: 20px;
   box-shadow: 2px 2px 2px rgba(0,0,0,0.1);
   text-align: left;
 }
@@ -229,12 +228,12 @@ body {
 #tooltip .tooltip-content::after {
   content: "";
   position: absolute;
-  top: 40%;
+  top: 35%;
   left: 0%;
   margin-left: -14px;
   border-width: 7px;
   border-style: solid;
-  border-color: transparent #1b2c39 transparent transparent;
+  border-color: transparent var(--color-black) transparent transparent;
 }
 
 .tooltip-content-title {
@@ -243,8 +242,10 @@ body {
   font-weight: var(--font-weight-light);
 }
 
-.tooltip-links {
+#genome-browser-link,
+#entity-viewer-link {
   background-color: var(--color-light-blue);
-  padding: 3px;
+  padding: 2px 4px;
   margin-left: 20px;
+  display: inline-block;
 }

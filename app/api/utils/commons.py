@@ -1,11 +1,9 @@
-from typing import List
-
 from app.api.models.resolver import StableIdResolverContent
-from app.core.config import ENSEMBL_URL, RAPID_ARCHIVE_URL
+from app.core.config import ENSEMBL_URL
 
 
-def build_stable_id_resolver_content(metadata_results) -> List[StableIdResolverContent]:
-    results: List[StableIdResolverContent] = []
+def build_stable_id_resolver_content(metadata_results) -> list[StableIdResolverContent]:
+    results: list[StableIdResolverContent] = []
 
     for genome_id in metadata_results:
         metadata = metadata_results[genome_id]

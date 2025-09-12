@@ -13,37 +13,55 @@
             {{ url_helper.render_url("Go to", "https://beta.ensembl.org/species-selector") }}
         {% else %}
             {% for item in response.content %}
-                <div class="id-detail-container"
+                <div class="genome-detail-container"
                     data-genome-browser-url="{{ item.genome_browser_url }}"
                     data-entity-viewer-url="{{ item.entity_viewer_url }}">
-                    <span class="id-detail">{{ item.common_name }},</span>
-                    <span class="id-detail id-detail-margin-left id-detail-italic">{{ item.scientific_name }},</span>
-                    <span class="id-detail id-detail-margin-left id-detail-italic">
-                        {% if item.type and item.is_reference %}
+                    {% if item.common_name %}
+                        <span class="genome-detail" tabindex="0" role="button" aria-label="Show tooltip">
+                            {{ item.common_name }},
+                        </span>
+                    {% endif %}
+                    {% if item.scientific_name %}
+                        <span class="genome-detail genome-detail-margin-left italic" tabindex="0" role="button" aria-label="Show tooltip">
+                            {{ item.scientific_name }},
+                        </span>
+                    {% endif %}
+
+                    {% if item.type and item.is_reference %}
+                      <span class="genome-detail genome-detail-margin-left" tabindex="0" role="button" aria-label="Show tooltip">
                           {{ item.type.kind }} - {{ item.type.value }}, Reference,
-                        {% elif item.is_reference %}
+                      </span>
+                    {% elif item.is_reference %}
+                      <span class="genome-detail genome-detail-margin-left" tabindex="0" role="button" aria-label="Show tooltip">
                           Reference,
-                        {% elif item.type %}
+                      </span>
+                    {% elif item.type %}
+                      <span class="genome-detail genome-detail-margin-left" tabindex="0" role="button" aria-label="Show tooltip">
                           {{ item.type.kind }} - {{ item.type.value }},
-                        {% endif %}
-                    </span>
-                    <span class="id-detail id-detail-margin-left">{{ item.assembly.name }},</span>
-                    <span class="id-detail id-detail-margin-left id-detail-tooltip">{{ item.assembly.accession_id }}</span>
+                      </span>
+                    {% endif %}
+
+                    {% if item.assembly.name %}
+                        <span class="genome-detail genome-detail-margin-left" tabindex="0" role="button" aria-label="Show tooltip">
+                            {{ item.assembly.name }},
+                        </span>
+                    {% endif %}
+                    {% if item.assembly.accession_id %}
+                        <span class="genome-detail genome-detail-margin-left genome-detail-tooltip" tabindex="0" role="button" aria-label="Show tooltip">
+                            {{ item.assembly.accession_id }}
+                        </span>
+                    {% endif %}
                 </div>
             {% endfor %}
-            <div id="tooltip" style="display:none; position:absolute;">
+            <div id="tooltip" style="display:none; position:absolute;" role="tooltip" aria-hidden="true">
                 <div class="tooltip-content">
                     <span class="tooltip-content-title">View in</span>
-                    <span class="tooltip-links">
-                        <a id="genome-browser-link" href="#">
-                            {% include "shared/_genome_browser_icon.html" %}
-                        </a>
-                    </span>
-                    <span class="tooltip-links">
-                        <a id="entity-viewer-link" href="#">
-                            {% include "shared/_entity_viewer_icon.html" %}
-                        </a>
-                    </span>
+                    <a id="genome-browser-link" href="#" aria-label="Genome Browser link">
+                        {% include "shared/_genome_browser_icon.html" %}
+                    </a>
+                    <a id="entity-viewer-link" href="#" aria-label="Entity Viewer link">
+                        {% include "shared/_entity_viewer_icon.html" %}
+                    </a>
                 </div>
                 <div class="tooltip-arrow"></div>
             </div>
@@ -55,37 +73,3 @@
         </span>
     </div>
 </div>
-
-<script>
-    document.querySelectorAll('.id-detail-container').forEach(function(el) {
-      el.addEventListener('click', function(e) {
-        e.stopPropagation();
-
-        if (!e.target.classList.contains('id-detail')) return;
-
-        var tooltip = document.getElementById('tooltip');
-        document.getElementById('genome-browser-link').href = el.dataset.genomeBrowserUrl
-        document.getElementById('entity-viewer-link').href = el.dataset.entityViewerUrl;
-
-        var target = el.querySelector('.id-detail-tooltip');
-        tooltip.style.display = 'block';
-        var rect = target.getBoundingClientRect();
-        tooltip.style.top = (rect.top - 20) + 'px';
-        tooltip.style.left = (rect.right + 10 + window.scrollX) + 'px';
-      });
-    });
-
-    document.addEventListener('click', function(e) {
-      var tooltip = document.getElementById('tooltip');
-      if (!e.target.closest('.id-detail-container') && !e.target.closest('#tooltip') && tooltip) {
-        tooltip.style.display = 'none';
-      }
-    });
-
-    window.addEventListener('resize', function() {
-      var tooltip = document.getElementById('tooltip');
-      if (tooltip) {
-        tooltip.style.display = 'none';
-      }
-    });
-</script>
