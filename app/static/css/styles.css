@@ -1,7 +1,7 @@
 :root {
   --standard-gutter: 30px;
   --global-padding-left: calc(var(--standard-gutter) * 4);
-  --color-light-blue: #33adff;
+  --color-light-blue: #0099ff;
   --font-weight-light: 300;
   --color-medium-dark-grey: #9aa7b1;
   --color-red: #d90000;
@@ -203,7 +203,7 @@ body {
 
 .genome-detail {
   font-size: 13px;
-  cursor: pointer;
+  text-decoration: none;
   color: var(--color-light-blue);
 }
 

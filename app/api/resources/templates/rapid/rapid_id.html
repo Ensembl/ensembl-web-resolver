@@ -2,6 +2,13 @@
 
 {% block title %}Ensembl Rapid Stable ID Resolver{% endblock %}
 
+{% if response.content|length == 1 %}
+  {% block extra_head %}
+    <!--  Automatically refresh/redirects to the target url (resolved rapid url) after 10 seconds -->
+    <meta http-equiv="refresh" content="10;url={{ response.content[0].entity_viewer_url }}" />
+  {% endblock %}
+{% endif %}
+
 {% block content %}
 {% include "shared/id_content.html" %}
 {% endblock %}

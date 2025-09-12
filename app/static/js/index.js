@@ -32,13 +32,17 @@ function showTooltip(el) {
 
 document.querySelectorAll('.genome-detail-container').forEach(function(el) {
   el.addEventListener('keydown', function(e) {
-    if (e.target.classList.contains('genome-detail') && e.key === 'Enter') {
+    const link = e.target.closest('.genome-detail');
+    if (link && el.contains(link) && e.key === 'Enter') {
+      e.preventDefault();
       showTooltip(el);
     }
   })
 
   el.addEventListener('click', function(e) {
-    if (e.target.classList.contains('genome-detail')) {
+    const link = e.target.closest('.genome-detail');
+    if (link && el.contains(link)) {
+      e.preventDefault();
       showTooltip(el);
     }
   });

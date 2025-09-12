@@ -63,4 +63,4 @@ async def resolve(
             resolved_url = results[0].genome_browser_url
         return RedirectResponse(resolved_url)
     else:
-        return HTMLResponse(generate_resolver_id_page(stable_id_resolver_response.model_dump()))
+        return HTMLResponse(generate_resolver_id_page(stable_id_resolver_response))

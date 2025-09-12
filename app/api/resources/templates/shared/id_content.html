@@ -16,41 +16,29 @@
                 <div class="genome-detail-container"
                     data-genome-browser-url="{{ item.genome_browser_url }}"
                     data-entity-viewer-url="{{ item.entity_viewer_url }}">
-                    {% if item.common_name %}
-                        <span class="genome-detail" tabindex="0" role="button" aria-label="Show tooltip">
-                            {{ item.common_name }},
-                        </span>
-                    {% endif %}
-                    {% if item.scientific_name %}
-                        <span class="genome-detail genome-detail-margin-left italic" tabindex="0" role="button" aria-label="Show tooltip">
-                            {{ item.scientific_name }},
-                        </span>
-                    {% endif %}
+                    <a href="{{ item.entity_viewer_url }}" class="genome-detail genome-detail-tooltip" aria-label="Show tooltip">
+                        {% if item.common_name %}
+                          {{ item.common_name }},
+                        {% endif %}
+                        {% if item.scientific_name %}
+                          <span class="genome-detail-margin-left italic">{{ item.scientific_name }},</span>
+                        {% endif %}
 
-                    {% if item.type and item.is_reference %}
-                      <span class="genome-detail genome-detail-margin-left" tabindex="0" role="button" aria-label="Show tooltip">
-                          {{ item.type.kind }} - {{ item.type.value }}, Reference,
-                      </span>
-                    {% elif item.is_reference %}
-                      <span class="genome-detail genome-detail-margin-left" tabindex="0" role="button" aria-label="Show tooltip">
-                          Reference,
-                      </span>
-                    {% elif item.type %}
-                      <span class="genome-detail genome-detail-margin-left" tabindex="0" role="button" aria-label="Show tooltip">
-                          {{ item.type.kind }} - {{ item.type.value }},
-                      </span>
-                    {% endif %}
+                        {% if item.type and item.is_reference %}
+                          <span class="genome-detail-margin-left">{{ item.type.kind }} - {{ item.type.value }}, Reference,</span>
+                        {% elif item.is_reference %}
+                          <span class="genome-detail-margin-left">Reference,</span>
+                        {% elif item.type %}
+                          <span class="genome-detail-margin-left">{{ item.type.kind }} - {{ item.type.value }},</span>
+                        {% endif %}
 
-                    {% if item.assembly.name %}
-                        <span class="genome-detail genome-detail-margin-left" tabindex="0" role="button" aria-label="Show tooltip">
-                            {{ item.assembly.name }},
-                        </span>
-                    {% endif %}
-                    {% if item.assembly.accession_id %}
-                        <span class="genome-detail genome-detail-margin-left genome-detail-tooltip" tabindex="0" role="button" aria-label="Show tooltip">
-                            {{ item.assembly.accession_id }}
-                        </span>
-                    {% endif %}
+                        {% if item.assembly.name %}
+                          <span class="genome-detail-margin-left">{{ item.assembly.name }},</span>
+                        {% endif %}
+                        {% if item.assembly.accession_id %}
+                          <span class="genome-detail-margin-left">{{ item.assembly.accession_id }}</span>
+                        {% endif %}
+                    </a>
                 </div>
             {% endfor %}
             <div id="tooltip" style="display:none; position:absolute;" role="tooltip" aria-hidden="true">

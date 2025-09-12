@@ -55,7 +55,7 @@ async def resolve_rapid_stable_id(request: Request, stable_id: str):
     if is_json_request(request):
         return results
 
-    return HTMLResponse(generate_rapid_id_page(stable_id_resolver_response.model_dump()))
+    return HTMLResponse(generate_rapid_id_page(stable_id_resolver_response))
 
 
 @router.get("/info/{subpath:path}", name="Resolve rapid help page")
