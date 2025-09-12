@@ -3,7 +3,7 @@
 {% block title %}Ensembl Rapid Stable ID Resolver{% endblock %}
 
 {% block extra_head %}
-  {% if response.content|length == 1 %}
+  {% if response.content and response.content|length == 1 %}
     <meta http-equiv="refresh" content="10;url={{ response.content[0].entity_viewer_url }}" />
   {% endif %}
 {% endblock %}
