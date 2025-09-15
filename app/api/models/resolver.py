@@ -77,6 +77,8 @@ class RapidResolverResponse(BaseModel):
 class StableIdResolverContent(MetadataResult):
     entity_viewer_url: str | None = None
     genome_browser_url: str | None = None
+    release_type: str | None = None
+    release_name: str | None = None
 
 
 class StableIdResolverResponse(BaseModel):

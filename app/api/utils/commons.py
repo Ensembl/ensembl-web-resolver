@@ -14,6 +14,8 @@ def build_stable_id_resolver_content(metadata_results) -> list[StableIdResolverC
         content = StableIdResolverContent(
             entity_viewer_url=build_entity_viewer_url(genome_id, metadata['unversioned_stable_id']),
             genome_browser_url=build_genome_browser_url(genome_id, metadata['unversioned_stable_id']),
+            release_type=metadata.get("release", {}).get("type", ""),
+            release_name=metadata.get("release", {}).get("name", ""),
             **metadata,
         )
         results.append(content)
