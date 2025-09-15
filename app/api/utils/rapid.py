@@ -1,7 +1,11 @@
+import os
+
+from jinja2 import Environment, FileSystemLoader
 from loguru import logger
 import requests
-from core.config import ENSEMBL_URL, NCBI_DATASETS_URL, RAPID_ARCHIVE_URL
 import re
+
+from app.core.config import NCBI_DATASETS_URL, ENSEMBL_URL, RAPID_ARCHIVE_URL
 
 
 def get_assembly_accession_from_ncbi(accession_id: str):
@@ -109,3 +113,18 @@ def construct_rapid_archive_url(species_url_name, subpath, query_params):
 
     return url
 
+
+def generate_html_content(response, page):
+    templates_path = os.path.join(os.path.dirname(__file__), "../resources/templates")
+    env = Environment(loader=FileSystemLoader(templates_path))
+    template = env.get_template(f"rapid/{page}")
+    content = template.render(response=response)
+    return content
+
+
+def generate_rapid_page(response):
+    return generate_html_content(response, "rapid.html")
+
+
+def generate_rapid_id_page(response):
+    return generate_html_content(response, "rapid_id.html")

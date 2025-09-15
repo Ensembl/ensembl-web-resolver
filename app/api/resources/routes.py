@@ -17,7 +17,7 @@ limitations under the License.
 
 from fastapi import APIRouter
 
-from api.resources import resolver_view, rapid_view
+from app.api.resources import resolver_view, rapid_view
 
 router = APIRouter()
 

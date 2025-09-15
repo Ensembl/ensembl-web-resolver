@@ -1,6 +1,6 @@
-{% macro render_url(url) %}
+{% macro render_url(title, url) %}
   <div>
-      <span class="search-param-label">Redirecting to </span>
+      <span class="search-param-label">{{ title }} </span>
         <a class="link" href="{{ url }}">
             {{ url }}
         </a>

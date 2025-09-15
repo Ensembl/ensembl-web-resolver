@@ -17,8 +17,22 @@ The resolver service generates new Ensembl website urls for different features b
  
  http://localhost:8001/id/ENSG00000127720.3
 
+### Running application in Local
+
+From the project root directory run the following commands
+
+`$ mv sample-env .env`
+
+`$ python3 -m venv venv`
+
+`$ source venv/bin/activate`
+
+`$ pip install -r requirements.txt`
+
+`$ python3 -m uvicorn app.main:app --port 8001 --reload`
+
 ### Run unit tests:
 ```
-cd app
+python -m unittest tests.test_resolver
 python -m unittest tests.test_rapid
 ```

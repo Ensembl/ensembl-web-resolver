@@ -1,0 +1,63 @@
+{% import "shared/url.html" as url_helper %}
+
+<div class="id-redirect-content">
+    <div class="redirect-info">
+        <div class="search-param">
+            <span class="search-param-label">Gene</span>
+            <span class="search-param-value">{{ response.stable_id }}</span>
+        </div>
+        {% if response.code == 404 and response.message %}
+            <div class="error-message">
+                {{ response.message }}
+            </div>
+            {{ url_helper.render_url("Go to", "https://beta.ensembl.org/species-selector") }}
+        {% else %}
+            {% for item in response.content %}
+                <div class="genome-detail-container"
+                    data-genome-browser-url="{{ item.genome_browser_url }}"
+                    data-entity-viewer-url="{{ item.entity_viewer_url }}">
+                    <a href="{{ item.entity_viewer_url }}" class="genome-detail genome-detail-tooltip">
+                        {% if item.common_name %}
+                          {{ item.common_name }},
+                        {% endif %}
+                        {% if item.scientific_name %}
+                          <span class="genome-detail-margin-left italic">{{ item.scientific_name }},</span>
+                        {% endif %}
+
+                        {% if item.type and item.is_reference %}
+                          <span class="genome-detail-margin-left">{{ item.type.kind }} - {{ item.type.value }}, Reference,</span>
+                        {% elif item.is_reference %}
+                          <span class="genome-detail-margin-left">Reference,</span>
+                        {% elif item.type %}
+                          <span class="genome-detail-margin-left">{{ item.type.kind }} - {{ item.type.value }},</span>
+                        {% endif %}
+
+                        {% if item.assembly.name %}
+                          <span class="genome-detail-margin-left">{{ item.assembly.name }},</span>
+                        {% endif %}
+                        {% if item.assembly.accession_id %}
+                          <span class="genome-detail-margin-left">{{ item.assembly.accession_id }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+            {% endfor %}
+            <div id="tooltip" style="display:none; position:absolute;" role="tooltip" aria-hidden="true">
+                <div class="tooltip-content">
+                    <span class="tooltip-content-title">View in</span>
+                    <a id="genome-browser-link" href="#" aria-label="Genome Browser">
+                        {% include "shared/_genome_browser_icon.html" %}
+                    </a>
+                    <a id="entity-viewer-link" href="#" aria-label="Entity Viewer">
+                        {% include "shared/_entity_viewer_icon.html" %}
+                    </a>
+                </div>
+                <div class="tooltip-arrow"></div>
+            </div>
+        {% endif %}
+    </div>
+    <div class="redirect-text">
+        <span>
+            You will be redirected to the new Ensembl website, where you will find the latest genomic information
+        </span>
+    </div>
+</div>

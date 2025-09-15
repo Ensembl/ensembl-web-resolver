@@ -1,8 +1,9 @@
 from loguru import logger
 import requests
 from typing import List
-from core.config import ENSEMBL_URL
-from api.models.resolver import SearchMatch
+
+from app.api.models.resolver import SearchMatch
+from app.core.config import ENSEMBL_URL
 
 
 def get_metadata(matches: List[SearchMatch] = []):

@@ -14,14 +14,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import os.path
 
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.docs import get_swagger_ui_html
 
-from api.resources.routes import router
-from core.config import API_PREFIX, ALLOWED_HOSTS, VERSION, PROJECT_NAME, DEBUG
+from app.api.resources.routes import router
+from app.core.config import PROJECT_NAME, DEBUG, VERSION, ALLOWED_HOSTS, API_PREFIX
 
 
 def get_application() -> FastAPI:
@@ -48,7 +49,8 @@ def get_application() -> FastAPI:
 
 
 app = get_application()
-app.mount("/static", StaticFiles(directory="static"), name="static_files")
+static_files_path = os.path.join(os.path.dirname(__file__), "./static")
+app.mount("/static", StaticFiles(directory=static_files_path), name="static_files")
 
 
 @app.get("/", include_in_schema=False)

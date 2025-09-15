@@ -1,0 +1,16 @@
+{% extends "shared/base.html" %}
+
+{% block title %}Ensembl Rapid Resolver{% endblock %}
+
+{% block extra_head %}
+<!--  Automatically refresh/redirects to the target url (resolved rapid url) after 10 seconds -->
+<meta http-equiv="refresh" content="10;url={{ response.resolved_url }}" />
+{% endblock %}
+
+{% block content %}
+{% include "rapid/rapid_content.html" %}
+{% endblock %}
+
+{% block footer %}
+{% include "rapid/footer.html" %}
+{% endblock %}

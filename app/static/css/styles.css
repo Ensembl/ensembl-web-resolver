@@ -1,10 +1,11 @@
 :root {
   --standard-gutter: 30px;
   --global-padding-left: calc(var(--standard-gutter) * 4);
-  --color-light-blue: #33adff;
+  --color-blue: #0099ff;
   --font-weight-light: 300;
   --color-medium-dark-grey: #9aa7b1;
   --color-red: #d90000;
+  --color-black: #1b2c39;
   --color-medium-light-grey: #d4d9de;
 }
 
@@ -13,6 +14,7 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
+  min-width: 1024px; /* Limit Desktop */
   font-family: Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
@@ -58,7 +60,7 @@ body {
 }
 
 .copyright a {
-  color: var(--color-light-blue);
+  color: var(--color-blue);
   text-decoration: none;
 }
 
@@ -83,7 +85,12 @@ body {
 .redirect-content {
   margin-top: 30px;
   text-align: center;
-  width: 350px;
+  width: 50%;
+}
+
+.id-redirect-content {
+  margin-top: 30px;
+  text-align: center;
 }
 
 .redirect-text {
@@ -93,21 +100,21 @@ body {
 }
 
 .footer {
-    font-size: 12px;
-    color: var(--color-medium-dark-grey);
-    margin-top: 50px;
-    width: 300px;
-    text-align: center;
+  font-size: 12px;
+  color: var(--color-medium-dark-grey);
+  margin-top: 50px;
+  width: 300px;
+  text-align: center;
 }
 
 .footer-link a {
   font-size: 12px;
-  color: var(--color-light-blue);
+  color: var(--color-blue);
   text-decoration: none;
 }
 
 .link {
-  color: var(--color-light-blue);
+  color: var(--color-blue);
   text-decoration: none;
   font-size: 13px;
 }
@@ -115,6 +122,7 @@ body {
 .error-message {
   color: var(--color-red);
   font-size: 13px;
+  margin-top: 20px;
   margin-bottom: 20px;
 }
 
@@ -124,10 +132,10 @@ body {
 }
 
 .venn-header {
-    font-size: 14px;
-    margin-right: 50px;
-    margin-bottom: 20px;
-    margin-left: 50px;
+  font-size: 14px;
+  margin-right: 50px;
+  margin-bottom: 20px;
+  margin-left: 50px;
 }
 
 .venn {
@@ -181,4 +189,62 @@ body {
 .search-param-label {
   font-size: 13px;
   color: var(--color-medium-dark-grey);
+}
+
+.search-param-value {
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+.genome-detail-container {
+  margin-top: 15px;
+}
+
+.genome-detail {
+  font-size: 13px;
+  text-decoration: none;
+  color: var(--color-blue);
+}
+
+.genome-detail-margin-left {
+  margin-left: 5px;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.tooltip-content {
+  padding: 12px;
+  position: relative;
+  background-color: var(--color-black);
+  width: 140px;
+  min-height: 20px;
+  box-shadow: 2px 2px 2px rgba(0,0,0,0.1);
+  text-align: left;
+}
+
+#tooltip .tooltip-content::after {
+  content: "";
+  position: absolute;
+  top: 35%;
+  left: 0%;
+  margin-left: -14px;
+  border-width: 7px;
+  border-style: solid;
+  border-color: transparent var(--color-black) transparent transparent;
+}
+
+.tooltip-content-title {
+  font-size: 12px;
+  color: var(--color-medium-light-grey);
+  font-weight: var(--font-weight-light);
+}
+
+#genome-browser-link,
+#entity-viewer-link {
+  background-color: var(--color-blue);
+  padding: 2px 4px;
+  margin-left: 20px;
+  display: inline-block;
 }

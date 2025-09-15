@@ -1,16 +1,16 @@
-import os
 from fastapi import APIRouter, Request
-from typing import Optional, Literal, List
+from typing import Optional, Literal
 from fastapi.responses import RedirectResponse, HTMLResponse
 import logging
-from dotenv import load_dotenv
-from jinja2 import Environment, FileSystemLoader
-from core.logging import InterceptHandler
-from api.models.resolver import SearchPayload, ResolvedPayload
-from api.error_response import response_error_handler
-from core.config import DEFAULT_APP, ENSEMBL_URL
-from api.utils.metadata import get_metadata
-from api.utils.search import get_search_results
+
+from app.api.error_response import response_error_handler
+from app.api.models.resolver import SearchPayload, StableIdResolverResponse
+from app.api.utils.commons import build_stable_id_resolver_content, is_json_request
+from app.api.utils.metadata import get_metadata
+from app.api.utils.resolver import generate_resolver_id_page
+from app.api.utils.search import get_search_results
+from app.core.config import DEFAULT_APP
+from app.core.logging import InterceptHandler
 
 logging.getLogger().handlers = [InterceptHandler()]
 
@@ -27,52 +27,40 @@ async def resolve(
 ):
 
     params = SearchPayload(stable_id=stable_id, type=type, per_page=10)
-
-    # Get genome_ids from search api
     search_results = get_search_results(params)
 
-    if not search_results:
-        return response_error_handler({"status": 404})
+    if not search_results or not search_results.get("matches"):
+        if is_json_request(request):
+            return response_error_handler({"status": 404})
+
+        res = StableIdResolverResponse(
+            stable_id=stable_id,
+            code=404,
+            message="No results",
+            content=None
+        )
+        return HTMLResponse(generate_resolver_id_page(res))
 
     matches = search_results.get("matches")
-    if not matches:
-        return response_error_handler({"status": 404})
 
     # Get metadata for all genomes
     metadata_results = get_metadata(matches)
 
-    results: List[ResolvedPayload] = []
+    stable_id_resolver_response = StableIdResolverResponse(
+        stable_id=stable_id,
+        code=308,
+    )
+    results = build_stable_id_resolver_content(metadata_results)
+    stable_id_resolver_response.content = results
 
-    for genome_id in metadata_results:
-
-        metadata = metadata_results[genome_id]
-
-        if not metadata:
-            continue
-
-        if app == "entity-viewer":
-            url = f"{ENSEMBL_URL}/{app}/{genome_id}/{type}:{metadata['unversioned_stable_id']}"
-        else:
-            url = f"{ENSEMBL_URL}/{app}/{genome_id}?focus={type}:{metadata['unversioned_stable_id']}"
-
-        metadata["resolved_url"] = url
-        resolved_payload = ResolvedPayload(**metadata)
-        results.append(resolved_payload.model_dump())
-
-    if "application/json" in request.headers.get("accept"):
+    if is_json_request(request):
         return results
 
     if len(results) == 1:
-        return RedirectResponse(results[0]["resolved_url"])
+        if app == "entity-viewer":
+            resolved_url = results[0].entity_viewer_url
+        else:
+            resolved_url = results[0].genome_browser_url
+        return RedirectResponse(resolved_url)
     else:
-        return HTMLResponse(generate_html_content(results))
-
-
-def generate_html_content(results):
-    # Create a simple HTML page with a list of URLs
-    load_dotenv()
-    CURR_DIR = os.path.dirname(os.path.abspath(__file__))
-    env = Environment(loader=FileSystemLoader(os.path.join(CURR_DIR, "templates")))
-    search_results_template = env.get_template("search_results.html")
-    search_results_html = search_results_template.render(results=results)
-    return search_results_html
+        return HTMLResponse(generate_resolver_id_page(stable_id_resolver_response))

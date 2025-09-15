@@ -1,26 +1,30 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <title>Ensembl Rapid Resolver</title>
+    <title>{% block title %}Ensembl Resolver{% endblock %}</title>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--  Automatically refresh/redirects to the target url (resolved rapid url) after 10 seconds -->
-    <meta http-equiv="refresh" content="10;url={{ response.resolved_url }}" />
+
+    <!--https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta/name/robots#follow-->
+    <meta name="robots" content="noindex, follow">
 
     <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="/static/css/rapid_page.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+
+    {% block extra_head %}{% endblock %}
   </head>
   <body>
-    {% include "appbar.html" %}
+    {% include "shared/appbar.html" %}
     <div class="container">
-      {% include "venn.html" %}
-      {% include "content.html" %}
-      {% include "footer.html" %}
+      {% include "shared/venn.html" %}
+      {% block content %}{% endblock %}
+      {% block footer %}{% endblock %}
     </div>
+    {% block script %}{% endblock %}
   </body>
 </html>
