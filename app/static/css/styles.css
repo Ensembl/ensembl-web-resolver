@@ -1,7 +1,7 @@
 :root {
   --standard-gutter: 30px;
   --global-padding-left: calc(var(--standard-gutter) * 4);
-  --color-light-blue: #0099ff;
+  --color-blue: #0099ff;
   --font-weight-light: 300;
   --color-medium-dark-grey: #9aa7b1;
   --color-red: #d90000;
@@ -60,7 +60,7 @@ body {
 }
 
 .copyright a {
-  color: var(--color-light-blue);
+  color: var(--color-blue);
   text-decoration: none;
 }
 
@@ -91,7 +91,6 @@ body {
 .id-redirect-content {
   margin-top: 30px;
   text-align: center;
-  width: 100%;
 }
 
 .redirect-text {
@@ -110,12 +109,12 @@ body {
 
 .footer-link a {
   font-size: 12px;
-  color: var(--color-light-blue);
+  color: var(--color-blue);
   text-decoration: none;
 }
 
 .link {
-  color: var(--color-light-blue);
+  color: var(--color-blue);
   text-decoration: none;
   font-size: 13px;
 }
@@ -204,7 +203,7 @@ body {
 .genome-detail {
   font-size: 13px;
   text-decoration: none;
-  color: var(--color-light-blue);
+  color: var(--color-blue);
 }
 
 .genome-detail-margin-left {
@@ -244,7 +243,7 @@ body {
 
 #genome-browser-link,
 #entity-viewer-link {
-  background-color: var(--color-light-blue);
+  background-color: var(--color-blue);
   padding: 2px 4px;
   margin-left: 20px;
   display: inline-block;

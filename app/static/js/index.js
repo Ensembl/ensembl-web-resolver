@@ -2,7 +2,6 @@ function closeTooltip() {
   const tooltip = document.getElementById('tooltip');
   if (tooltip) {
     tooltip.style.display = 'none';
-    tooltip.setAttribute('aria-hidden', 'true');
   }
 }
 
@@ -14,10 +13,10 @@ function showTooltip(el) {
   const entityViewerLink = document.getElementById('entity-viewer-link');
 
   if (genomeBrowserLink) {
-    genomeBrowserLink.href = el.dataset.genomeBrowserUrl || '#';
+    genomeBrowserLink.href = el.dataset.genomeBrowserUrl;
   }
   if (entityViewerLink) {
-    entityViewerLink.href = el.dataset.entityViewerUrl || '#';
+    entityViewerLink.href = el.dataset.entityViewerUrl;
   }
 
   const target = el.querySelector('.genome-detail-tooltip');
@@ -28,6 +27,7 @@ function showTooltip(el) {
   const rect = target.getBoundingClientRect();
   tooltip.style.top = (rect.top - 15 + window.scrollY) + 'px';
   tooltip.style.left = (rect.right + 10 + window.scrollX) + 'px';
+  genomeBrowserLink.focus();
 }
 
 document.querySelectorAll('.genome-detail-container').forEach(function(el) {
