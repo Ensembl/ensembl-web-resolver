@@ -7,7 +7,6 @@ from starlette.responses import HTMLResponse
 import logging
 
 from app.api.error_response import response_error_handler
-from app.api.exceptions import EnsemblMetadataRequestError
 from app.api.models.resolver import RapidResolverResponse, RapidResolverHtmlResponseType, SearchPayload, \
     StableIdResolverResponse
 from app.api.utils.commons import build_stable_id_resolver_content, is_json_request
@@ -58,7 +57,8 @@ async def resolve_rapid_stable_id(request: Request, stable_id: str):
             return results
 
         return HTMLResponse(generate_rapid_id_page(stable_id_resolver_response))
-    except (EnsemblMetadataRequestError, Exception) as e:
+    except Exception as e:
+        logging.debug(f"Error: {e}")
         if is_json_request(request):
             return response_error_handler({"status": 500})
         res = StableIdResolverResponse(
@@ -144,7 +144,7 @@ async def resolve_species(
         else:
             raise HTTPException(status_code=404, detail="Genome not found")
     except HTTPException as e:
-        logging.debug(e)
+        logging.error(f"HTTP Error: {e.detail}")
         response = RapidResolverResponse(
             response_type=RapidResolverHtmlResponseType.ERROR,
             code=e.status_code,
@@ -154,7 +154,7 @@ async def resolve_species(
         )
         return rapid_resolved_response(response, request)
     except Exception as e:
-        logging.debug(f"Unexpected error occurred: {e}")
+        logging.error(f"Error: {e}")
         response = RapidResolverResponse(
             species_name=species_url_name,
             response_type=RapidResolverHtmlResponseType.ERROR,

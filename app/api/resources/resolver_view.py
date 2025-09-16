@@ -4,7 +4,6 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 import logging
 
 from app.api.error_response import response_error_handler
-from app.api.exceptions import EnsemblMetadataRequestError
 from app.api.models.resolver import SearchPayload, StableIdResolverResponse
 from app.api.utils.commons import build_stable_id_resolver_content, is_json_request
 from app.api.utils.metadata import get_metadata
@@ -66,7 +65,8 @@ async def resolve(
             return RedirectResponse(resolved_url)
         else:
             return HTMLResponse(generate_resolver_id_page(stable_id_resolver_response))
-    except (EnsemblMetadataRequestError, Exception) as e:
+    except Exception as e:
+        logging.error(f"Error: {e}")
         if is_json_request(request):
             return response_error_handler({"status": 500})
         res = StableIdResolverResponse(

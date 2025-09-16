@@ -5,7 +5,6 @@ from loguru import logger
 import requests
 import re
 
-from app.api.exceptions import NCBIRequestError
 from app.core.config import NCBI_DATASETS_URL, ENSEMBL_URL, RAPID_ARCHIVE_URL
 
 
@@ -23,9 +22,8 @@ def get_assembly_accession_from_ncbi(accession_id: str):
                 return response_json["reports"][0]
             else:
                 return None
-    except Exception as e:
-        logger.exception(e)
-        raise NCBIRequestError("Failed to fetch data from NCBI")
+    except Exception:
+        raise Exception("Failed to fetch data from NCBI")
 
 
 def format_assembly_accession(species_url_name: str):

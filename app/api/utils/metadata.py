@@ -1,8 +1,6 @@
-from loguru import logger
 import requests
 from typing import List
 
-from app.api.exceptions import EnsemblMetadataRequestError
 from app.api.models.resolver import SearchMatch
 from app.core.config import ENSEMBL_URL
 
@@ -24,9 +22,8 @@ def get_metadata(matches: List[SearchMatch] = []):
                 metadata_results[genome_id]["unversioned_stable_id"] = match.get(
                     "unversioned_stable_id"
                 )
-        except Exception as e:
-            logger.exception(e)
-            raise EnsemblMetadataRequestError("Failed to fetch data from metadata service")
+        except Exception:
+            raise Exception("Failed to fetch data from metadata service")
 
     return metadata_results
 
@@ -40,6 +37,5 @@ def get_genome_id_from_assembly_accession_id(accession_id: str):
         with session.get(url=metadata_api_url, timeout=10) as response:
             response.raise_for_status()
             return response.json()
-    except Exception as e:
-        logger.exception(e)
-        raise EnsemblMetadataRequestError("Failed to fetch data from metadata service")
+    except Exception:
+        raise Exception("Failed to fetch data from metadata service")
