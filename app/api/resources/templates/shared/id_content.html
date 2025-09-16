@@ -36,7 +36,13 @@
                           <span class="genome-detail-margin-left">{{ item.assembly.name }},</span>
                         {% endif %}
                         {% if item.assembly.accession_id %}
-                          <span class="genome-detail-margin-left">{{ item.assembly.accession_id }}</span>
+                          <span class="genome-detail-margin-left">{{ item.assembly.accession_id }},</span>
+                        {% endif %}
+                        {% if item.release_type %}
+                          <span class="genome-detail-margin-left"><span class="light">Release type</span> {{ item.release_type }},</span>
+                        {% endif %}
+                        {% if item.release_name %}
+                          <span class="genome-detail-margin-left"><span class="light">Release</span> {{ item.release_name }}</span>
                         {% endif %}
                     </a>
                 </div>
