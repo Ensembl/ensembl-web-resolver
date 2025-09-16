@@ -6,7 +6,7 @@
             <span class="search-param-label">Gene</span>
             <span class="search-param-value">{{ response.stable_id }}</span>
         </div>
-        {% if response.code == 404 and response.message %}
+        {% if (response.code == 404 or response.code == 500) and response.message %}
             <div class="error-message">
                 {{ response.message }}
             </div>

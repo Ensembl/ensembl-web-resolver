@@ -9,7 +9,7 @@ def get_search_results(params: SearchPayload):
     try:
         session = requests.Session()
         with session.post(
-            url=ENSEMBL_SEARCH_HUB_API, json=params.model_dump()
+            url=ENSEMBL_SEARCH_HUB_API, json=params.model_dump(), timeout=10
         ) as response:
             response.raise_for_status()
             return response.json()

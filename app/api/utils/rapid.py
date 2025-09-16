@@ -5,6 +5,7 @@ from loguru import logger
 import requests
 import re
 
+from app.api.exceptions import NCBIRequestError
 from app.core.config import NCBI_DATASETS_URL, ENSEMBL_URL, RAPID_ARCHIVE_URL
 
 
@@ -15,20 +16,16 @@ def get_assembly_accession_from_ncbi(accession_id: str):
             f"{NCBI_DATASETS_URL}/genome/accession/{accession_id}/dataset_report"
         )
 
-        with session.get(url=ncbi_dataset_api_url) as response:
+        with session.get(url=ncbi_dataset_api_url, timeout=10) as response:
             response.raise_for_status()
             response_json = response.json()
             if response_json and response_json["reports"]:
                 return response_json["reports"][0]
             else:
                 return None
-
-    except requests.exceptions.HTTPError as HTTPError:
-        logger.error(f"HTTPError: {HTTPError}")
-        raise HTTPError
     except Exception as e:
         logger.exception(e)
-        raise e
+        raise NCBIRequestError("Failed to fetch data from NCBI")
 
 
 def format_assembly_accession(species_url_name: str):

@@ -7,6 +7,7 @@ from starlette.responses import HTMLResponse
 import logging
 
 from app.api.error_response import response_error_handler
+from app.api.exceptions import EnsemblMetadataRequestError
 from app.api.models.resolver import RapidResolverResponse, RapidResolverHtmlResponseType, SearchPayload, \
     StableIdResolverResponse
 from app.api.utils.commons import build_stable_id_resolver_content, is_json_request
@@ -41,21 +42,33 @@ async def resolve_rapid_stable_id(request: Request, stable_id: str):
         )
         return HTMLResponse(generate_rapid_id_page(res))
 
-    matches = search_results.get("matches")
-    metadata_results = get_metadata(matches)
+    try:
+        matches = search_results.get("matches")
+        metadata_results = get_metadata(matches)
 
-    stable_id_resolver_response = StableIdResolverResponse(
-        stable_id=stable_id,
-        code=308,
-        rapid_archive_url=rapid_archive_url
-    )
-    results = build_stable_id_resolver_content(metadata_results)
-    stable_id_resolver_response.content = results
+        stable_id_resolver_response = StableIdResolverResponse(
+            stable_id=stable_id,
+            code=308,
+            rapid_archive_url=rapid_archive_url
+        )
+        results = build_stable_id_resolver_content(metadata_results)
+        stable_id_resolver_response.content = results
 
-    if is_json_request(request):
-        return results
+        if is_json_request(request):
+            return results
 
-    return HTMLResponse(generate_rapid_id_page(stable_id_resolver_response))
+        return HTMLResponse(generate_rapid_id_page(stable_id_resolver_response))
+    except (EnsemblMetadataRequestError, Exception) as e:
+        if is_json_request(request):
+            return response_error_handler({"status": 500})
+        res = StableIdResolverResponse(
+            stable_id=stable_id,
+            code=500,
+            message=str(e),
+            content=None,
+            rapid_archive_url=rapid_archive_url
+        )
+        return HTMLResponse(generate_rapid_id_page(res))
 
 
 @router.get("/info/{subpath:path}", name="Resolve rapid help page")
@@ -94,19 +107,19 @@ async def resolve_species(
         )
         return rapid_resolved_response(response, request)
 
-    assembly_accession_id = format_assembly_accession(species_url_name)
-
-    if assembly_accession_id is None:
-        input_error_response = RapidResolverResponse(
-            response_type=RapidResolverHtmlResponseType.ERROR,
-            code=422,
-            resolved_url=f"{ENSEMBL_URL}/species-selector",
-            message="Invalid input accession ID",
-            species_name=species_url_name,
-        )
-        return rapid_resolved_response(input_error_response, request)
-
     try:
+        assembly_accession_id = format_assembly_accession(species_url_name)
+
+        if assembly_accession_id is None:
+            input_error_response = RapidResolverResponse(
+                response_type=RapidResolverHtmlResponseType.ERROR,
+                code=422,
+                resolved_url=f"{ENSEMBL_URL}/species-selector",
+                message="Invalid input accession ID",
+                species_name=species_url_name,
+            )
+            return rapid_resolved_response(input_error_response, request)
+
         genome_object = get_genome_id_from_assembly_accession_id(assembly_accession_id)
 
         if genome_object and genome_object != {}:

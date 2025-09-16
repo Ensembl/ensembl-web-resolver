@@ -4,6 +4,7 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 import logging
 
 from app.api.error_response import response_error_handler
+from app.api.exceptions import EnsemblMetadataRequestError
 from app.api.models.resolver import SearchPayload, StableIdResolverResponse
 from app.api.utils.commons import build_stable_id_resolver_content, is_json_request
 from app.api.utils.metadata import get_metadata
@@ -41,26 +42,37 @@ async def resolve(
         )
         return HTMLResponse(generate_resolver_id_page(res))
 
-    matches = search_results.get("matches")
+    try:
+        matches = search_results.get("matches")
 
-    # Get metadata for all genomes
-    metadata_results = get_metadata(matches)
+        # Get metadata for all genomes
+        metadata_results = get_metadata(matches)
 
-    stable_id_resolver_response = StableIdResolverResponse(
-        stable_id=stable_id,
-        code=308,
-    )
-    results = build_stable_id_resolver_content(metadata_results)
-    stable_id_resolver_response.content = results
+        stable_id_resolver_response = StableIdResolverResponse(
+            stable_id=stable_id,
+            code=308,
+        )
+        results = build_stable_id_resolver_content(metadata_results)
+        stable_id_resolver_response.content = results
 
-    if is_json_request(request):
-        return results
+        if is_json_request(request):
+            return results
 
-    if len(results) == 1:
-        if app == "entity-viewer":
-            resolved_url = results[0].entity_viewer_url
+        if len(results) == 1:
+            if app == "entity-viewer":
+                resolved_url = results[0].entity_viewer_url
+            else:
+                resolved_url = results[0].genome_browser_url
+            return RedirectResponse(resolved_url)
         else:
-            resolved_url = results[0].genome_browser_url
-        return RedirectResponse(resolved_url)
-    else:
-        return HTMLResponse(generate_resolver_id_page(stable_id_resolver_response))
+            return HTMLResponse(generate_resolver_id_page(stable_id_resolver_response))
+    except (EnsemblMetadataRequestError, Exception) as e:
+        if is_json_request(request):
+            return response_error_handler({"status": 500})
+        res = StableIdResolverResponse(
+            stable_id=stable_id,
+            code=500,
+            message=str(e),
+            content=None
+        )
+        return HTMLResponse(generate_resolver_id_page(res))
