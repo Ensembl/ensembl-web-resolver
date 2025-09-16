@@ -5,7 +5,7 @@ FROM python:3.11
 LABEL org.opencontainers.image.authors="ensembl-webteam@ebi.ac.uk"
 
 # Set Work Directory
-WORKDIR /
+WORKDIR /app
 
 # Copy source code
 COPY ./app /app/
@@ -18,4 +18,6 @@ RUN pip install  -r requirements.txt
 ENV PORT 8001
 EXPOSE 8001
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+# Run uvicorn server
+# CMD ["fastapi", "run", "main.py", "--port", "8001"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
