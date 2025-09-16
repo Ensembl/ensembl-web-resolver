@@ -58,7 +58,7 @@ async def resolve_rapid_stable_id(request: Request, stable_id: str):
 
         return HTMLResponse(generate_rapid_id_page(stable_id_resolver_response))
     except Exception as e:
-        logging.debug(f"Error: {e}")
+        logging.error(f"Error: {e}")
         if is_json_request(request):
             return response_error_handler({"status": 500})
         res = StableIdResolverResponse(
