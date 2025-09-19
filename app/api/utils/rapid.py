@@ -2,6 +2,7 @@ import os
 
 from jinja2 import Environment, FileSystemLoader
 from loguru import logger
+from fastapi import Request
 import requests
 import re
 
@@ -90,23 +91,19 @@ def construct_url(genome_id, subpath, query_params):
     raise ValueError("Invalid path")
 
 
-def construct_rapid_archive_url(species_url_name, subpath, query_params):
-    url = f"{RAPID_ARCHIVE_URL}/{species_url_name}"
-    query_params = query_params or {}
+def construct_rapid_archive_url(request: Request):
+    try:
+        rapid_archive_path = request.url.path.removeprefix("/rapid/")
+        if not rapid_archive_path:
+            return RAPID_ARCHIVE_URL
 
-    params = []
-    for key, values in query_params.items():
-        value = values[0] if values else ""
-        if value:
-            params.append(f"{key}={value}")
+        if request.url.query:
+            rapid_archive_path = f"{rapid_archive_path}?{request.url.query}"
 
-    if subpath:
-        url += f"/{subpath}"
-
-    if params:
-        url += "?" + ";".join(params) # ; separator for rapid
-
-    return url
+        return f"{RAPID_ARCHIVE_URL}/{rapid_archive_path}"
+    except Exception as e:
+        logger.warning(f"Error constructing rapid archive url: {e}")
+        return RAPID_ARCHIVE_URL
 
 
 def generate_html_content(response, page):

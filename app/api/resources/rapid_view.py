@@ -11,10 +11,10 @@ from app.api.models.resolver import RapidResolverResponse, RapidResolverHtmlResp
     StableIdResolverResponse
 from app.api.utils.commons import build_stable_id_resolver_content, is_json_request
 from app.api.utils.metadata import get_genome_id_from_assembly_accession_id, get_metadata
-from app.api.utils.rapid import format_assembly_accession, construct_rapid_archive_url, construct_url, \
-    generate_rapid_id_page, generate_rapid_page
+from app.api.utils.rapid import format_assembly_accession, construct_url, \
+    generate_rapid_id_page, generate_rapid_page, construct_rapid_archive_url
 from app.api.utils.search import get_search_results
-from app.core.config import ENSEMBL_URL, RAPID_ARCHIVE_URL
+from app.core.config import ENSEMBL_URL
 from app.core.logging import InterceptHandler
 
 logging.getLogger().handlers = [InterceptHandler()]
@@ -27,7 +27,7 @@ async def resolve_rapid_stable_id(request: Request, stable_id: str):
     # Handle only gene stable id for now
     params = SearchPayload(stable_id=stable_id, type="gene", per_page=10)
     search_results = get_search_results(params)
-    rapid_archive_url = f"{RAPID_ARCHIVE_URL}/id/{stable_id}"
+    rapid_archive_url = construct_rapid_archive_url(request)
 
     if not search_results or not search_results.get("matches"):
         if is_json_request(request):
@@ -77,6 +77,7 @@ async def resolve_rapid_help(request: Request, subpath: str = ""):
         response_type=RapidResolverHtmlResponseType.HELP,
         code=308,
         resolved_url=f"{ENSEMBL_URL}/help",
+        rapid_archive_url=construct_rapid_archive_url(request)
     )
     return rapid_resolved_response(response, request)
 
@@ -87,6 +88,7 @@ async def resolve_rapid_blast(request: Request):
         response_type=RapidResolverHtmlResponseType.BLAST,
         code=308,
         resolved_url=f"{ENSEMBL_URL}/blast",
+        rapid_archive_url=construct_rapid_archive_url(request)
     )
     return rapid_resolved_response(response, request)
 
@@ -97,6 +99,7 @@ async def resolve_rapid_blast(request: Request):
 async def resolve_species(
     request: Request, species_url_name: str, subpath: str = "", r: str = Query(None)
 ):
+    rapid_archive_url = construct_rapid_archive_url(request)
     # Check if its blast redirect
     if "tools/blast" in subpath.lower():
         response = RapidResolverResponse(
@@ -104,6 +107,7 @@ async def resolve_species(
             code=308,
             resolved_url=f"{ENSEMBL_URL}/blast",
             species_name=species_url_name,
+            rapid_archive_url=rapid_archive_url
         )
         return rapid_resolved_response(response, request)
 
@@ -117,6 +121,7 @@ async def resolve_species(
                 resolved_url=f"{ENSEMBL_URL}/species-selector",
                 message="Invalid input accession ID",
                 species_name=species_url_name,
+                rapid_archive_url=rapid_archive_url
             )
             return rapid_resolved_response(input_error_response, request)
 
@@ -130,7 +135,6 @@ async def resolve_species(
             query_params = parse_qs(query_string, separator=";")
 
             url = construct_url(genome_id, subpath, query_params)
-            rapid_archive_url = construct_rapid_archive_url(species_url_name, subpath, query_params)
             response = RapidResolverResponse(
                 response_type=RapidResolverHtmlResponseType.INFO,
                 code=308,
@@ -151,6 +155,7 @@ async def resolve_species(
             resolved_url=f"{ENSEMBL_URL}/species-selector",
             message=e.detail,
             species_name=species_url_name,
+            rapid_archive_url=rapid_archive_url
         )
         return rapid_resolved_response(response, request)
     except Exception as e:
@@ -161,6 +166,7 @@ async def resolve_species(
             code=500,
             resolved_url=f"{ENSEMBL_URL}/species-selector",
             message=str(e),
+            rapid_archive_url=rapid_archive_url
         )
         return rapid_resolved_response(response, request)
 
@@ -171,6 +177,7 @@ async def resolve_home(request: Request):
         response_type=RapidResolverHtmlResponseType.HOME,
         code=308,
         resolved_url=ENSEMBL_URL,
+        rapid_archive_url=construct_rapid_archive_url(request)
     )
     return rapid_resolved_response(response, request)
 
