@@ -32,4 +32,4 @@ def build_genome_browser_url(genome_id: str, stable_id: str) -> str:
 
 
 def is_json_request(request) -> bool:
-    return "application/json" in request.headers.get("accept")
+    return "application/json" in request.headers.get("accept", "")
