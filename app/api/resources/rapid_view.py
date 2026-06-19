@@ -60,7 +60,7 @@ async def resolve_rapid_stable_id(request: Request, stable_id: str):
     except Exception as e:
         logging.error(f"Error: {e}")
         if is_json_request(request):
-            return response_error_handler({"status": 500})
+            return response_error_handler({"status": 500, "details": str(e)})
         res = StableIdResolverResponse(
             stable_id=stable_id,
             code=500,

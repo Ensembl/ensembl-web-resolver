@@ -22,8 +22,10 @@ def get_metadata(matches: List[SearchMatch] = []):
                 metadata_results[genome_id]["unversioned_stable_id"] = match.get(
                     "unversioned_stable_id"
                 )
-        except Exception:
-            raise Exception("Failed to fetch data from metadata service")
+        except Exception as e:
+            raise Exception(
+                f"Failed to fetch metadata for genome '{genome_id}': {e}"
+            ) from e
 
     return metadata_results
 
@@ -37,5 +39,7 @@ def get_genome_id_from_assembly_accession_id(accession_id: str):
         with session.get(url=metadata_api_url, timeout=10) as response:
             response.raise_for_status()
             return response.json()
-    except Exception:
-        raise Exception("Failed to fetch data from metadata service")
+    except Exception as e:
+        raise Exception(
+            f"Failed to fetch genome ID for assembly accession '{accession_id}': {e}"
+        ) from e
