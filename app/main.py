@@ -57,7 +57,7 @@ def get_application() -> FastAPI:
 
 
 app = get_application()
-static_files_path = os.path.join(os.path.dirname(__file__), "./static")
+static_files_path = os.path.join(os.path.dirname(__file__), "static")
 
 static_path = (
     "/static" if ENSEMBL_URL == "https://beta.ensembl.org" else "/api/resolver/static"
