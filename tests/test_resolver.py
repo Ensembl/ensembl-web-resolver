@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 from fastapi.testclient import TestClient
 
-from app.core.config import ENSEMBL_URL, DEFAULT_APP
+from app.core.config import ENSEMBL_URL, DEFAULT_APP, STATIC_PATH
 from app.main import app
 
 
@@ -118,6 +118,8 @@ class TestResolverAPI(unittest.TestCase):
             response.text,
             "Failed resolving multiple results with html response",
         )
+        self.assertIn(f'{STATIC_PATH}/css/styles.css', response.text)
+        self.assertIn(f'{STATIC_PATH}/js/index.js', response.text)
 
     @patch("app.api.resources.resolver_view.get_search_results")
     def test_resolve_404(self, mock_get_search_results):

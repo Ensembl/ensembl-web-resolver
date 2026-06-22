@@ -29,7 +29,7 @@ from app.core.config import (
     VERSION,
     ALLOWED_HOSTS,
     API_PREFIX,
-    ENSEMBL_URL,
+    STATIC_PATH,
 )
 
 
@@ -59,19 +59,15 @@ def get_application() -> FastAPI:
 app = get_application()
 static_files_path = os.path.join(os.path.dirname(__file__), "static")
 
-static_path = (
-    "/static" if ENSEMBL_URL == "https://beta.ensembl.org" else "/api/resolver/static"
-)
-
-app.mount(static_path, StaticFiles(directory=static_files_path), name="static_files")
+app.mount(STATIC_PATH, StaticFiles(directory=static_files_path), name="static_files")
 
 
 @app.get("/", include_in_schema=False)
 async def custom_swagger_ui_html():
     return get_swagger_ui_html(
-        openapi_url=f"{static_path}/APISpecification.yaml", title="API Docs"
+        openapi_url=f"{STATIC_PATH}/APISpecification.yaml", title="API Docs"
     )
 
 
-print(f"Static files mounted at: {static_path}")
+print(f"Static files mounted at: {STATIC_PATH}")
 print(f"Static files directory: {static_files_path}")
