@@ -3,7 +3,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from app.api.models.resolver import RapidResolverResponse
-from app.core.config import ENSEMBL_URL
+from app.core.config import ENSEMBL_URL, STATIC_PATH
 from app.main import app
 
 
@@ -49,6 +49,14 @@ class TestRapid(unittest.TestCase):
             RapidResolverResponse(resolved_url=ENSEMBL_URL).model_dump(mode='json')
         )
 
+    def test_rapid_home_html_uses_configured_static_path(self):
+        response = self.client.get(
+            f"{self.mock_rapid_api_url}/",
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(f'{STATIC_PATH}/css/styles.css', response.text)
 
     # Test rapid help page
     def test_rapid_help_success(self):

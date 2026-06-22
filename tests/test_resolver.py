@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 from fastapi.testclient import TestClient
 
-from app.core.config import ENSEMBL_URL, DEFAULT_APP
+from app.core.config import ENSEMBL_URL, DEFAULT_APP, STATIC_PATH
 from app.main import app
 
 
@@ -118,6 +118,8 @@ class TestResolverAPI(unittest.TestCase):
             response.text,
             "Failed resolving multiple results with html response",
         )
+        self.assertIn(f'{STATIC_PATH}/css/styles.css', response.text)
+        self.assertIn(f'{STATIC_PATH}/js/index.js', response.text)
 
     @patch("app.api.resources.resolver_view.get_search_results")
     def test_resolve_404(self, mock_get_search_results):
@@ -129,3 +131,23 @@ class TestResolverAPI(unittest.TestCase):
             headers = {"accept": "application/json"}
         )
         self.assertEqual(response.status_code, 404)
+
+    @patch("app.api.resources.resolver_view.get_search_results")
+    @patch("app.api.resources.resolver_view.get_metadata")
+    def test_resolve_metadata_error_includes_exception_details(
+        self, mock_get_metadata, mock_get_search_results
+    ):
+        mock_get_search_results.return_value = self.mock_single_search_results_success
+        mock_get_metadata.side_effect = Exception(
+            "Failed to fetch metadata for genome 'genome1': 503 Server Error"
+        )
+
+        response = self.client.get(
+            f"{self.mock_search_api_url}/{self.stable_id}",
+            follow_redirects=False,
+            headers={"Accept": "application/json"},
+        )
+
+        self.assertEqual(response.status_code, 500)
+        self.assertIn("Failed to fetch metadata for genome 'genome1'", response.text)
+        self.assertIn("503 Server Error", response.text)

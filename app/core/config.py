@@ -25,7 +25,6 @@ from starlette.datastructures import CommaSeparatedStrings
 from .logging import InterceptHandler
 
 VERSION = "0.0.0"
-API_PREFIX = ""
 
 config = Config(".env")
 
@@ -36,6 +35,9 @@ ENSEMBL_SEARCH_HUB_API: str = config(
 )
 DEFAULT_APP = config("DEFAULT_APP", cast=str, default="entity-viewer")
 ENSEMBL_URL = config("ENSEMBL_URL", cast=str, default="https://beta.ensembl.org")
+STATIC_PATH = (
+    "/static" if ENSEMBL_URL == "https://beta.ensembl.org" else "/api/resolver/static"
+)
 RAPID_ARCHIVE_URL = config("RAPID_ARCHIVE_URL", cast=str, default="https://rapid-archive.ensembl.org")
 NCBI_DATASETS_URL = config(
     "NCBI_DATASETS_URL", cast=str, default="https://api.ncbi.nlm.nih.gov/datasets/v2"

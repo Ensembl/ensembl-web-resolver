@@ -2,12 +2,14 @@ import os
 
 from jinja2 import FileSystemLoader, Environment
 
+from app.core.config import STATIC_PATH
+
 
 def generate_html_content(response, page):
     templates_path = os.path.join(os.path.dirname(__file__), "../resources/templates")
     env = Environment(loader=FileSystemLoader(templates_path))
     template = env.get_template(f"resolver/{page}")
-    content = template.render(response=response)
+    content = template.render(response=response, static_path=STATIC_PATH)
     return content
 
 

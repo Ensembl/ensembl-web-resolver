@@ -6,7 +6,7 @@ from fastapi import Request
 import requests
 import re
 
-from app.core.config import NCBI_DATASETS_URL, ENSEMBL_URL, RAPID_ARCHIVE_URL
+from app.core.config import NCBI_DATASETS_URL, ENSEMBL_URL, RAPID_ARCHIVE_URL, STATIC_PATH
 
 
 def get_assembly_accession_from_ncbi(accession_id: str):
@@ -110,7 +110,7 @@ def generate_html_content(response, page):
     templates_path = os.path.join(os.path.dirname(__file__), "../resources/templates")
     env = Environment(loader=FileSystemLoader(templates_path))
     template = env.get_template(f"rapid/{page}")
-    content = template.render(response=response)
+    content = template.render(response=response, static_path=STATIC_PATH)
     return content
 
 
