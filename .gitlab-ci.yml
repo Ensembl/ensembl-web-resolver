@@ -115,3 +115,15 @@ Fallback:
   variables:
     AGENT: ${FALLABACK_AGENT}
     NS: ${FALLBACK_NS}
+
+
+# Dev: dev-2020.ensembl.org
+Dev:
+  extends: 
+    - .deploy
+    - .deploy_rules
+  environment:
+    name: development
+  variables: 
+    AGENT: ${DEV_AGENT}
+    NS: ${DEV_NS}

@@ -66,7 +66,3 @@ async def custom_swagger_ui_html():
     return get_swagger_ui_html(
         openapi_url=f"{STATIC_PATH}/APISpecification.yaml", title="API Docs"
     )
-
-
-print(f"Static files mounted at: {STATIC_PATH}")
-print(f"Static files directory: {static_files_path}")
