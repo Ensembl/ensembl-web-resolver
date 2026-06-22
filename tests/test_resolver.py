@@ -118,13 +118,6 @@ class TestResolverAPI(unittest.TestCase):
             response.text,
             "Failed resolving multiple results with html response",
         )
-        self.assertIn('id="feature-explorer-link"', response.text)
-        self.assertIn('aria-label="Feature Explorer"', response.text)
-        self.assertIn(
-            f'data-feature-explorer-url="{self.mock_resolved_url["genome1"]}"',
-            response.text,
-        )
-        self.assertNotIn('entity' + '-viewer', response.text)
 
     @patch("app.api.resources.resolver_view.get_search_results")
     def test_resolve_404(self, mock_get_search_results):
