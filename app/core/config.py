@@ -34,7 +34,7 @@ ENSEMBL_SEARCH_HUB_API: str = config(
     cast=str,
     default="http://ensembl-search-hub-svc:8083/api/search/stable-id",
 )
-DEFAULT_APP = config("DEFAULT_APP", cast=str, default="entity-viewer")
+DEFAULT_APP = config("DEFAULT_APP", cast=str, default="feature-explorer")
 ENSEMBL_URL = config("ENSEMBL_URL", cast=str, default="https://beta.ensembl.org")
 RAPID_ARCHIVE_URL = config("RAPID_ARCHIVE_URL", cast=str, default="https://rapid-archive.ensembl.org")
 NCBI_DATASETS_URL = config(

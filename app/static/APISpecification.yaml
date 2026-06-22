@@ -39,11 +39,11 @@ paths:
               gene
         - name: app
           in: query
-          description: Choose between apps - Genome Browser/ Entity Viewer
+          description: Choose between apps - Genome Browser/ Feature Explorer
           required: false
           schema:
             type: string
-            enum: [ genome-browser, entity-viewer ]
+            enum: [ genome-browser, feature-explorer ]
             example:
               genome-browser
         - name: gca
@@ -166,9 +166,9 @@ paths:
                     type:
                       type: string
                       description: Genome type
-                    entity_viewer_url:
+                    feature_explorer_url:
                       type: string
-                      description: Resolved Ensembl entity viewer url
+                      description: Resolved Ensembl Feature Explorer url
                     genome_browser_url:
                       type: string
                       description: Resolved Ensembl genome browser url

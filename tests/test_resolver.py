@@ -78,7 +78,7 @@ class TestResolverAPI(unittest.TestCase):
         json_response = response.json()
         self.assertEqual(len(json_response), 2)
         self.assertEqual(
-            json_response[0]["entity_viewer_url"], self.mock_resolved_url["genome1"]
+            json_response[0]["feature_explorer_url"], self.mock_resolved_url["genome1"]
         )
 
     @patch("app.api.resources.resolver_view.get_search_results")
@@ -118,6 +118,13 @@ class TestResolverAPI(unittest.TestCase):
             response.text,
             "Failed resolving multiple results with html response",
         )
+        self.assertIn('id="feature-explorer-link"', response.text)
+        self.assertIn('aria-label="Feature Explorer"', response.text)
+        self.assertIn(
+            f'data-feature-explorer-url="{self.mock_resolved_url["genome1"]}"',
+            response.text,
+        )
+        self.assertNotIn('entity' + '-viewer', response.text)
 
     @patch("app.api.resources.resolver_view.get_search_results")
     def test_resolve_404(self, mock_get_search_results):

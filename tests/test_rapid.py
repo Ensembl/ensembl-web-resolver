@@ -158,7 +158,7 @@ class TestRapid(unittest.TestCase):
         self.assertEqual(
             response.json(),
             RapidResolverResponse(
-                resolved_url=f"{ENSEMBL_URL}/entity-viewer/genome_uuid1/gene:GENE123?view=homology"
+                resolved_url=f"{ENSEMBL_URL}/feature-explorer/genome_uuid1/gene:GENE123?view=homology"
             ).model_dump(mode='json'),
         )
 
