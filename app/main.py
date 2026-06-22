@@ -28,7 +28,6 @@ from app.core.config import (
     DEBUG,
     VERSION,
     ALLOWED_HOSTS,
-    API_PREFIX,
     STATIC_PATH,
 )
 
@@ -51,7 +50,7 @@ def get_application() -> FastAPI:
         allow_headers=["*"],
     )
 
-    application.include_router(router, prefix=API_PREFIX)
+    application.include_router(router)
 
     return application
 
