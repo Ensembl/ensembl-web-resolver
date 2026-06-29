@@ -5,13 +5,15 @@ info:
   contact:
     email: ensembl-webteam@ebi.ac.uk
   version: 0.0.1
-servers:
-  - url: https://resolver.ensembl.org
+# servers:
+#   - url: https://resolver.ensembl.org
 tags:
   - name: Resolver
     description: Resolver API resolves external urls to Ensembl
   - name: Rapid Resolver
     description: Resolver API to resolve rapid site urls to Ensembl
+  - name: URL Resolver
+    description: Resolver API to resolve legacy Ensembl URLs to Beta URLs
 paths:
   /id/{stable_id}:
     get:
@@ -305,6 +307,37 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
+  /resolve-url:
+    get:
+      summary: Resolve legacy Ensembl URL
+      description: Resolves a supported legacy Ensembl URL to its Beta equivalent.
+      tags:
+        - URL Resolver
+      parameters:
+        - name: url
+          in: query
+          description: Full legacy Ensembl URL or path to resolve.
+          required: true
+          schema:
+            type: string
+            example: https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000012048
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '308':
+          description: Redirect to resolved Beta URL
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content: {}
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '501':
+          $ref: '#/components/responses/501'
+        '500':
+          $ref: '#/components/responses/500'
 components:
   headers:
     Location:
@@ -362,4 +395,14 @@ components:
         application/json:
           schema:
             example: '{"status_code": 500, "details": "Internal server error"}'
+    501:
+      description: Not implemented. The legacy URL shape has no supported Beta equivalent.
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: "Not implemented"
+        application/json:
+          schema:
+            example: '{"status_code": 501, "details": "No supported Beta equivalent for this URL"}'
   
