@@ -80,7 +80,12 @@ class RapidResolverResponse(BaseModel):
 
 
 class UrlResolverResponse(BaseModel):
-    resolved_url: str
+    resolved_url: str | None = None
+    source_url: str | None = None
+    archive_url: str | None = None
+    beta_url: str | None = None
+    code: int | None = None
+    message: str | None = None
 
 
 class StableIdResolverContent(MetadataResult):

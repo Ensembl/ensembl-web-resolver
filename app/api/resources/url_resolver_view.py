@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import APIRouter, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.api.error_response import response_error_handler
 from app.api.models.resolver import UrlResolverResponse
@@ -19,6 +19,8 @@ from app.api.utils.url_resolver import (
     build_archive_fallback_url,
     resolve_legacy_ensembl_url,
 )
+from app.api.utils.resolver import generate_resolver_url_page
+from app.core.config import ENSEMBL_URL
 from app.core.logging import InterceptHandler
 
 logging.getLogger().handlers = [InterceptHandler()]
@@ -43,7 +45,7 @@ async def resolve_url(request: Request, url: str):
         response = UrlResolverResponse(resolved_url=resolved_url)
 
         if is_json_request(request):
-            return response.model_dump()
+            return response.model_dump(exclude_none=True)
 
         return RedirectResponse(resolved_url, status_code=308)
     except MissingUrlParameterError as error:
@@ -55,13 +57,32 @@ async def resolve_url(request: Request, url: str):
             archive_url = build_archive_fallback_url(url)
             return RedirectResponse(archive_url, status_code=308)
         except UnsupportedLegacyUrlError as error:
-            return response_error_handler({"status": 501, "details": str(error)})
+            return response_error_handler({"status": 404, "details": str(error)})
         except InvalidLegacyUrlError as error:
             return response_error_handler({"status": 404, "details": str(error)})
     except InvalidLegacyUrlError as error:
         return response_error_handler({"status": 404, "details": str(error)})
     except UnsupportedLegacyUrlError as error:
-        return response_error_handler({"status": 501, "details": str(error)})
+        if not is_json_request(request):
+            try:
+                archive_url = build_archive_fallback_url(url)
+                response = UrlResolverResponse(
+                    source_url=url,
+                    archive_url=archive_url,
+                    beta_url=f"{ENSEMBL_URL}/species-selector",
+                    code=404,
+                    message=(
+                        "This page could not be resolved on the new "
+                        "Ensembl website."
+                    ),
+                )
+                return HTMLResponse(
+                    generate_resolver_url_page(response), status_code=404
+                )
+            except (InvalidLegacyUrlError, UnsupportedLegacyUrlError):
+                pass
+
+        return response_error_handler({"status": 404, "details": str(error)})
     except SpeciesMappingConfigurationError as error:
         logging.error(f"Species mapping configuration error: {error}")
         return response_error_handler({"status": 500, "details": str(error)})

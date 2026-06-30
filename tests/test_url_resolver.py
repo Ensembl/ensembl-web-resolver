@@ -5,7 +5,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from app.api.utils.species_mapping import SpeciesNotFoundError
-from app.core.config import ENSEMBL_URL
+from app.core.config import ENSEMBL_URL, STATIC_PATH
 from app.main import app
 
 
@@ -157,7 +157,7 @@ class TestUrlResolver(unittest.TestCase):
 
     @patch("app.api.resources.url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_unsupported_template(self, mock_species_lookup):
-        """Return 501 for spreadsheet rows with no supported Beta mapping."""
+        """Return 404 for spreadsheet rows with no supported Beta mapping."""
         mock_species_lookup.return_value = self.genome_uuid
 
         response = self.client.get(
@@ -172,7 +172,7 @@ class TestUrlResolver(unittest.TestCase):
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, 501)
+        self.assertEqual(response.status_code, 404)
         mock_species_lookup.assert_not_called()
 
     @patch("app.api.resources.url_resolver_view.get_genome_uuid_from_species_url")
@@ -369,8 +369,39 @@ class TestUrlResolver(unittest.TestCase):
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, 501)
+        self.assertEqual(response.status_code, 404)
         self.assertNotIn("location", response.headers)
+
+    @patch("app.api.resources.url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_unknown_page_with_json_response(self, mock_species_lookup):
+        """Return JSON error for unsupported one-segment legacy paths."""
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={"url": "https://www.ensembl.org/foo"},
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertNotIn("location", response.headers)
+        mock_species_lookup.assert_not_called()
+
+    @patch("app.api.resources.url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_unknown_page_with_html_interstitial(self, mock_species_lookup):
+        """Render a choice page for browser users on unsupported legacy paths."""
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={"url": "https://www.ensembl.org/foo"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertNotIn("location", response.headers)
+        self.assertIn("This page could not be resolved", response.text)
+        self.assertIn(f"{ENSEMBL_URL}/species-selector", response.text)
+        self.assertIn("https://jun2026.archive.ensembl.org/foo", response.text)
+        self.assertIn(f"{STATIC_PATH}/css/styles.css", response.text)
+        mock_species_lookup.assert_not_called()
 
 
 if __name__ == "__main__":

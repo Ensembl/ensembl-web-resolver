@@ -1,0 +1,36 @@
+{% extends "shared/base.html" %}
+{% import "shared/url.html" as url_helper %}
+
+{% block title %}Ensembl URL Resolver{% endblock %}
+
+{% block content %}
+<div class="id-redirect-content">
+    <div class="redirect-info">
+        {% if response.source_url %}
+            <div class="search-param">
+                <span class="search-param-label">Legacy URL</span>
+                <span class="search-param-value">{{ response.source_url }}</span>
+            </div>
+        {% endif %}
+
+        {% if response.code and response.code >= 400 %}
+            <div class="error-message">
+                {{ response.message }}
+            </div>
+            {% if response.beta_url %}
+                {{ url_helper.render_url("Go to new Ensembl", response.beta_url) }}
+            {% endif %}
+            {% if response.archive_url %}
+                {{ url_helper.render_url("Go to archive", response.archive_url) }}
+            {% endif %}
+        {% else %}
+            {{ url_helper.render_url("Go to", response.resolved_url) }}
+        {% endif %}
+    </div>
+    <div class="redirect-text">
+        <span>
+            You will be redirected to the new Ensembl website, where you will find the latest genomic information
+        </span>
+    </div>
+</div>
+{% endblock %}

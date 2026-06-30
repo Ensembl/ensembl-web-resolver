@@ -365,10 +365,7 @@ def resolve_legacy_ensembl_url(
     species_url = path_segments[0]
     legacy_path = path_segments[1:]
 
-    if not legacy_path:
-        rule = SUPPORTED_SPECIES_RULES[0]
-    else:
-        rule = _find_species_rule(legacy_path, query_params)
+    rule = _find_species_rule(legacy_path, query_params)
 
     if rule is None:
         raise UnsupportedLegacyUrlError("No supported Beta equivalent for this URL")
