@@ -1,1 +1,11 @@
 .git
+.env
+.pytest_cache
+__pycache__
+*.pyc
+.github
+.gitlab-ci.yml
+.pre-commit-config.yaml
+requirements-dev.txt
+tests
+venv
