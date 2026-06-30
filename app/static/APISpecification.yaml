@@ -310,7 +310,7 @@ paths:
   /resolve-url:
     get:
       summary: Resolve legacy Ensembl URL
-      description: Resolves a supported legacy Ensembl URL to its Beta equivalent.
+      description: Resolves a supported legacy Ensembl URL to its Beta equivalent, or redirects to the configured archive host when no matching genome UUID exists.
       tags:
         - URL Resolver
       parameters:

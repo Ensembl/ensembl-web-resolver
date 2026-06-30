@@ -60,9 +60,17 @@ def get_genome_uuid_from_species_url(species_url: str) -> str:
     with duckdb.connect(SPECIES_MAPPING_DB_PATH, read_only=True) as connection:
         result = connection.execute(query, [species_url]).fetchone()
 
+    # No row means the legacy species URL is absent from the mapping table.
     if not result:
+        raise SpeciesNotFoundError(f"No genome UUID found for species '{species_url}'")
+
+    genome_uuid = result[0]
+
+    # A row with a NULL genome_uuid means this species has no Beta mapping and
+    # should be handled by the archive fallback path.
+    if genome_uuid is None:
         raise SpeciesNotFoundError(f"No genome UUID found for species '{species_url}'")
 
     # DuckDB may return UUID columns as uuid.UUID objects. Normalize at the
     # storage boundary so URL construction only deals with plain strings.
-    return str(result[0])
+    return str(genome_uuid)

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Callable
-from urllib.parse import parse_qsl, quote, urlparse
+from urllib.parse import parse_qsl, quote, urlparse, urlunparse
 
 from app.core.config import ENSEMBL_URL
 
@@ -19,6 +19,16 @@ class MissingUrlParameterError(LegacyUrlResolverError):
 
 class UnsupportedLegacyUrlError(LegacyUrlResolverError):
     """Raised when the URL shape has no supported Beta equivalent."""
+
+
+ARCHIVE_HOSTS = {
+    "www.ensembl.org": "jun2026.archive.ensembl.org",
+    "plants.ensembl.org": "eg63-plants.ensembl.org",
+    "metazoa.ensembl.org": "eg63-metazoa.ensembl.org",
+    "fungi.ensembl.org": "eg63-fungi.ensembl.org",
+    "protists.ensembl.org": "eg63-protists.ensembl.org",
+    "bacteria.ensembl.org": "eg63-bacteria.ensembl.org",
+}
 
 
 @dataclass(frozen=True)
@@ -244,6 +254,43 @@ def _normalise_path(path: str) -> tuple[str, ...]:
         Non-empty URL path segments.
     """
     return tuple(segment for segment in path.strip("/").split("/") if segment)
+
+
+def build_archive_fallback_url(legacy_url: str) -> str:
+    """Build an archive fallback URL for an unresolved legacy species URL.
+
+    Args:
+        legacy_url: Full legacy Ensembl URL submitted by the caller.
+
+    Returns:
+        Archive URL with the original path, query string, and fragment preserved.
+
+    Raises:
+        InvalidLegacyUrlError: If the URL has no path.
+        UnsupportedLegacyUrlError: If the source host has no archive mapping.
+    """
+    parsed_url = urlparse(legacy_url)
+    path_segments = _normalise_path(parsed_url.path)
+
+    if not path_segments:
+        raise InvalidLegacyUrlError("URL path is empty")
+
+    # Archive fallback is deliberately host allow-listed. Unknown hosts should
+    # fail visibly rather than redirect users to a guessed archive destination.
+    archive_host = ARCHIVE_HOSTS.get((parsed_url.hostname or "").lower())
+    if archive_host is None:
+        raise UnsupportedLegacyUrlError("No archive fallback configured for this URL")
+
+    return urlunparse(
+        (
+            "https",
+            archive_host,
+            parsed_url.path,
+            "",
+            parsed_url.query,
+            parsed_url.fragment,
+        )
+    )
 
 
 def _find_species_rule(

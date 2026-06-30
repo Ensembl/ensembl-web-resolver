@@ -16,6 +16,7 @@ from app.api.utils.url_resolver import (
     LegacyUrlResolverError,
     MissingUrlParameterError,
     UnsupportedLegacyUrlError,
+    build_archive_fallback_url,
     resolve_legacy_ensembl_url,
 )
 from app.core.logging import InterceptHandler
@@ -47,7 +48,17 @@ async def resolve_url(request: Request, url: str):
         return RedirectResponse(resolved_url, status_code=308)
     except MissingUrlParameterError as error:
         return response_error_handler({"status": 400, "details": str(error)})
-    except (InvalidLegacyUrlError, SpeciesNotFoundError) as error:
+    except SpeciesNotFoundError:
+        # Archive fallback is an HTTP policy for unresolved species mappings.
+        # The Beta URL resolver stays focused on supported Beta destinations.
+        try:
+            archive_url = build_archive_fallback_url(url)
+            return RedirectResponse(archive_url, status_code=308)
+        except UnsupportedLegacyUrlError as error:
+            return response_error_handler({"status": 501, "details": str(error)})
+        except InvalidLegacyUrlError as error:
+            return response_error_handler({"status": 404, "details": str(error)})
+    except InvalidLegacyUrlError as error:
         return response_error_handler({"status": 404, "details": str(error)})
     except UnsupportedLegacyUrlError as error:
         return response_error_handler({"status": 501, "details": str(error)})
