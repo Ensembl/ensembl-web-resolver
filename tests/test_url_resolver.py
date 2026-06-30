@@ -16,7 +16,7 @@ from app.main import app
 class TestUrlResolver(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
-        self.mock_url_resolver_api_url = "/resolve-url"
+        self.mock_url_resolver_api_url = "/legacy"
         self.genome_uuid = "genome_uuid1"
 
     @patch("app.api.resources.url_resolver_view.get_genome_uuid_from_species_url")

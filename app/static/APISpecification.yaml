@@ -307,7 +307,7 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-  /resolve-url:
+  /legacy:
     get:
       summary: Resolve legacy Ensembl URL
       description: Resolves a supported legacy Ensembl URL to its Beta equivalent, redirects to the configured archive host when no matching genome UUID exists, or shows an interstitial page for unsupported browser requests.

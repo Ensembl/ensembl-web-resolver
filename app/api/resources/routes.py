@@ -23,6 +23,4 @@ router = APIRouter()
 
 router.include_router(resolver_view.router, tags=["resolver"], prefix="/id")
 router.include_router(rapid_view.router, tags=["rapid"], prefix="/rapid")
-router.include_router(
-    url_resolver_view.router, tags=["url-resolver"], prefix="/resolve-url"
-)
+router.include_router(url_resolver_view.router, tags=["url-resolver"], prefix="/legacy")
