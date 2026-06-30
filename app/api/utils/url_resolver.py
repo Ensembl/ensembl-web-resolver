@@ -256,6 +256,20 @@ def _normalise_path(path: str) -> tuple[str, ...]:
     return tuple(segment for segment in path.strip("/").split("/") if segment)
 
 
+def is_bare_legacy_path(legacy_url: str) -> bool:
+    """Check whether a legacy URL has exactly one path segment.
+
+    Args:
+        legacy_url: Full legacy Ensembl URL submitted by the caller.
+
+    Returns:
+        ``True`` when the URL path is a single segment, for example
+        ``/Crocodylus_porosus`` or ``/foo``.
+    """
+    parsed_url = urlparse(legacy_url)
+    return len(_normalise_path(parsed_url.path)) == 1
+
+
 def build_archive_fallback_url(legacy_url: str) -> str:
     """Build an archive fallback URL for an unresolved legacy species URL.
 
@@ -364,6 +378,10 @@ def resolve_legacy_ensembl_url(
     # the supported mappings, e.g. /Homo_sapiens/Gene/Summary?g=...
     species_url = path_segments[0]
     legacy_path = path_segments[1:]
+
+    if not legacy_path:
+        genome_uuid = species_to_genome_uuid(species_url)
+        return _build_species_url(genome_uuid, query_params)
 
     rule = _find_species_rule(legacy_path, query_params)
 

@@ -7,6 +7,7 @@ from app.api.error_response import response_error_handler
 from app.api.models.resolver import UrlResolverResponse
 from app.api.utils.commons import is_json_request
 from app.api.utils.species_mapping import (
+    SpeciesMappingNotFoundError,
     SpeciesMappingConfigurationError,
     SpeciesNotFoundError,
     get_genome_uuid_from_species_url,
@@ -17,6 +18,7 @@ from app.api.utils.url_resolver import (
     MissingUrlParameterError,
     UnsupportedLegacyUrlError,
     build_archive_fallback_url,
+    is_bare_legacy_path,
     resolve_legacy_ensembl_url,
 )
 from app.api.utils.resolver import generate_resolver_url_page
@@ -50,37 +52,23 @@ async def resolve_url(request: Request, url: str):
         return RedirectResponse(resolved_url, status_code=308)
     except MissingUrlParameterError as error:
         return response_error_handler({"status": 400, "details": str(error)})
+    except SpeciesMappingNotFoundError:
+        if is_bare_legacy_path(url):
+            if not is_json_request(request):
+                return _url_resolver_interstitial_response(url)
+            return response_error_handler(
+                {"status": 404, "details": "No supported Beta equivalent for this URL"}
+            )
+        return _archive_fallback_response(url)
     except SpeciesNotFoundError:
         # Archive fallback is an HTTP policy for unresolved species mappings.
         # The Beta URL resolver stays focused on supported Beta destinations.
-        try:
-            archive_url = build_archive_fallback_url(url)
-            return RedirectResponse(archive_url, status_code=308)
-        except UnsupportedLegacyUrlError as error:
-            return response_error_handler({"status": 404, "details": str(error)})
-        except InvalidLegacyUrlError as error:
-            return response_error_handler({"status": 404, "details": str(error)})
+        return _archive_fallback_response(url)
     except InvalidLegacyUrlError as error:
         return response_error_handler({"status": 404, "details": str(error)})
     except UnsupportedLegacyUrlError as error:
         if not is_json_request(request):
-            try:
-                archive_url = build_archive_fallback_url(url)
-                response = UrlResolverResponse(
-                    source_url=url,
-                    archive_url=archive_url,
-                    beta_url=f"{ENSEMBL_URL}/species-selector",
-                    code=404,
-                    message=(
-                        "This page could not be resolved on the new "
-                        "Ensembl website."
-                    ),
-                )
-                return HTMLResponse(
-                    generate_resolver_url_page(response), status_code=404
-                )
-            except (InvalidLegacyUrlError, UnsupportedLegacyUrlError):
-                pass
+            return _url_resolver_interstitial_response(url)
 
         return response_error_handler({"status": 404, "details": str(error)})
     except SpeciesMappingConfigurationError as error:
@@ -91,3 +79,47 @@ async def resolve_url(request: Request, url: str):
     except Exception as error:
         logging.error(f"Error resolving legacy URL: {error}")
         return response_error_handler({"status": 500, "details": str(error)})
+
+
+def _archive_fallback_response(url: str):
+    """Redirect to the archive equivalent for unresolved species mappings.
+
+    Args:
+        url: Legacy URL submitted by the caller.
+
+    Returns:
+        Redirect response to the archive URL, or a JSON error if no archive URL
+        can be constructed.
+    """
+    try:
+        archive_url = build_archive_fallback_url(url)
+        return RedirectResponse(archive_url, status_code=308)
+    except UnsupportedLegacyUrlError as error:
+        return response_error_handler({"status": 404, "details": str(error)})
+    except InvalidLegacyUrlError as error:
+        return response_error_handler({"status": 404, "details": str(error)})
+
+
+def _url_resolver_interstitial_response(url: str):
+    """Render an interstitial with Beta and archive choices.
+
+    Args:
+        url: Legacy URL submitted by the caller.
+
+    Returns:
+        HTML response with links to the new Ensembl site and, when possible, the
+        archive equivalent of the submitted URL.
+    """
+    try:
+        archive_url = build_archive_fallback_url(url)
+    except (InvalidLegacyUrlError, UnsupportedLegacyUrlError):
+        archive_url = None
+
+    response = UrlResolverResponse(
+        source_url=url,
+        archive_url=archive_url,
+        beta_url=f"{ENSEMBL_URL}/species-selector",
+        code=404,
+        message="This page could not be resolved on the new Ensembl website.",
+    )
+    return HTMLResponse(generate_resolver_url_page(response), status_code=404)

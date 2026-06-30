@@ -2,7 +2,8 @@ import unittest
 from unittest.mock import Mock, patch
 
 from app.api.utils.species_mapping import (
-    SpeciesNotFoundError,
+    SpeciesGenomeUuidNotFoundError,
+    SpeciesMappingNotFoundError,
     get_genome_uuid_from_species_url,
 )
 
@@ -20,7 +21,19 @@ class TestSpeciesMapping(unittest.TestCase):
         connection.execute.return_value.fetchone.return_value = (None,)
         mock_connect.return_value = connection
 
-        with self.assertRaises(SpeciesNotFoundError):
+        with self.assertRaises(SpeciesGenomeUuidNotFoundError):
+            get_genome_uuid_from_species_url("Homo_sapiens")
+
+    @patch("duckdb.connect")
+    def test_get_genome_uuid_treats_absent_row_as_not_found(self, mock_connect):
+        """Treat absent species rows as missing mappings."""
+        connection = Mock()
+        connection.__enter__ = Mock(return_value=connection)
+        connection.__exit__ = Mock(return_value=None)
+        connection.execute.return_value.fetchone.return_value = None
+        mock_connect.return_value = connection
+
+        with self.assertRaises(SpeciesMappingNotFoundError):
             get_genome_uuid_from_species_url("Homo_sapiens")
 
 

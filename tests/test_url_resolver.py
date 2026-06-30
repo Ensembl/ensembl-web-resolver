@@ -4,7 +4,11 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from app.api.utils.species_mapping import SpeciesNotFoundError
+from app.api.utils.species_mapping import (
+    SpeciesGenomeUuidNotFoundError,
+    SpeciesMappingNotFoundError,
+    SpeciesNotFoundError,
+)
 from app.core.config import ENSEMBL_URL, STATIC_PATH
 from app.main import app
 
@@ -31,6 +35,44 @@ class TestUrlResolver(unittest.TestCase):
         self.assertEqual(
             response.json(),
             {"resolved_url": f"{ENSEMBL_URL}/species/{self.genome_uuid}"},
+        )
+        mock_species_lookup.assert_called_once_with("Homo_sapiens")
+
+    @patch("app.api.resources.url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_bare_species_path_with_redirect(self, mock_species_lookup):
+        """Resolve a bare species path to the Beta species page."""
+        mock_species_lookup.return_value = self.genome_uuid
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={"url": "https://www.ensembl.org/Crocodylus_porosus"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 308)
+        self.assertEqual(
+            response.headers["location"],
+            f"{ENSEMBL_URL}/species/{self.genome_uuid}",
+        )
+        mock_species_lookup.assert_called_once_with("Crocodylus_porosus")
+
+    @patch("app.api.resources.url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_bare_species_path_without_uuid_redirects_to_archive(
+        self, mock_species_lookup
+    ):
+        """Redirect bare species paths to archive when no Beta UUID exists."""
+        mock_species_lookup.side_effect = SpeciesGenomeUuidNotFoundError("not found")
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={"url": "https://www.ensembl.org/Homo_sapiens"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 308)
+        self.assertEqual(
+            response.headers["location"],
+            "https://jun2026.archive.ensembl.org/Homo_sapiens",
         )
         mock_species_lookup.assert_called_once_with("Homo_sapiens")
 
@@ -180,7 +222,7 @@ class TestUrlResolver(unittest.TestCase):
         self, mock_species_lookup
     ):
         """Redirect main-site URLs to the release archive when UUID is missing."""
-        mock_species_lookup.side_effect = SpeciesNotFoundError("not found")
+        mock_species_lookup.side_effect = SpeciesGenomeUuidNotFoundError("not found")
 
         response = self.client.get(
             self.mock_url_resolver_api_url,
@@ -375,6 +417,8 @@ class TestUrlResolver(unittest.TestCase):
     @patch("app.api.resources.url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_unknown_page_with_json_response(self, mock_species_lookup):
         """Return JSON error for unsupported one-segment legacy paths."""
+        mock_species_lookup.side_effect = SpeciesMappingNotFoundError("not found")
+
         response = self.client.get(
             self.mock_url_resolver_api_url,
             params={"url": "https://www.ensembl.org/foo"},
@@ -384,11 +428,13 @@ class TestUrlResolver(unittest.TestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertNotIn("location", response.headers)
-        mock_species_lookup.assert_not_called()
+        mock_species_lookup.assert_called_once_with("foo")
 
     @patch("app.api.resources.url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_unknown_page_with_html_interstitial(self, mock_species_lookup):
         """Render a choice page for browser users on unsupported legacy paths."""
+        mock_species_lookup.side_effect = SpeciesMappingNotFoundError("not found")
+
         response = self.client.get(
             self.mock_url_resolver_api_url,
             params={"url": "https://www.ensembl.org/foo"},
@@ -401,7 +447,7 @@ class TestUrlResolver(unittest.TestCase):
         self.assertIn(f"{ENSEMBL_URL}/species-selector", response.text)
         self.assertIn("https://jun2026.archive.ensembl.org/foo", response.text)
         self.assertIn(f"{STATIC_PATH}/css/styles.css", response.text)
-        mock_species_lookup.assert_not_called()
+        mock_species_lookup.assert_called_once_with("foo")
 
 
 if __name__ == "__main__":

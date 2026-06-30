@@ -12,6 +12,14 @@ class SpeciesNotFoundError(Exception):
     """Raised when a legacy species URL name has no mapped genome UUID."""
 
 
+class SpeciesMappingNotFoundError(SpeciesNotFoundError):
+    """Raised when a legacy species URL name is absent from the mapping table."""
+
+
+class SpeciesGenomeUuidNotFoundError(SpeciesNotFoundError):
+    """Raised when a legacy species URL name exists but has no genome UUID."""
+
+
 def _validate_table_name(table_name: str) -> str:
     """Validate a configured DuckDB table name.
 
@@ -62,14 +70,18 @@ def get_genome_uuid_from_species_url(species_url: str) -> str:
 
     # No row means the legacy species URL is absent from the mapping table.
     if not result:
-        raise SpeciesNotFoundError(f"No genome UUID found for species '{species_url}'")
+        raise SpeciesMappingNotFoundError(
+            f"No genome UUID found for species '{species_url}'"
+        )
 
     genome_uuid = result[0]
 
     # A row with a NULL genome_uuid means this species has no Beta mapping and
     # should be handled by the archive fallback path.
     if genome_uuid is None:
-        raise SpeciesNotFoundError(f"No genome UUID found for species '{species_url}'")
+        raise SpeciesGenomeUuidNotFoundError(
+            f"No genome UUID found for species '{species_url}'"
+        )
 
     # DuckDB may return UUID columns as uuid.UUID objects. Normalize at the
     # storage boundary so URL construction only deals with plain strings.
