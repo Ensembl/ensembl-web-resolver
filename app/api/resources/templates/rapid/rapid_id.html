@@ -4,7 +4,7 @@
 
 {% block extra_head %}
   {% if response.content and response.content|length == 1 %}
-    <meta http-equiv="refresh" content="10;url={{ response.content[0].entity_viewer_url }}" />
+    <meta http-equiv="refresh" content="10;url={{ response.content[0].feature_explorer_url }}" />
   {% endif %}
 {% endblock %}
 

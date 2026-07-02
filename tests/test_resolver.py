@@ -78,7 +78,7 @@ class TestResolverAPI(unittest.TestCase):
         json_response = response.json()
         self.assertEqual(len(json_response), 2)
         self.assertEqual(
-            json_response[0]["entity_viewer_url"], self.mock_resolved_url["genome1"]
+            json_response[0]["feature_explorer_url"], self.mock_resolved_url["genome1"]
         )
 
     @patch("app.api.resources.resolver_view.get_search_results")

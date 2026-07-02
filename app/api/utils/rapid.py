@@ -78,15 +78,15 @@ def construct_url(genome_id, subpath, query_params):
         if not gene_id:
             raise ValueError("Gene parameter 'g' is missing for Gene view")
         if "compara_homolog" in subpath_lower:
-            return f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{gene_id}?view=homology"
-        return f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{gene_id}"
+            return f"{ENSEMBL_URL}/feature-explorer/{genome_id}/gene:{gene_id}?view=homology"
+        return f"{ENSEMBL_URL}/feature-explorer/{genome_id}/gene:{gene_id}"
 
     if "transcript" in subpath_lower:
         if not gene_id:
             raise ValueError("Gene parameter 'g' is missing for Transcript view")
         if "domains" in subpath_lower or "proteinsummary" in subpath_lower:
-            return f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{gene_id}?view=protein"
-        return f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{gene_id}"
+            return f"{ENSEMBL_URL}/feature-explorer/{genome_id}/gene:{gene_id}?view=protein"
+        return f"{ENSEMBL_URL}/feature-explorer/{genome_id}/gene:{gene_id}"
 
     raise ValueError("Invalid path")
 

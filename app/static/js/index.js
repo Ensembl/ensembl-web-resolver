@@ -10,13 +10,13 @@ function showTooltip(el) {
   if (!tooltip) return;
 
   const genomeBrowserLink = document.getElementById('genome-browser-link');
-  const entityViewerLink = document.getElementById('entity-viewer-link');
+  const featureExplorerLink = document.getElementById('feature-explorer-link');
 
   if (genomeBrowserLink) {
     genomeBrowserLink.href = el.dataset.genomeBrowserUrl;
   }
-  if (entityViewerLink) {
-    entityViewerLink.href = el.dataset.entityViewerUrl;
+  if (featureExplorerLink) {
+    featureExplorerLink.href = el.dataset.featureExplorerUrl;
   }
 
   const target = el.querySelector('.genome-detail-tooltip');
