@@ -95,7 +95,10 @@ class TestUrlResolver(unittest.TestCase):
         self.assertEqual(response.status_code, 308)
         self.assertEqual(
             response.headers["location"],
-            (f"{ENSEMBL_URL}/entity-viewer/{self.genome_uuid}" "/gene:ENSG00000012048"),
+            (
+                f"{ENSEMBL_URL}/feature-explorer/{self.genome_uuid}"
+                "/gene:ENSG00000012048"
+            ),
         )
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
@@ -121,7 +124,8 @@ class TestUrlResolver(unittest.TestCase):
             response.json(),
             {
                 "resolved_url": (
-                    f"{ENSEMBL_URL}/entity-viewer/{genome_uuid}" "/gene:ENSG00000012048"
+                    f"{ENSEMBL_URL}/feature-explorer/{genome_uuid}"
+                    "/gene:ENSG00000012048"
                 )
             },
         )
@@ -157,7 +161,7 @@ class TestUrlResolver(unittest.TestCase):
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_transcript_summary(self, mock_species_lookup):
-        """Resolve a transcript summary URL to the new Ensembl entity viewer."""
+        """Resolve a transcript summary URL to the new Ensembl feature explorer."""
         mock_species_lookup.return_value = self.genome_uuid
 
         response = self.client.get(
@@ -177,7 +181,7 @@ class TestUrlResolver(unittest.TestCase):
             response.json(),
             {
                 "resolved_url": (
-                    f"{ENSEMBL_URL}/entity-viewer/{self.genome_uuid}"
+                    f"{ENSEMBL_URL}/feature-explorer/{self.genome_uuid}"
                     "/transcript:ENST00000357654"
                 )
             },

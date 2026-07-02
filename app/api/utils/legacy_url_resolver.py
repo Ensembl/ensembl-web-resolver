@@ -135,21 +135,21 @@ def _build_gene_browser_url(
     )
 
 
-def _build_gene_entity_viewer_url(
+def _build_gene_feature_explorer_url(
     genome_uuid: str, query_params: dict[str, list[str]]
 ) -> str:
-    """Build a new Ensembl entity viewer URL for a gene.
+    """Build a new Ensembl feature explorer URL for a gene.
 
     Args:
         genome_uuid: new Ensembl genome UUID from the species mapping table.
         query_params: Parsed legacy query parameters containing ``g``.
 
     Returns:
-        The resolved new Ensembl entity viewer URL.
+        The resolved new Ensembl feature explorer URL.
     """
     gene_id = _require_query_value(query_params, "g")
     return (
-        f"{ENSEMBL_URL}/entity-viewer/{_quote_url_part(genome_uuid)}"
+        f"{ENSEMBL_URL}/feature-explorer/{_quote_url_part(genome_uuid)}"
         f"/gene:{_quote_url_part(gene_id)}"
     )
 
@@ -157,33 +157,33 @@ def _build_gene_entity_viewer_url(
 def _build_gene_homology_url(
     genome_uuid: str, query_params: dict[str, list[str]]
 ) -> str:
-    """Build a new Ensembl entity viewer URL with the homology view selected.
+    """Build a new Ensembl feature explorer URL with the homology view selected.
 
     Args:
         genome_uuid: new Ensembl genome UUID from the species mapping table.
         query_params: Parsed legacy query parameters containing ``g``.
 
     Returns:
-        The resolved new Ensembl entity viewer homology URL.
+        The resolved new Ensembl feature explorer homology URL.
     """
-    return f"{_build_gene_entity_viewer_url(genome_uuid, query_params)}?view=homology"
+    return f"{_build_gene_feature_explorer_url(genome_uuid, query_params)}?view=homology"
 
 
-def _build_transcript_entity_viewer_url(
+def _build_transcript_feature_explorer_url(
     genome_uuid: str, query_params: dict[str, list[str]]
 ) -> str:
-    """Build a new Ensembl entity viewer URL for a transcript.
+    """Build a new Ensembl feature explorer URL for a transcript.
 
     Args:
         genome_uuid: new Ensembl genome UUID from the species mapping table.
         query_params: Parsed legacy query parameters containing ``t``.
 
     Returns:
-        The resolved new Ensembl entity viewer URL.
+        The resolved new Ensembl feature explorer URL.
     """
     transcript_id = _require_query_value(query_params, "t")
     return (
-        f"{ENSEMBL_URL}/entity-viewer/{_quote_url_part(genome_uuid)}"
+        f"{ENSEMBL_URL}/feature-explorer/{_quote_url_part(genome_uuid)}"
         f"/transcript:{_quote_url_part(transcript_id)}"
     )
 
@@ -191,7 +191,7 @@ def _build_transcript_entity_viewer_url(
 def _build_transcript_protein_url(
     genome_uuid: str, query_params: dict[str, list[str]]
 ) -> str:
-    """Build a new Ensembl entity viewer URL with the protein view selected.
+    """Build a new Ensembl feature explorer URL with the protein view selected.
 
     Args:
         genome_uuid: new Ensembl genome UUID from the species mapping table.
@@ -201,7 +201,7 @@ def _build_transcript_protein_url(
         The resolved new Ensembl transcript URL with the protein view selected.
     """
     return (
-        f"{_build_transcript_entity_viewer_url(genome_uuid, query_params)}"
+        f"{_build_transcript_feature_explorer_url(genome_uuid, query_params)}"
         "?view=protein"
     )
 
@@ -215,9 +215,9 @@ SUPPORTED_SPECIES_RULES = (
     LegacyUrlRule(("Location", "Genome"), (), _build_species_url),
     LegacyUrlRule(("Location", "View"), ("r",), _build_location_url),
     LegacyUrlRule(("Location", "View"), ("g",), _build_gene_browser_url),
-    LegacyUrlRule(("Gene", "Summary"), ("g",), _build_gene_entity_viewer_url),
+    LegacyUrlRule(("Gene", "Summary"), ("g",), _build_gene_feature_explorer_url),
     LegacyUrlRule(
-        ("Transcript", "Summary"), ("t",), _build_transcript_entity_viewer_url
+        ("Transcript", "Summary"), ("t",), _build_transcript_feature_explorer_url
     ),
     LegacyUrlRule(
         ("Transcript", "ProteinSummary"), ("t",), _build_transcript_protein_url
