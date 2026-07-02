@@ -33,7 +33,7 @@ ENSEMBL_SEARCH_HUB_API: str = config(
     cast=str,
     default="http://ensembl-search-hub-svc:8083/api/search/stable-id",
 )
-DEFAULT_APP = config("DEFAULT_APP", cast=str, default="entity-viewer")
+DEFAULT_APP = config("DEFAULT_APP", cast=str, default="feature-explorer")
 ENSEMBL_URL = config("ENSEMBL_URL", cast=str, default="https://beta.ensembl.org")
 STATIC_PATH = (
     "/static" if ENSEMBL_URL == "https://beta.ensembl.org" else "/api/resolver/static"

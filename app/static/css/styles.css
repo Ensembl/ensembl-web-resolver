@@ -242,7 +242,7 @@ body {
 }
 
 #genome-browser-link,
-#entity-viewer-link {
+#feature-explorer-link {
   background-color: var(--color-blue);
   padding: 2px 4px;
   margin-left: 20px;

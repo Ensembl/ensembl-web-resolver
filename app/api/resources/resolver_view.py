@@ -23,7 +23,7 @@ async def resolve(
     stable_id: str,
     type: Optional[str] = "gene",
     gca: Optional[str] = "",
-    app: Optional[Literal["genome-browser", "entity-viewer"]] = DEFAULT_APP,
+    app: Optional[Literal["genome-browser", "feature-explorer"]] = DEFAULT_APP,
 ):
 
     params = SearchPayload(stable_id=stable_id, type=type, per_page=10)
@@ -58,8 +58,8 @@ async def resolve(
             return results
 
         if len(results) == 1:
-            if app == "entity-viewer":
-                resolved_url = results[0].entity_viewer_url
+            if app == "feature-explorer":
+                resolved_url = results[0].feature_explorer_url
             else:
                 resolved_url = results[0].genome_browser_url
             return RedirectResponse(resolved_url)

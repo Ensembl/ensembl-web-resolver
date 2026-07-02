@@ -12,7 +12,7 @@ def build_stable_id_resolver_content(metadata_results) -> list[StableIdResolverC
             continue
 
         content = StableIdResolverContent(
-            entity_viewer_url=build_entity_viewer_url(genome_id, metadata['unversioned_stable_id']),
+            feature_explorer_url=build_feature_explorer_url(genome_id, metadata['unversioned_stable_id']),
             genome_browser_url=build_genome_browser_url(genome_id, metadata['unversioned_stable_id']),
             release_type=metadata.get("release", {}).get("type", ""),
             release_name=metadata.get("release", {}).get("name", ""),
@@ -23,8 +23,8 @@ def build_stable_id_resolver_content(metadata_results) -> list[StableIdResolverC
     return results
 
 
-def build_entity_viewer_url(genome_id: str, stable_id: str) -> str:
-    return f"{ENSEMBL_URL}/entity-viewer/{genome_id}/gene:{stable_id}"
+def build_feature_explorer_url(genome_id: str, stable_id: str) -> str:
+    return f"{ENSEMBL_URL}/feature-explorer/{genome_id}/gene:{stable_id}"
 
 
 def build_genome_browser_url(genome_id: str, stable_id: str) -> str:

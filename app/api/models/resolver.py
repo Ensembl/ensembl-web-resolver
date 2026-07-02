@@ -9,8 +9,8 @@ class SearchPayload(BaseModel):
         default=None, title="Type of stable id, e.g. gene"
     )
     per_page: int = 1
-    app: Literal["genome-browser", "entity-viewer"] = Field(
-        default="entity-viewer", title="Preferred app to be redirected to"
+    app: Literal["genome-browser", "feature-explorer"] = Field(
+        default="feature-explorer", title="Preferred app to be redirected to"
     )
 
 
@@ -89,7 +89,7 @@ class UrlResolverResponse(BaseModel):
 
 
 class StableIdResolverContent(MetadataResult):
-    entity_viewer_url: str | None = None
+    feature_explorer_url: str | None = None
     genome_browser_url: str | None = None
     release_type: str | None = None
     release_name: str | None = None
