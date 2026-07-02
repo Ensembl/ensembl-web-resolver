@@ -393,14 +393,4 @@ components:
         application/json:
           schema:
             example: '{"status_code": 500, "details": "Internal server error"}'
-    501:
-      description: Not implemented. The legacy URL shape has no supported new Ensembl equivalent.
-      content:
-        text/plain:
-          schema:
-            type: string
-            example: "Not implemented"
-        application/json:
-          schema:
-            example: '{"status_code": 501, "details": "No supported new Ensembl equivalent for this URL"}'
   
