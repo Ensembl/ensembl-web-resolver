@@ -12,7 +12,7 @@ from app.api.utils.species_mapping import (
     SpeciesNotFoundError,
     get_genome_uuid_from_species_url,
 )
-from app.api.utils.url_resolver import (
+from app.api.utils.legacy_url_resolver import (
     InvalidLegacyUrlError,
     LegacyUrlResolverError,
     MissingUrlParameterError,
