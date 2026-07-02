@@ -39,13 +39,13 @@ def _validate_table_name(table_name: str) -> str:
 
 @lru_cache(maxsize=4096)
 def get_genome_uuid_from_species_url(species_url: str) -> str:
-    """Fetch the Beta genome UUID for a legacy species URL name.
+    """Fetch the new Ensembl genome UUID for a legacy species URL name.
 
     Args:
         species_url: Legacy species path segment, for example ``Homo_sapiens``.
 
     Returns:
-        The Beta genome UUID mapped to the legacy species URL name.
+        The new Ensembl genome UUID mapped to the legacy species URL name.
 
     Raises:
         SpeciesMappingConfigurationError: If the DuckDB file path is missing.
@@ -76,8 +76,8 @@ def get_genome_uuid_from_species_url(species_url: str) -> str:
 
     genome_uuid = result[0]
 
-    # A row with a NULL genome_uuid means this species has no Beta mapping and
-    # should be handled by the archive fallback path.
+    # A row with a NULL genome_uuid means this species has no new Ensembl
+    # mapping and should be handled by the archive fallback path.
     if genome_uuid is None:
         raise SpeciesGenomeUuidNotFoundError(
             f"No genome UUID found for species '{species_url}'"

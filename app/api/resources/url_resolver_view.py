@@ -32,7 +32,7 @@ router = APIRouter()
 
 @router.get("", name="Resolve legacy Ensembl URL")
 async def resolve_url(request: Request, url: str):
-    """Resolve a supported legacy Ensembl URL to its Beta equivalent.
+    """Resolve a supported legacy Ensembl URL to its new Ensembl equivalent.
 
     Args:
         request: Incoming FastAPI request used to decide JSON vs redirect.
@@ -40,7 +40,7 @@ async def resolve_url(request: Request, url: str):
 
     Returns:
         JSON containing ``resolved_url`` when the client requests JSON, otherwise
-        a redirect response to the resolved Beta URL.
+        a redirect response to the resolved new Ensembl URL.
     """
     try:
         resolved_url = resolve_legacy_ensembl_url(url, get_genome_uuid_from_species_url)
@@ -57,12 +57,16 @@ async def resolve_url(request: Request, url: str):
             if not is_json_request(request):
                 return _url_resolver_interstitial_response(url)
             return response_error_handler(
-                {"status": 404, "details": "No supported Beta equivalent for this URL"}
+                {
+                    "status": 404,
+                    "details": "No supported new Ensembl equivalent for this URL",
+                }
             )
         return _archive_fallback_response(url)
     except SpeciesNotFoundError:
         # Archive fallback is an HTTP policy for unresolved species mappings.
-        # The Beta URL resolver stays focused on supported Beta destinations.
+        # The new Ensembl URL resolver stays focused on supported new Ensembl
+        # destinations.
         return _archive_fallback_response(url)
     except InvalidLegacyUrlError as error:
         return response_error_handler({"status": 404, "details": str(error)})
@@ -101,7 +105,7 @@ def _archive_fallback_response(url: str):
 
 
 def _url_resolver_interstitial_response(url: str):
-    """Render an interstitial with Beta and archive choices.
+    """Render an interstitial with new Ensembl and archive choices.
 
     Args:
         url: Legacy URL submitted by the caller.
@@ -118,7 +122,7 @@ def _url_resolver_interstitial_response(url: str):
     response = UrlResolverResponse(
         source_url=url,
         archive_url=archive_url,
-        beta_url=f"{ENSEMBL_URL}/species-selector",
+        new_ensembl_url=f"{ENSEMBL_URL}/species-selector",
         code=404,
         message="This page could not be resolved on the new Ensembl website.",
     )

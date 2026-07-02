@@ -18,7 +18,7 @@ class MissingUrlParameterError(LegacyUrlResolverError):
 
 
 class UnsupportedLegacyUrlError(LegacyUrlResolverError):
-    """Raised when the URL shape has no supported Beta equivalent."""
+    """Raised when the URL shape has no supported new Ensembl equivalent."""
 
 
 ARCHIVE_HOSTS = {
@@ -33,7 +33,7 @@ ARCHIVE_HOSTS = {
 
 @dataclass(frozen=True)
 class LegacyUrlRule:
-    """Rule that maps one legacy path shape to one Beta URL shape."""
+    """Rule that maps one legacy path shape to one new Ensembl URL shape."""
 
     path: tuple[str, ...]
     required_query_params: tuple[str, ...]
@@ -86,27 +86,27 @@ def _quote_url_part(value) -> str:
 
 
 def _build_species_url(genome_uuid: str, query_params: dict[str, list[str]]) -> str:
-    """Build a Beta species page URL.
+    """Build a new Ensembl species page URL.
 
     Args:
-        genome_uuid: Beta genome UUID from the species mapping table.
+        genome_uuid: new Ensembl genome UUID from the species mapping table.
         query_params: Parsed legacy query parameters. Unused for this rule.
 
     Returns:
-        The resolved Beta species URL.
+        The resolved new Ensembl species URL.
     """
     return f"{ENSEMBL_URL}/species/{_quote_url_part(genome_uuid)}"
 
 
 def _build_location_url(genome_uuid: str, query_params: dict[str, list[str]]) -> str:
-    """Build a Beta genome browser URL focused on a genomic location.
+    """Build a new Ensembl genome browser URL focused on a genomic location.
 
     Args:
-        genome_uuid: Beta genome UUID from the species mapping table.
+        genome_uuid: new Ensembl genome UUID from the species mapping table.
         query_params: Parsed legacy query parameters containing ``r``.
 
     Returns:
-        The resolved Beta genome browser URL.
+        The resolved new Ensembl genome browser URL.
     """
     location = _require_query_value(query_params, "r")
     encoded_location = quote(location, safe=":-")
@@ -119,14 +119,14 @@ def _build_location_url(genome_uuid: str, query_params: dict[str, list[str]]) ->
 def _build_gene_browser_url(
     genome_uuid: str, query_params: dict[str, list[str]]
 ) -> str:
-    """Build a Beta genome browser URL focused on a gene.
+    """Build a new Ensembl genome browser URL focused on a gene.
 
     Args:
-        genome_uuid: Beta genome UUID from the species mapping table.
+        genome_uuid: new Ensembl genome UUID from the species mapping table.
         query_params: Parsed legacy query parameters containing ``g``.
 
     Returns:
-        The resolved Beta genome browser URL.
+        The resolved new Ensembl genome browser URL.
     """
     gene_id = _require_query_value(query_params, "g")
     return (
@@ -138,14 +138,14 @@ def _build_gene_browser_url(
 def _build_gene_entity_viewer_url(
     genome_uuid: str, query_params: dict[str, list[str]]
 ) -> str:
-    """Build a Beta entity viewer URL for a gene.
+    """Build a new Ensembl entity viewer URL for a gene.
 
     Args:
-        genome_uuid: Beta genome UUID from the species mapping table.
+        genome_uuid: new Ensembl genome UUID from the species mapping table.
         query_params: Parsed legacy query parameters containing ``g``.
 
     Returns:
-        The resolved Beta entity viewer URL.
+        The resolved new Ensembl entity viewer URL.
     """
     gene_id = _require_query_value(query_params, "g")
     return (
@@ -157,14 +157,14 @@ def _build_gene_entity_viewer_url(
 def _build_gene_homology_url(
     genome_uuid: str, query_params: dict[str, list[str]]
 ) -> str:
-    """Build a Beta entity viewer URL with the homology view selected.
+    """Build a new Ensembl entity viewer URL with the homology view selected.
 
     Args:
-        genome_uuid: Beta genome UUID from the species mapping table.
+        genome_uuid: new Ensembl genome UUID from the species mapping table.
         query_params: Parsed legacy query parameters containing ``g``.
 
     Returns:
-        The resolved Beta entity viewer homology URL.
+        The resolved new Ensembl entity viewer homology URL.
     """
     return f"{_build_gene_entity_viewer_url(genome_uuid, query_params)}?view=homology"
 
@@ -172,14 +172,14 @@ def _build_gene_homology_url(
 def _build_transcript_entity_viewer_url(
     genome_uuid: str, query_params: dict[str, list[str]]
 ) -> str:
-    """Build a Beta entity viewer URL for a transcript.
+    """Build a new Ensembl entity viewer URL for a transcript.
 
     Args:
-        genome_uuid: Beta genome UUID from the species mapping table.
+        genome_uuid: new Ensembl genome UUID from the species mapping table.
         query_params: Parsed legacy query parameters containing ``t``.
 
     Returns:
-        The resolved Beta entity viewer URL.
+        The resolved new Ensembl entity viewer URL.
     """
     transcript_id = _require_query_value(query_params, "t")
     return (
@@ -191,14 +191,14 @@ def _build_transcript_entity_viewer_url(
 def _build_transcript_protein_url(
     genome_uuid: str, query_params: dict[str, list[str]]
 ) -> str:
-    """Build a Beta entity viewer URL with the protein view selected.
+    """Build a new Ensembl entity viewer URL with the protein view selected.
 
     Args:
-        genome_uuid: Beta genome UUID from the species mapping table.
+        genome_uuid: new Ensembl genome UUID from the species mapping table.
         query_params: Parsed legacy query parameters containing ``t``.
 
     Returns:
-        The resolved Beta transcript URL with the protein view selected.
+        The resolved new Ensembl transcript URL with the protein view selected.
     """
     return (
         f"{_build_transcript_entity_viewer_url(genome_uuid, query_params)}"
@@ -206,9 +206,10 @@ def _build_transcript_protein_url(
     )
 
 
-# These rules intentionally cover only spreadsheet rows with a practical Beta
-# equivalent. Rows marked "No", "Maybe", or needing extra variant/regulatory
-# lookup should fail explicitly rather than produce a misleading redirect.
+# These rules intentionally cover only spreadsheet rows with a practical new
+# Ensembl equivalent. Rows marked "No", "Maybe", or needing extra
+# variant/regulatory lookup should fail explicitly rather than produce a
+# misleading redirect.
 SUPPORTED_SPECIES_RULES = (
     LegacyUrlRule(("Info", "Index"), (), _build_species_url),
     LegacyUrlRule(("Location", "Genome"), (), _build_species_url),
@@ -352,15 +353,15 @@ def resolve_legacy_ensembl_url(
     legacy_url: str,
     species_to_genome_uuid: Callable[[str], str],
 ) -> str:
-    """Resolve a supported legacy Ensembl URL to its Beta equivalent.
+    """Resolve a supported legacy Ensembl URL to its new Ensembl equivalent.
 
     Args:
         legacy_url: Full legacy URL or path submitted by the caller.
         species_to_genome_uuid: Function that maps legacy species URL names to
-            Beta genome UUIDs.
+            new Ensembl genome UUIDs.
 
     Returns:
-        The resolved Beta URL.
+        The resolved new Ensembl URL.
 
     Raises:
         InvalidLegacyUrlError: If the URL cannot be parsed.
@@ -386,7 +387,9 @@ def resolve_legacy_ensembl_url(
     rule = _find_species_rule(legacy_path, query_params)
 
     if rule is None:
-        raise UnsupportedLegacyUrlError("No supported Beta equivalent for this URL")
+        raise UnsupportedLegacyUrlError(
+            "No supported new Ensembl equivalent for this URL"
+        )
 
     genome_uuid = species_to_genome_uuid(species_url)
     return rule.build_url(genome_uuid, query_params)

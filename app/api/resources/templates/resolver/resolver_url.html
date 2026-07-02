@@ -17,8 +17,8 @@
             <div class="error-message">
                 {{ response.message }}
             </div>
-            {% if response.beta_url %}
-                {{ url_helper.render_url("Go to new Ensembl", response.beta_url) }}
+            {% if response.new_ensembl_url %}
+                {{ url_helper.render_url("Go to new Ensembl", response.new_ensembl_url) }}
             {% endif %}
             {% if response.archive_url %}
                 {{ url_helper.render_url("Go to archive", response.archive_url) }}

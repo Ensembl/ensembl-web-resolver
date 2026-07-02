@@ -21,7 +21,7 @@ class TestUrlResolver(unittest.TestCase):
 
     @patch("app.api.resources.url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_species_home_with_json_response(self, mock_species_lookup):
-        """Resolve a species home URL to the Beta species page."""
+        """Resolve a species home URL to the new Ensembl species page."""
         mock_species_lookup.return_value = self.genome_uuid
 
         response = self.client.get(
@@ -40,7 +40,7 @@ class TestUrlResolver(unittest.TestCase):
 
     @patch("app.api.resources.url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_bare_species_path_with_redirect(self, mock_species_lookup):
-        """Resolve a bare species path to the Beta species page."""
+        """Resolve a bare species path to the new Ensembl species page."""
         mock_species_lookup.return_value = self.genome_uuid
 
         response = self.client.get(
@@ -60,7 +60,7 @@ class TestUrlResolver(unittest.TestCase):
     def test_resolve_bare_species_path_without_uuid_redirects_to_archive(
         self, mock_species_lookup
     ):
-        """Redirect bare species paths to archive when no Beta UUID exists."""
+        """Redirect bare species paths to archive when no new Ensembl UUID exists."""
         mock_species_lookup.side_effect = SpeciesGenomeUuidNotFoundError("not found")
 
         response = self.client.get(
@@ -78,7 +78,7 @@ class TestUrlResolver(unittest.TestCase):
 
     @patch("app.api.resources.url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_gene_summary_with_redirect(self, mock_species_lookup):
-        """Resolve a supported gene URL to a permanent Beta redirect."""
+        """Resolve a supported gene URL to a permanent new Ensembl redirect."""
         mock_species_lookup.return_value = self.genome_uuid
 
         response = self.client.get(
@@ -157,7 +157,7 @@ class TestUrlResolver(unittest.TestCase):
 
     @patch("app.api.resources.url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_transcript_summary(self, mock_species_lookup):
-        """Resolve a transcript summary URL to the Beta entity viewer."""
+        """Resolve a transcript summary URL to the new Ensembl entity viewer."""
         mock_species_lookup.return_value = self.genome_uuid
 
         response = self.client.get(
@@ -199,7 +199,7 @@ class TestUrlResolver(unittest.TestCase):
 
     @patch("app.api.resources.url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_unsupported_template(self, mock_species_lookup):
-        """Return 404 for spreadsheet rows with no supported Beta mapping."""
+        """Return 404 for spreadsheet rows with no supported new Ensembl mapping."""
         mock_species_lookup.return_value = self.genome_uuid
 
         response = self.client.get(
@@ -240,7 +240,7 @@ class TestUrlResolver(unittest.TestCase):
     def test_resolve_null_species_uuid_redirects_to_main_archive(
         self, mock_species_lookup
     ):
-        """Redirect to archive when a species row has no Beta genome UUID."""
+        """Redirect to archive when a species row has no new Ensembl genome UUID."""
         mock_species_lookup.side_effect = SpeciesNotFoundError("not found")
 
         response = self.client.get(

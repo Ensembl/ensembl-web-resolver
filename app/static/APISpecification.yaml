@@ -13,14 +13,14 @@ tags:
   - name: Rapid Resolver
     description: Resolver API to resolve rapid site urls to Ensembl
   - name: URL Resolver
-    description: Resolver API to resolve legacy Ensembl URLs to Beta URLs
+    description: Resolver API to resolve legacy Ensembl URLs to new Ensembl URLs
 paths:
   /id/{stable_id}:
     get:
       tags:
         - Resolver
       summary: Resolve stable ID with optional query params
-      description: Resolves to a beta url when a stable id wih optional query params provided
+      description: Resolves to a new Ensembl URL when a stable id wih optional query params provided
       parameters:
         - name: stable_id
           in: path
@@ -127,7 +127,7 @@ paths:
       tags:
         - Rapid Resolver
       summary: Resolve Rapid stable ID
-      description: Resolves to a beta url when a stable id
+      description: Resolves to a new Ensembl URL when a stable id
       parameters:
         - name: stable_id
           in: path
@@ -310,7 +310,7 @@ paths:
   /legacy:
     get:
       summary: Resolve legacy Ensembl URL
-      description: Resolves a supported legacy Ensembl URL to its Beta equivalent, redirects to the configured archive host when no matching genome UUID exists, or shows an interstitial page for unsupported browser requests.
+      description: Resolves a supported legacy Ensembl URL to its new Ensembl equivalent, redirects to the configured archive host when no matching genome UUID exists, or shows an interstitial page for unsupported browser requests.
       tags:
         - URL Resolver
       parameters:
@@ -325,7 +325,7 @@ paths:
         '200':
           $ref: '#/components/responses/200'
         '308':
-          description: Redirect to resolved Beta URL
+          description: Redirect to resolved new Ensembl URL
           headers:
             Location:
               $ref: '#/components/headers/Location'
@@ -394,7 +394,7 @@ components:
           schema:
             example: '{"status_code": 500, "details": "Internal server error"}'
     501:
-      description: Not implemented. The legacy URL shape has no supported Beta equivalent.
+      description: Not implemented. The legacy URL shape has no supported new Ensembl equivalent.
       content:
         text/plain:
           schema:
@@ -402,5 +402,5 @@ components:
             example: "Not implemented"
         application/json:
           schema:
-            example: '{"status_code": 501, "details": "No supported Beta equivalent for this URL"}'
+            example: '{"status_code": 501, "details": "No supported new Ensembl equivalent for this URL"}'
   
