@@ -29,10 +29,22 @@ from app.core.config import (
     VERSION,
     ALLOWED_HOSTS,
     STATIC_PATH,
+    APP_PREFIX,
 )
 
 
-def get_application() -> FastAPI:
+def _fastapi_prefix(prefix: str) -> str:
+    return "" if prefix == "/" else prefix
+
+
+def _prefixed_path(prefix: str, path: str) -> str:
+    if prefix == "/":
+        return path
+
+    return f"{prefix}{path}"
+
+
+def get_application(app_prefix: str = APP_PREFIX) -> FastAPI:
     application = FastAPI(
         title=PROJECT_NAME,
         debug=DEBUG,
@@ -50,7 +62,13 @@ def get_application() -> FastAPI:
         allow_headers=["*"],
     )
 
-    application.include_router(router)
+    application.include_router(router, prefix=_fastapi_prefix(app_prefix))
+
+    @application.get(_prefixed_path(app_prefix, "/"), include_in_schema=False)
+    async def custom_swagger_ui_html():
+        return get_swagger_ui_html(
+            openapi_url=f"{STATIC_PATH}/APISpecification.yaml", title="API Docs"
+        )
 
     return application
 
@@ -59,10 +77,3 @@ app = get_application()
 static_files_path = os.path.join(os.path.dirname(__file__), "static")
 
 app.mount(STATIC_PATH, StaticFiles(directory=static_files_path), name="static_files")
-
-
-@app.get("/", include_in_schema=False)
-async def custom_swagger_ui_html():
-    return get_swagger_ui_html(
-        openapi_url=f"{STATIC_PATH}/APISpecification.yaml", title="API Docs"
-    )

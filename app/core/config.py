@@ -28,6 +28,17 @@ VERSION = "0.0.0"
 
 config = Config(".env")
 
+
+def normalize_app_prefix(prefix: str) -> str:
+    prefix = prefix.strip()
+
+    if prefix in ("", "/"):
+        return "/"
+
+    return f"/{prefix.strip('/')}"
+
+
+APP_PREFIX = normalize_app_prefix(config("APP_PREFIX", cast=str, default="/"))
 ENSEMBL_SEARCH_HUB_API: str = config(
     "ENSEMBL_SEARCH_HUB_API",
     cast=str,
