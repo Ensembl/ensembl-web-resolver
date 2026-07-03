@@ -9,7 +9,8 @@ WORKDIR /
 
 # Copy source code
 COPY ./app /app/
-COPY requirements.txt requirements.txt
+COPY requirements.txt /requirements.txt
+COPY resolver_mappings.db /app/resolver_mappings.db
 
 # Install dependencies
 RUN pip install  -r requirements.txt

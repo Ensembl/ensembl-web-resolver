@@ -61,8 +61,13 @@ class RapidResolverResponse(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
     _excluded_fields = {
-        "response_type", "code", "species_name", "gene_id",
-        "location", "message", "rapid_archive_url"
+        "response_type",
+        "code",
+        "species_name",
+        "gene_id",
+        "location",
+        "message",
+        "rapid_archive_url",
     }
 
     def model_dump(self, *args, **kwargs):
@@ -72,6 +77,15 @@ class RapidResolverResponse(BaseModel):
     def model_dump_json(self, *args, **kwargs):
         kwargs.setdefault("exclude", self._excluded_fields)
         return super().model_dump_json(*args, **kwargs)
+
+
+class UrlResolverResponse(BaseModel):
+    resolved_url: str | None = None
+    source_url: str | None = None
+    archive_url: str | None = None
+    new_ensembl_url: str | None = None
+    code: int | None = None
+    message: str | None = None
 
 
 class StableIdResolverContent(MetadataResult):

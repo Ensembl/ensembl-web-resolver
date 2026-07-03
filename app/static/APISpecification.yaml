@@ -5,20 +5,22 @@ info:
   contact:
     email: ensembl-webteam@ebi.ac.uk
   version: 0.0.1
-servers:
-  - url: https://resolver.ensembl.org
+# servers:
+#   - url: https://resolver.ensembl.org
 tags:
   - name: Resolver
     description: Resolver API resolves external urls to Ensembl
   - name: Rapid Resolver
     description: Resolver API to resolve rapid site urls to Ensembl
+  - name: URL Resolver
+    description: Resolver API to resolve legacy Ensembl URLs to new Ensembl URLs
 paths:
   /id/{stable_id}:
     get:
       tags:
         - Resolver
       summary: Resolve stable ID with optional query params
-      description: Resolves to a beta url when a stable id wih optional query params provided
+      description: Resolves to a new Ensembl URL when a stable id wih optional query params provided
       parameters:
         - name: stable_id
           in: path
@@ -125,7 +127,7 @@ paths:
       tags:
         - Rapid Resolver
       summary: Resolve Rapid stable ID
-      description: Resolves to a beta url when a stable id
+      description: Resolves to a new Ensembl URL when a stable id
       parameters:
         - name: stable_id
           in: path
@@ -299,6 +301,35 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /legacy:
+    get:
+      summary: Resolve legacy Ensembl URL
+      description: Resolves a supported legacy Ensembl URL to its new Ensembl equivalent, redirects to the configured archive host when no matching genome UUID exists, or shows an interstitial page for unsupported browser requests.
+      tags:
+        - URL Resolver
+      parameters:
+        - name: url
+          in: query
+          description: Full legacy Ensembl URL or path to resolve.
+          required: true
+          schema:
+            type: string
+            example: https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000012048
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '308':
+          description: Redirect to resolved new Ensembl URL
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content: {}
         '400':
           $ref: '#/components/responses/400'
         '404':

@@ -14,4 +14,24 @@ def generate_html_content(response, page):
 
 
 def generate_resolver_id_page(response):
+    """Generate the stable ID resolver HTML page.
+
+    Args:
+        response: Stable ID resolver response model used by the template.
+
+    Returns:
+        Rendered HTML content for the stable ID resolver page.
+    """
     return generate_html_content(response, "resolver_id.html")
+
+
+def generate_resolver_url_page(response):
+    """Generate the legacy URL resolver HTML page.
+
+    Args:
+        response: Legacy URL resolver response model used by the template.
+
+    Returns:
+        Rendered HTML content for the legacy URL resolver page.
+    """
+    return generate_html_content(response, "resolver_url.html")
