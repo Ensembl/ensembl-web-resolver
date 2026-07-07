@@ -86,16 +86,16 @@ def _quote_url_part(value) -> str:
 
 
 def _build_species_url(genome_uuid: str, query_params: dict[str, list[str]]) -> str:
-    """Build a new Ensembl species page URL.
+    """Build a new Ensembl genome page URL.
 
     Args:
         genome_uuid: new Ensembl genome UUID from the species mapping table.
         query_params: Parsed legacy query parameters. Unused for this rule.
 
     Returns:
-        The resolved new Ensembl species URL.
+        The resolved new Ensembl genome page URL.
     """
-    return f"{ENSEMBL_URL}/species/{_quote_url_part(genome_uuid)}"
+    return f"{ENSEMBL_URL}/genome/{_quote_url_part(genome_uuid)}"
 
 
 def _build_location_url(genome_uuid: str, query_params: dict[str, list[str]]) -> str:

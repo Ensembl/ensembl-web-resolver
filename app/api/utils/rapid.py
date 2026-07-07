@@ -65,11 +65,11 @@ def construct_url(genome_id, subpath, query_params):
         return ENSEMBL_URL
 
     if not subpath or "info/index" in subpath_lower:
-        return f"{ENSEMBL_URL}/species/{genome_id}"
+        return f"{ENSEMBL_URL}/genome/{genome_id}"
 
     if "location" in subpath_lower:
         if "genome" in subpath_lower:
-            return f"{ENSEMBL_URL}/species/{genome_id}"
+            return f"{ENSEMBL_URL}/genome/{genome_id}"
         if location is None:
             raise ValueError("Location paramater 'r' is missing for Location view")
         return f"{ENSEMBL_URL}/genome-browser/{genome_id}?focus=location:{location}"

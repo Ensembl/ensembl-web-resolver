@@ -21,7 +21,7 @@ class TestUrlResolver(unittest.TestCase):
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_species_home_with_json_response(self, mock_species_lookup):
-        """Resolve a species home URL to the new Ensembl species page."""
+        """Resolve a species home URL to the new Ensembl genome page."""
         mock_species_lookup.return_value = self.genome_uuid
 
         response = self.client.get(
@@ -34,7 +34,7 @@ class TestUrlResolver(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
-            {"resolved_url": f"{ENSEMBL_URL}/species/{self.genome_uuid}"},
+            {"resolved_url": f"{ENSEMBL_URL}/genome/{self.genome_uuid}"},
         )
         mock_species_lookup.assert_called_once_with("Homo_sapiens")
 
@@ -52,7 +52,7 @@ class TestUrlResolver(unittest.TestCase):
         self.assertEqual(response.status_code, 308)
         self.assertEqual(
             response.headers["location"],
-            f"{ENSEMBL_URL}/species/{self.genome_uuid}",
+            f"{ENSEMBL_URL}/genome/{self.genome_uuid}",
         )
         mock_species_lookup.assert_called_once_with("Crocodylus_porosus")
 
@@ -448,7 +448,7 @@ class TestUrlResolver(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertNotIn("location", response.headers)
         self.assertIn("This page could not be resolved", response.text)
-        self.assertIn(f"{ENSEMBL_URL}/species-selector", response.text)
+        self.assertIn(f"{ENSEMBL_URL}/genome-selector", response.text)
         self.assertIn("https://jun2026.archive.ensembl.org/foo", response.text)
         self.assertIn(f"{STATIC_PATH}/css/styles.css", response.text)
         mock_species_lookup.assert_called_once_with("foo")
