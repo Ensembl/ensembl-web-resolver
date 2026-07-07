@@ -5,8 +5,11 @@ info:
   contact:
     email: ensembl-webteam@ebi.ac.uk
   version: 0.0.1
-# servers:
-#   - url: https://resolver.ensembl.org
+servers:
+  - url: https://resolver.ensembl.org
+    description: Production
+  - url: https://dev-2020.ensembl.org/api/resolver
+    description: Development
 tags:
   - name: Resolver
     description: Resolver API resolves external urls to Ensembl
