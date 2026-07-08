@@ -122,7 +122,7 @@ def _url_resolver_interstitial_response(url: str):
     response = UrlResolverResponse(
         source_url=url,
         archive_url=archive_url,
-        new_ensembl_url=f"{ENSEMBL_URL}/species-selector",
+        new_ensembl_url=f"{ENSEMBL_URL}/genome-selector",
         code=404,
         message="This page could not be resolved on the new Ensembl website.",
     )

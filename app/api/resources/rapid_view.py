@@ -118,7 +118,7 @@ async def resolve_species(
             input_error_response = RapidResolverResponse(
                 response_type=RapidResolverHtmlResponseType.ERROR,
                 code=422,
-                resolved_url=f"{ENSEMBL_URL}/species-selector",
+                resolved_url=f"{ENSEMBL_URL}/genome-selector",
                 message="Invalid input accession ID",
                 species_name=species_url_name,
                 rapid_archive_url=rapid_archive_url
@@ -152,7 +152,7 @@ async def resolve_species(
         response = RapidResolverResponse(
             response_type=RapidResolverHtmlResponseType.ERROR,
             code=e.status_code,
-            resolved_url=f"{ENSEMBL_URL}/species-selector",
+            resolved_url=f"{ENSEMBL_URL}/genome-selector",
             message=e.detail,
             species_name=species_url_name,
             rapid_archive_url=rapid_archive_url
@@ -164,7 +164,7 @@ async def resolve_species(
             species_name=species_url_name,
             response_type=RapidResolverHtmlResponseType.ERROR,
             code=500,
-            resolved_url=f"{ENSEMBL_URL}/species-selector",
+            resolved_url=f"{ENSEMBL_URL}/genome-selector",
             message=str(e),
             rapid_archive_url=rapid_archive_url
         )

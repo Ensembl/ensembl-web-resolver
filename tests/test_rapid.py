@@ -31,8 +31,8 @@ class TestRapid(unittest.TestCase):
         self.mock_ncbi_accession = "GCF_000001405.40"
 
         self.mock_resolved_url = {
-            "genome1": f"{ENSEMBL_URL}/species/genome_uuid1",
-            "genome2": f"{ENSEMBL_URL}/species/xyz",
+            "genome1": f"{ENSEMBL_URL}/genome/genome_uuid1",
+            "genome2": f"{ENSEMBL_URL}/genome/xyz",
         }
     
     # Test rapid home page
