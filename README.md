@@ -30,6 +30,14 @@ python3 -m uvicorn app.main:app --port 8001 --reload
 
 `APP_PREFIX` defaults to `/`. Set it only when the app should be served under a path prefix, for example `/api/resolver`.
 
+### Apply legacy URL mapping SQL
+
+If the legacy URL mapping tables need to be created or refreshed in the local DuckDB file, run:
+
+```
+duckdb resolver_mappings.db < sql/legacy_url_path_mappings.sql
+```
+
 ### Run unit tests
 
 ```
