@@ -16,8 +16,13 @@ VALUES
     TRUE
   ),
   (
+    '/multi/tools/vep',
+    'https://dev-2020.ensembl.org/tools/vep',
+    TRUE
+  ),
+  (
     '/multi/search/results',
-    'https://dev-2020.ensembl.org/species-selector',
+    'https://dev-2020.ensembl.org/genome-selector',
     TRUE
   );
 

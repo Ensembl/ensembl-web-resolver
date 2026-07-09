@@ -36,7 +36,7 @@ class TestLegacyUrlMapping(unittest.TestCase):
                       ),
                       (
                         '/multi/search/results',
-                        'https://dev-2020.ensembl.org/species-selector',
+                        'https://dev-2020.ensembl.org/genome-selector',
                         TRUE
                       );
 
@@ -89,7 +89,7 @@ class TestLegacyUrlMapping(unittest.TestCase):
             get_static_legacy_url_mapping(
                 "https://www.ensembl.org/Multi/Search/Results?q=brca2"
             ),
-            "https://dev-2020.ensembl.org/species-selector",
+            "https://dev-2020.ensembl.org/genome-selector",
         )
 
     def test_get_static_mapping_handles_bare_host_homepage(self):
