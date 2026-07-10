@@ -40,8 +40,8 @@ def _normalise_static_path(path: str) -> str:
         the root path.
 
     Business rules:
-        Static path mappings ignore host, query string, and fragment. Matching
-        is exact after case and trailing-slash normalization.
+        Static path mappings ignore query string and fragment. Matching is exact
+        after case and trailing-slash normalization.
     """
     normalised_path = f"/{path.strip('/')}".lower()
     return "/" if normalised_path == "/" else normalised_path.rstrip("/")
@@ -75,9 +75,10 @@ def get_static_legacy_url_mapping(legacy_url: str) -> str | None:
 
     Business rules:
         Host mappings are checked first and only apply to homepage requests.
-        Path mappings are checked second and ignore the submitted host. Query
-        strings and fragments are intentionally discarded; the returned URL is
-        exactly the value stored in DuckDB.
+        Path mappings are checked second. Host-specific path mappings take
+        precedence over generic path mappings. Query strings and fragments are
+        intentionally discarded; the returned URL is exactly the value stored in
+        DuckDB.
     """
     if not SPECIES_MAPPING_DB_PATH:
         raise SpeciesMappingConfigurationError("SPECIES_MAPPING_DB_PATH is not set")
@@ -111,10 +112,13 @@ def get_static_legacy_url_mapping(legacy_url: str) -> str | None:
                 SELECT target_url
                 FROM legacy_url_path_mappings
                 WHERE source_path = ?
+                  AND source_host IN (?, '')
                   AND enabled = TRUE
+                ORDER BY
+                  CASE WHEN source_host = ? THEN 0 ELSE 1 END
                 LIMIT 1
             """,
-            [source_path],
+            [source_path, source_host or "", source_host or ""],
         ).fetchone()
 
     return result[0] if result else None
