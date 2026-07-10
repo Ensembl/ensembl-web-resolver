@@ -352,6 +352,7 @@ def _find_species_rule(
 def resolve_legacy_ensembl_url(
     legacy_url: str,
     species_to_genome_uuid: Callable[[str], str],
+    static_legacy_url_mapping: Callable[[str], str | None] | None = None,
 ) -> str:
     """Resolve a supported legacy Ensembl URL to its new Ensembl equivalent.
 
@@ -359,6 +360,8 @@ def resolve_legacy_ensembl_url(
         legacy_url: Full legacy URL or path submitted by the caller.
         species_to_genome_uuid: Function that maps legacy species URL names to
             new Ensembl genome UUIDs.
+        static_legacy_url_mapping: Optional function that maps configured legacy
+            hosts or paths directly to their new Ensembl URLs.
 
     Returns:
         The resolved new Ensembl URL.
@@ -367,7 +370,17 @@ def resolve_legacy_ensembl_url(
         InvalidLegacyUrlError: If the URL cannot be parsed.
         MissingUrlParameterError: If a supported URL is missing required params.
         UnsupportedLegacyUrlError: If no supported mapping exists.
+
+    Business rules:
+        Static host/path mappings are checked before species-aware mappings.
+        They represent explicit product decisions for legacy pages that do not
+        follow the species-scoped URL shapes handled below.
     """
+    if static_legacy_url_mapping is not None:
+        mapped_url = static_legacy_url_mapping(legacy_url)
+        if mapped_url:
+            return mapped_url
+
     parsed_url = urlparse(legacy_url)
     path_segments = _normalise_path(parsed_url.path)
     query_params = _parse_query(parsed_url.query)

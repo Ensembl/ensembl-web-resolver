@@ -9,15 +9,72 @@ from app.api.utils.species_mapping import (
     SpeciesMappingNotFoundError,
     SpeciesNotFoundError,
 )
-from app.core.config import ENSEMBL_URL, STATIC_PATH
+from app.core.config import APP_PREFIX, ENSEMBL_URL, STATIC_PATH
 from app.main import app
 
 
 class TestUrlResolver(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
-        self.mock_url_resolver_api_url = "/legacy"
+        api_prefix = "" if APP_PREFIX == "/" else APP_PREFIX
+        self.mock_url_resolver_api_url = f"{api_prefix}/legacy"
         self.genome_uuid = "genome_uuid1"
+        self.static_mapping_patcher = patch(
+            "app.api.resources.legacy_url_resolver_view.get_static_legacy_url_mapping"
+        )
+        self.mock_static_mapping = self.static_mapping_patcher.start()
+        self.mock_static_mapping.return_value = None
+
+    def tearDown(self):
+        self.static_mapping_patcher.stop()
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_static_path_mapping_with_redirect(self, mock_species_lookup):
+        """Resolve configured static legacy paths before species URL rules."""
+        self.mock_static_mapping.return_value = (
+            "https://dev-2020.ensembl.org/tools/blast"
+        )
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": (
+                    "https://staging-plants.ensembl.org/Multi/Tools/Blast/"
+                    "?discard=this"
+                )
+            },
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 308)
+        self.assertEqual(
+            response.headers["location"],
+            "https://dev-2020.ensembl.org/tools/blast",
+        )
+        self.mock_static_mapping.assert_called_once_with(
+            "https://staging-plants.ensembl.org/Multi/Tools/Blast/?discard=this"
+        )
+        mock_species_lookup.assert_not_called()
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_static_host_mapping_with_json_response(self, mock_species_lookup):
+        """Return configured static host mappings for JSON clients."""
+        self.mock_static_mapping.return_value = "https://dev-2020.ensembl.org"
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={"url": "staging-protists.ensembl.org"},
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {"resolved_url": "https://dev-2020.ensembl.org"},
+        )
+        self.mock_static_mapping.assert_called_once_with("staging-protists.ensembl.org")
+        mock_species_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_species_home_with_json_response(self, mock_species_lookup):

@@ -21,6 +21,7 @@ from app.api.utils.legacy_url_resolver import (
     is_bare_legacy_path,
     resolve_legacy_ensembl_url,
 )
+from app.api.utils.legacy_url_mapping import get_static_legacy_url_mapping
 from app.api.utils.resolver import generate_resolver_url_page
 from app.core.config import ENSEMBL_URL
 from app.core.logging import InterceptHandler
@@ -43,7 +44,11 @@ async def resolve_url(request: Request, url: str):
         a redirect response to the resolved new Ensembl URL.
     """
     try:
-        resolved_url = resolve_legacy_ensembl_url(url, get_genome_uuid_from_species_url)
+        resolved_url = resolve_legacy_ensembl_url(
+            url,
+            get_genome_uuid_from_species_url,
+            get_static_legacy_url_mapping,
+        )
         response = UrlResolverResponse(resolved_url=resolved_url)
 
         if is_json_request(request):
