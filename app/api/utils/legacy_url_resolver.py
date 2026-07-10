@@ -135,6 +135,25 @@ def _build_gene_browser_url(
     )
 
 
+def _build_transcript_browser_url(
+    genome_uuid: str, query_params: dict[str, list[str]]
+) -> str:
+    """Build a new Ensembl genome browser URL focused on a transcript.
+
+    Args:
+        genome_uuid: new Ensembl genome UUID from the species mapping table.
+        query_params: Parsed legacy query parameters containing ``t``.
+
+    Returns:
+        The resolved new Ensembl genome browser URL.
+    """
+    transcript_id = _require_query_value(query_params, "t")
+    return (
+        f"{ENSEMBL_URL}/genome-browser/{_quote_url_part(genome_uuid)}"
+        f"?focus=transcript:{_quote_url_part(transcript_id)}"
+    )
+
+
 def _build_gene_feature_explorer_url(
     genome_uuid: str, query_params: dict[str, list[str]]
 ) -> str:
@@ -206,18 +225,25 @@ def _build_transcript_protein_url(
     )
 
 
-# These rules intentionally cover only spreadsheet rows with a practical new
-# Ensembl equivalent. Rows marked "No", "Maybe", or needing extra
-# variant/regulatory lookup should fail explicitly rather than produce a
+# These rules intentionally cover only legacy URL shapes with a practical new
+# Ensembl equivalent. Unsupported shapes, or shapes needing extra
+# variant/regulatory lookup, should fail explicitly rather than produce a
 # misleading redirect.
 SUPPORTED_SPECIES_RULES = (
     LegacyUrlRule(("Info", "Index"), (), _build_species_url),
     LegacyUrlRule(("Location", "Genome"), (), _build_species_url),
     LegacyUrlRule(("Location", "View"), ("r",), _build_location_url),
     LegacyUrlRule(("Location", "View"), ("g",), _build_gene_browser_url),
+    LegacyUrlRule(("Location", "View"), ("t",), _build_transcript_browser_url),
     LegacyUrlRule(("Gene", "Summary"), ("g",), _build_gene_feature_explorer_url),
+    LegacyUrlRule(("Gene", "Sequence"), ("g",), _build_gene_feature_explorer_url),
+    LegacyUrlRule(("Gene", "Expression"), ("g",), _build_gene_feature_explorer_url),
+    LegacyUrlRule(("Gene", "Phenotype"), ("g",), _build_gene_feature_explorer_url),
     LegacyUrlRule(
         ("Transcript", "Summary"), ("t",), _build_transcript_feature_explorer_url
+    ),
+    LegacyUrlRule(
+        ("Transcript", "Sequence"), ("t",), _build_transcript_feature_explorer_url
     ),
     LegacyUrlRule(
         ("Transcript", "ProteinSummary"), ("t",), _build_transcript_protein_url

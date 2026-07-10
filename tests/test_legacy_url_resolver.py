@@ -217,6 +217,64 @@ class TestUrlResolver(unittest.TestCase):
         )
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_location_view_with_transcript_focus(self, mock_species_lookup):
+        """Resolve Location/View transcript URLs to genome browser focus."""
+        mock_species_lookup.return_value = self.genome_uuid
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": (
+                    "https://www.ensembl.org/Homo_sapiens/Location/View"
+                    "?t=ENST00000357654"
+                )
+            },
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "resolved_url": (
+                    f"{ENSEMBL_URL}/genome-browser/{self.genome_uuid}"
+                    "?focus=transcript:ENST00000357654"
+                )
+            },
+        )
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_gene_feature_explorer_pages(self, mock_species_lookup):
+        """Resolve supported gene pages to the new Ensembl feature explorer."""
+        mock_species_lookup.return_value = self.genome_uuid
+
+        for page in ("Sequence", "Expression", "Phenotype"):
+            with self.subTest(page=page):
+                response = self.client.get(
+                    self.mock_url_resolver_api_url,
+                    params={
+                        "url": (
+                            f"https://www.ensembl.org/Homo_sapiens/Gene/{page}"
+                            "?g=ENSG00000012048"
+                        )
+                    },
+                    headers={"accept": "application/json"},
+                    follow_redirects=False,
+                )
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(
+                    response.json(),
+                    {
+                        "resolved_url": (
+                            f"{ENSEMBL_URL}/feature-explorer/{self.genome_uuid}"
+                            "/gene:ENSG00000012048"
+                        )
+                    },
+                )
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_transcript_summary(self, mock_species_lookup):
         """Resolve a transcript summary URL to the new Ensembl feature explorer."""
         mock_species_lookup.return_value = self.genome_uuid
@@ -226,6 +284,34 @@ class TestUrlResolver(unittest.TestCase):
             params={
                 "url": (
                     "https://www.ensembl.org/Homo_sapiens/Transcript/Summary"
+                    "?t=ENST00000357654"
+                )
+            },
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "resolved_url": (
+                    f"{ENSEMBL_URL}/feature-explorer/{self.genome_uuid}"
+                    "/transcript:ENST00000357654"
+                )
+            },
+        )
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_transcript_sequence(self, mock_species_lookup):
+        """Resolve transcript sequence URLs to the new Ensembl feature explorer."""
+        mock_species_lookup.return_value = self.genome_uuid
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": (
+                    "https://www.ensembl.org/Homo_sapiens/Transcript/Sequence"
                     "?t=ENST00000357654"
                 )
             },
@@ -260,14 +346,14 @@ class TestUrlResolver(unittest.TestCase):
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_unsupported_template(self, mock_species_lookup):
-        """Return 404 for spreadsheet rows with no supported new Ensembl mapping."""
+        """Return 404 for URL shapes with no supported new Ensembl mapping."""
         mock_species_lookup.return_value = self.genome_uuid
 
         response = self.client.get(
             self.mock_url_resolver_api_url,
             params={
                 "url": (
-                    "https://www.ensembl.org/Homo_sapiens/Gene/Expression"
+                    "https://www.ensembl.org/Homo_sapiens/Gene/Variation"
                     "?g=ENSG00000012048"
                 )
             },
