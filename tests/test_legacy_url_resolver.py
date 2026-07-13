@@ -77,6 +77,95 @@ class TestUrlResolver(unittest.TestCase):
         mock_species_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_info_paths_to_archive_hosts(self, mock_species_lookup):
+        """Redirect generic info paths to the matching archive host."""
+        test_cases = [
+            (
+                "https://staging.ensembl.org/info/index.html",
+                "https://jun2026.archive.ensembl.org/info/index.html",
+            ),
+            (
+                "https://staging-plants.ensembl.org/info/index.html",
+                "https://eg63-plants.ensembl.org/info/index.html",
+            ),
+            (
+                "https://staging-fungi.ensembl.org/info/index.html",
+                "https://eg63-fungi.ensembl.org/info/index.html",
+            ),
+            (
+                "https://staging-bacteria.ensembl.org/info/index.html",
+                "https://eg63-bacteria.ensembl.org/info/index.html",
+            ),
+            (
+                "https://staging-metazoa.ensembl.org/info/index.html",
+                "https://eg63-metazoa.ensembl.org/info/index.html",
+            ),
+            (
+                "https://staging-protists.ensembl.org/info/index.html",
+                "https://eg63-protists.ensembl.org/info/index.html",
+            ),
+        ]
+
+        for legacy_url, expected_url in test_cases:
+            with self.subTest(legacy_url=legacy_url):
+                self.mock_static_mapping.reset_mock()
+                mock_species_lookup.reset_mock()
+
+                response = self.client.get(
+                    self.mock_url_resolver_api_url,
+                    params={"url": legacy_url},
+                    headers={"accept": "application/json"},
+                    follow_redirects=False,
+                )
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.json(), {"resolved_url": expected_url})
+                self.mock_static_mapping.assert_not_called()
+                mock_species_lookup.assert_not_called()
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_info_archive_preserves_query_and_fragment(
+        self, mock_species_lookup
+    ):
+        """Preserve query strings and fragments for generic info archive URLs."""
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": (
+                    "https://staging.ensembl.org/info/docs/tools/vep/index.html"
+                    "?foo=bar#content"
+                )
+            },
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 308)
+        self.assertEqual(
+            response.headers["location"],
+            (
+                "https://jun2026.archive.ensembl.org"
+                "/info/docs/tools/vep/index.html?foo=bar#content"
+            ),
+        )
+        self.mock_static_mapping.assert_not_called()
+        mock_species_lookup.assert_not_called()
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_info_unknown_host_does_not_redirect(self, mock_species_lookup):
+        """Return an error for unknown info hosts instead of guessing an archive."""
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={"url": "https://example.org/info/index.html"},
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertNotIn("location", response.headers)
+        self.mock_static_mapping.assert_not_called()
+        mock_species_lookup.assert_not_called()
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_species_home_with_json_response(self, mock_species_lookup):
         """Resolve a species home URL to the new Ensembl genome page."""
         mock_species_lookup.return_value = self.genome_uuid

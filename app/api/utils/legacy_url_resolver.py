@@ -23,11 +23,17 @@ class UnsupportedLegacyUrlError(LegacyUrlResolverError):
 
 ARCHIVE_HOSTS = {
     "www.ensembl.org": "jun2026.archive.ensembl.org",
+    "staging.ensembl.org": "jun2026.archive.ensembl.org",
     "plants.ensembl.org": "eg63-plants.ensembl.org",
+    "staging-plants.ensembl.org": "eg63-plants.ensembl.org",
     "metazoa.ensembl.org": "eg63-metazoa.ensembl.org",
+    "staging-metazoa.ensembl.org": "eg63-metazoa.ensembl.org",
     "fungi.ensembl.org": "eg63-fungi.ensembl.org",
+    "staging-fungi.ensembl.org": "eg63-fungi.ensembl.org",
     "protists.ensembl.org": "eg63-protists.ensembl.org",
+    "staging-protists.ensembl.org": "eg63-protists.ensembl.org",
     "bacteria.ensembl.org": "eg63-bacteria.ensembl.org",
+    "staging-bacteria.ensembl.org": "eg63-bacteria.ensembl.org",
 }
 
 
@@ -334,6 +340,18 @@ def build_archive_fallback_url(legacy_url: str) -> str:
     )
 
 
+def _is_info_path(path_segments: tuple[str, ...]) -> bool:
+    """Check whether a parsed legacy path points under ``/info``.
+
+    Args:
+        path_segments: Non-empty path segments from the legacy URL.
+
+    Returns:
+        ``True`` for ``/info`` and all URLs below it, case-insensitively.
+    """
+    return bool(path_segments) and path_segments[0].lower() == "info"
+
+
 def _find_species_rule(
     legacy_path: tuple[str, ...], query_params: dict[str, list[str]]
 ) -> LegacyUrlRule | None:
@@ -398,17 +416,23 @@ def resolve_legacy_ensembl_url(
         UnsupportedLegacyUrlError: If no supported mapping exists.
 
     Business rules:
-        Static host/path mappings are checked before species-aware mappings.
-        They represent explicit product decisions for legacy pages that do not
-        follow the species-scoped URL shapes handled below.
+        Generic ``/info`` URLs are redirected to their archive equivalent before
+        static mappings. Static host/path mappings are then checked before
+        species-aware mappings. Static mappings represent explicit product
+        decisions for legacy pages that do not follow the species-scoped URL
+        shapes handled below.
     """
+    parsed_url = urlparse(legacy_url)
+    path_segments = _normalise_path(parsed_url.path)
+
+    if _is_info_path(path_segments):
+        return build_archive_fallback_url(legacy_url)
+
     if static_legacy_url_mapping is not None:
         mapped_url = static_legacy_url_mapping(legacy_url)
         if mapped_url:
             return mapped_url
 
-    parsed_url = urlparse(legacy_url)
-    path_segments = _normalise_path(parsed_url.path)
     query_params = _parse_query(parsed_url.query)
 
     if not path_segments:
