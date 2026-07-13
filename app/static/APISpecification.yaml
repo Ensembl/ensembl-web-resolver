@@ -4,12 +4,27 @@ info:
   description: Resolver API resolves external urls to Ensembl
   contact:
     email: ensembl-webteam@ebi.ac.uk
-  version: 0.0.1
+  version: 0.8.0
 servers:
+  # Keep these server URLs explicit for now because the resolver is mounted at
+  # different base paths in different environments. In particular, dev uses the
+  # /api/resolver prefix, while review/local do not.
+  #
+  # Swagger UI will use one of these configured servers when making requests from
+  # the docs page. If an environment is not listed here, or if its base path
+  # changes, the docs may send requests to the wrong resolver endpoint.
+  #
+  # Longer term, life would be simpler if we moved away from the dev
+  # /api/resolver prefix and used review environments only, so each deployment
+  # could point Swagger UI at itself without special-case server URLs.
   - url: https://resolver.ensembl.org
     description: Production
   - url: https://dev-2020.ensembl.org/api/resolver
     description: Development
+  - url: https://test-resolver.review.ensembl.org
+    description: Review
+  - url: http://localhost:8001
+    description: Local
 tags:
   - name: Resolver
     description: Resolver API resolves external urls to Ensembl
