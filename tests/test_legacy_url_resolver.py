@@ -681,6 +681,10 @@ class TestUrlResolver(unittest.TestCase):
         self.assertNotIn("location", response.headers)
         self.assertIn("This page could not be resolved", response.text)
         self.assertIn(f"{ENSEMBL_URL}/genome-selector", response.text)
+        self.assertIn(
+            f'<meta http-equiv="refresh" content="10;url={ENSEMBL_URL}/genome-selector"',
+            response.text,
+        )
         self.assertIn("https://jun2026.archive.ensembl.org/foo", response.text)
         self.assertIn(f"{STATIC_PATH}/css/styles.css", response.text)
         mock_species_lookup.assert_called_once_with("foo")

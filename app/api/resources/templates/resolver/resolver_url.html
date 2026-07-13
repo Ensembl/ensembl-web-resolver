@@ -3,6 +3,12 @@
 
 {% block title %}Ensembl URL Resolver{% endblock %}
 
+{% block extra_head %}
+    {% if response.code and response.code >= 400 and response.new_ensembl_url %}
+        <meta http-equiv="refresh" content="10;url={{ response.new_ensembl_url }}" />
+    {% endif %}
+{% endblock %}
+
 {% block content %}
 <div class="id-redirect-content">
     <div class="redirect-info">
