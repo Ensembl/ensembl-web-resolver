@@ -430,9 +430,13 @@ def resolve_legacy_ensembl_url(
     parsed_url = urlparse(legacy_url)
     path_segments = _normalise_path(parsed_url.path)
 
+    # Generic documentation/info pages are not available on new Ensembl. Send
+    # them to the matching archive host before static mappings can claim them.
     if _is_info_path(path_segments):
         return build_archive_fallback_url(legacy_url, path_segments)
 
+    # Static mappings cover explicit product decisions for hostnames and
+    # non-species legacy paths, for example tools and search pages.
     if static_legacy_url_mapping is not None:
         mapped_url = static_legacy_url_mapping(legacy_url)
         if mapped_url:
@@ -443,6 +447,7 @@ def resolve_legacy_ensembl_url(
     if not path_segments:
         raise InvalidLegacyUrlError("URL path is empty")
 
+    # Bare species paths resolve to the new genome page when the species exists.
     # The spreadsheet templates place <species> in the first path segment for
     # the supported mappings, e.g. /Homo_sapiens/Gene/Summary?g=...
     species_url = path_segments[0]
@@ -452,6 +457,8 @@ def resolve_legacy_ensembl_url(
         genome_uuid = species_to_genome_uuid(species_url)
         return _build_species_url(genome_uuid, query_params)
 
+    # Species-scoped legacy pages resolve through the rule table. Unsupported
+    # shapes fail explicitly so we do not produce misleading redirects.
     rule = _find_species_rule(legacy_path, query_params)
 
     if rule is None:
