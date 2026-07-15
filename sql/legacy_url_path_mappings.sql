@@ -58,14 +58,8 @@ VALUES
   ),
   (
     '',
-    '/info/docs/tools/vep/index.html',
+    '/vep',
     'https://jun2026.archive.ensembl.org/info/docs/tools/vep/index.html',
-    TRUE
-  ),
-  (
-    '',
-    '/info/docs/tools/vep/script/index.html',
-    'https://jun2026.archive.ensembl.org/info/docs/tools/vep/script/index.html',
     TRUE
   ),
   -- Search mappings
