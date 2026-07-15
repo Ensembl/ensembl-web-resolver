@@ -303,11 +303,15 @@ def is_bare_legacy_path(legacy_url: str) -> bool:
     return len(_normalise_path(parsed_url.path)) == 1
 
 
-def build_archive_fallback_url(legacy_url: str) -> str:
+def build_archive_fallback_url(
+    legacy_url: str, path_segments: tuple[str, ...] | None = None
+) -> str:
     """Build an archive fallback URL for an unresolved legacy species URL.
 
     Args:
         legacy_url: Full legacy Ensembl URL submitted by the caller.
+        path_segments: Optional pre-normalized path segments for callers that
+            have already parsed the URL path.
 
     Returns:
         Archive URL with the original path, query string, and fragment preserved.
@@ -317,7 +321,8 @@ def build_archive_fallback_url(legacy_url: str) -> str:
         UnsupportedLegacyUrlError: If the source host has no archive mapping.
     """
     parsed_url = urlparse(legacy_url)
-    path_segments = _normalise_path(parsed_url.path)
+    if path_segments is None:
+        path_segments = _normalise_path(parsed_url.path)
 
     if not path_segments:
         raise InvalidLegacyUrlError("URL path is empty")
@@ -426,7 +431,7 @@ def resolve_legacy_ensembl_url(
     path_segments = _normalise_path(parsed_url.path)
 
     if _is_info_path(path_segments):
-        return build_archive_fallback_url(legacy_url)
+        return build_archive_fallback_url(legacy_url, path_segments)
 
     if static_legacy_url_mapping is not None:
         mapped_url = static_legacy_url_mapping(legacy_url)
