@@ -51,6 +51,12 @@ class TestLegacyUrlMapping(unittest.TestCase):
                         TRUE
                       ),
                       (
+                        '',
+                        '/tools/vep',
+                        'https://dev-2020.ensembl.org/tools/vep',
+                        TRUE
+                      ),
+                      (
                         'www.ensembl.org',
                         '/biomart/martview',
                         'https://jun2026.archive.ensembl.org/biomart/martview',
@@ -146,6 +152,16 @@ class TestLegacyUrlMapping(unittest.TestCase):
             ),
             "https://dev-2020.ensembl.org/genome-selector",
         )
+        self.assertEqual(
+            get_static_legacy_url_mapping("https://staging.ensembl.org/Tools/VEP"),
+            "https://dev-2020.ensembl.org/tools/vep",
+        )
+        self.assertEqual(
+            get_static_legacy_url_mapping(
+                "https://staging-plants.ensembl.org/Tools/VEP"
+            ),
+            "https://dev-2020.ensembl.org/tools/vep",
+        )
 
     def test_get_static_mapping_handles_bare_host_homepage(self):
         """Resolve configured scheme-less host homepages."""
@@ -204,6 +220,30 @@ class TestLegacyUrlMappingSqlSeed(unittest.TestCase):
             (
                 "https://staging.ensembl.org/vep",
                 "https://jun2026.archive.ensembl.org/info/docs/tools/vep/index.html",
+            ),
+            (
+                "https://staging.ensembl.org/Tools/VEP",
+                "https://dev-2020.ensembl.org/tools/vep",
+            ),
+            (
+                "https://staging-plants.ensembl.org/Tools/VEP",
+                "https://dev-2020.ensembl.org/tools/vep",
+            ),
+            (
+                "https://staging-metazoa.ensembl.org/Tools/VEP",
+                "https://dev-2020.ensembl.org/tools/vep",
+            ),
+            (
+                "https://staging-fungi.ensembl.org/Tools/VEP",
+                "https://dev-2020.ensembl.org/tools/vep",
+            ),
+            (
+                "https://staging-protists.ensembl.org/Tools/VEP",
+                "https://dev-2020.ensembl.org/tools/vep",
+            ),
+            (
+                "https://staging-bacteria.ensembl.org/Tools/VEP",
+                "https://dev-2020.ensembl.org/tools/vep",
             ),
         ]
 

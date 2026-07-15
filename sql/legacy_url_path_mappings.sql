@@ -62,6 +62,12 @@ VALUES
     'https://jun2026.archive.ensembl.org/info/docs/tools/vep/index.html',
     TRUE
   ),
+  (
+    '',
+    '/tools/vep',
+    'https://dev-2020.ensembl.org/tools/vep',
+    TRUE
+  ),
   -- Search mappings
   (
     '',
