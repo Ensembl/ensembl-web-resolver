@@ -46,8 +46,14 @@ class TestLegacyUrlMapping(unittest.TestCase):
                       ),
                       (
                         '',
-                        '/info/docs/tools/vep/index.html',
+                        '/vep',
                         'https://jun2026.archive.ensembl.org/info/docs/tools/vep/index.html',
+                        TRUE
+                      ),
+                      (
+                        '',
+                        '/tools/vep',
+                        'https://dev-2020.ensembl.org/tools/vep',
                         TRUE
                       ),
                       (
@@ -105,6 +111,10 @@ class TestLegacyUrlMapping(unittest.TestCase):
             ),
             "https://dev-2020.ensembl.org/tools/blast",
         )
+        self.assertEqual(
+            get_static_legacy_url_mapping("https://staging.ensembl.org/VEP/"),
+            "https://jun2026.archive.ensembl.org/info/docs/tools/vep/index.html",
+        )
 
     def test_get_static_mapping_discards_query_string(self):
         """Return the stored target URL without preserving legacy query values."""
@@ -132,15 +142,25 @@ class TestLegacyUrlMapping(unittest.TestCase):
         """Keep hostless path mappings as generic fallbacks."""
         self.assertEqual(
             get_static_legacy_url_mapping(
-                "https://www.ensembl.org/info/docs/tools/vep/index.html"
+                "https://www.ensembl.org/Multi/Search/Results"
             ),
-            "https://jun2026.archive.ensembl.org/info/docs/tools/vep/index.html",
+            "https://dev-2020.ensembl.org/genome-selector",
         )
         self.assertEqual(
             get_static_legacy_url_mapping(
-                "https://plants.ensembl.org/info/docs/tools/vep/index.html"
+                "https://plants.ensembl.org/Multi/Search/Results"
             ),
-            "https://jun2026.archive.ensembl.org/info/docs/tools/vep/index.html",
+            "https://dev-2020.ensembl.org/genome-selector",
+        )
+        self.assertEqual(
+            get_static_legacy_url_mapping("https://staging.ensembl.org/Tools/VEP"),
+            "https://dev-2020.ensembl.org/tools/vep",
+        )
+        self.assertEqual(
+            get_static_legacy_url_mapping(
+                "https://staging-plants.ensembl.org/Tools/VEP"
+            ),
+            "https://dev-2020.ensembl.org/tools/vep",
         )
 
     def test_get_static_mapping_handles_bare_host_homepage(self):
@@ -198,8 +218,32 @@ class TestLegacyUrlMappingSqlSeed(unittest.TestCase):
                 "https://eg63-protists.archive.ensembl.org/biomart/martview",
             ),
             (
-                "https://staging.ensembl.org/info/docs/tools/vep/script/index.html",
-                "https://jun2026.archive.ensembl.org/info/docs/tools/vep/script/index.html",
+                "https://staging.ensembl.org/vep",
+                "https://jun2026.archive.ensembl.org/info/docs/tools/vep/index.html",
+            ),
+            (
+                "https://staging.ensembl.org/Tools/VEP",
+                "https://dev-2020.ensembl.org/tools/vep",
+            ),
+            (
+                "https://staging-plants.ensembl.org/Tools/VEP",
+                "https://dev-2020.ensembl.org/tools/vep",
+            ),
+            (
+                "https://staging-metazoa.ensembl.org/Tools/VEP",
+                "https://dev-2020.ensembl.org/tools/vep",
+            ),
+            (
+                "https://staging-fungi.ensembl.org/Tools/VEP",
+                "https://dev-2020.ensembl.org/tools/vep",
+            ),
+            (
+                "https://staging-protists.ensembl.org/Tools/VEP",
+                "https://dev-2020.ensembl.org/tools/vep",
+            ),
+            (
+                "https://staging-bacteria.ensembl.org/Tools/VEP",
+                "https://dev-2020.ensembl.org/tools/vep",
             ),
         ]
 

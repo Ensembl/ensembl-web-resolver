@@ -23,11 +23,17 @@ class UnsupportedLegacyUrlError(LegacyUrlResolverError):
 
 ARCHIVE_HOSTS = {
     "www.ensembl.org": "jun2026.archive.ensembl.org",
+    "staging.ensembl.org": "jun2026.archive.ensembl.org",
     "plants.ensembl.org": "eg63-plants.ensembl.org",
+    "staging-plants.ensembl.org": "eg63-plants.ensembl.org",
     "metazoa.ensembl.org": "eg63-metazoa.ensembl.org",
+    "staging-metazoa.ensembl.org": "eg63-metazoa.ensembl.org",
     "fungi.ensembl.org": "eg63-fungi.ensembl.org",
+    "staging-fungi.ensembl.org": "eg63-fungi.ensembl.org",
     "protists.ensembl.org": "eg63-protists.ensembl.org",
+    "staging-protists.ensembl.org": "eg63-protists.ensembl.org",
     "bacteria.ensembl.org": "eg63-bacteria.ensembl.org",
+    "staging-bacteria.ensembl.org": "eg63-bacteria.ensembl.org",
 }
 
 
@@ -135,6 +141,25 @@ def _build_gene_browser_url(
     )
 
 
+def _build_transcript_browser_url(
+    genome_uuid: str, query_params: dict[str, list[str]]
+) -> str:
+    """Build a new Ensembl genome browser URL focused on a transcript.
+
+    Args:
+        genome_uuid: new Ensembl genome UUID from the species mapping table.
+        query_params: Parsed legacy query parameters containing ``t``.
+
+    Returns:
+        The resolved new Ensembl genome browser URL.
+    """
+    transcript_id = _require_query_value(query_params, "t")
+    return (
+        f"{ENSEMBL_URL}/genome-browser/{_quote_url_part(genome_uuid)}"
+        f"?focus=transcript:{_quote_url_part(transcript_id)}"
+    )
+
+
 def _build_gene_feature_explorer_url(
     genome_uuid: str, query_params: dict[str, list[str]]
 ) -> str:
@@ -206,18 +231,25 @@ def _build_transcript_protein_url(
     )
 
 
-# These rules intentionally cover only spreadsheet rows with a practical new
-# Ensembl equivalent. Rows marked "No", "Maybe", or needing extra
-# variant/regulatory lookup should fail explicitly rather than produce a
+# These rules intentionally cover only legacy URL shapes with a practical new
+# Ensembl equivalent. Unsupported shapes, or shapes needing extra
+# variant/regulatory lookup, should fail explicitly rather than produce a
 # misleading redirect.
 SUPPORTED_SPECIES_RULES = (
     LegacyUrlRule(("Info", "Index"), (), _build_species_url),
     LegacyUrlRule(("Location", "Genome"), (), _build_species_url),
     LegacyUrlRule(("Location", "View"), ("r",), _build_location_url),
     LegacyUrlRule(("Location", "View"), ("g",), _build_gene_browser_url),
+    LegacyUrlRule(("Location", "View"), ("t",), _build_transcript_browser_url),
     LegacyUrlRule(("Gene", "Summary"), ("g",), _build_gene_feature_explorer_url),
+    LegacyUrlRule(("Gene", "Sequence"), ("g",), _build_gene_feature_explorer_url),
+    LegacyUrlRule(("Gene", "Expression"), ("g",), _build_gene_feature_explorer_url),
+    LegacyUrlRule(("Gene", "Phenotype"), ("g",), _build_gene_feature_explorer_url),
     LegacyUrlRule(
         ("Transcript", "Summary"), ("t",), _build_transcript_feature_explorer_url
+    ),
+    LegacyUrlRule(
+        ("Transcript", "Sequence"), ("t",), _build_transcript_feature_explorer_url
     ),
     LegacyUrlRule(
         ("Transcript", "ProteinSummary"), ("t",), _build_transcript_protein_url
@@ -271,11 +303,15 @@ def is_bare_legacy_path(legacy_url: str) -> bool:
     return len(_normalise_path(parsed_url.path)) == 1
 
 
-def build_archive_fallback_url(legacy_url: str) -> str:
+def build_archive_fallback_url(
+    legacy_url: str, path_segments: tuple[str, ...] | None = None
+) -> str:
     """Build an archive fallback URL for an unresolved legacy species URL.
 
     Args:
         legacy_url: Full legacy Ensembl URL submitted by the caller.
+        path_segments: Optional pre-normalized path segments for callers that
+            have already parsed the URL path.
 
     Returns:
         Archive URL with the original path, query string, and fragment preserved.
@@ -285,7 +321,8 @@ def build_archive_fallback_url(legacy_url: str) -> str:
         UnsupportedLegacyUrlError: If the source host has no archive mapping.
     """
     parsed_url = urlparse(legacy_url)
-    path_segments = _normalise_path(parsed_url.path)
+    if path_segments is None:
+        path_segments = _normalise_path(parsed_url.path)
 
     if not path_segments:
         raise InvalidLegacyUrlError("URL path is empty")
@@ -306,6 +343,18 @@ def build_archive_fallback_url(legacy_url: str) -> str:
             parsed_url.fragment,
         )
     )
+
+
+def _is_info_path(path_segments: tuple[str, ...]) -> bool:
+    """Check whether a parsed legacy path points under ``/info``.
+
+    Args:
+        path_segments: Non-empty path segments from the legacy URL.
+
+    Returns:
+        ``True`` for ``/info`` and all URLs below it, case-insensitively.
+    """
+    return bool(path_segments) and path_segments[0].lower() == "info"
 
 
 def _find_species_rule(
@@ -372,22 +421,33 @@ def resolve_legacy_ensembl_url(
         UnsupportedLegacyUrlError: If no supported mapping exists.
 
     Business rules:
-        Static host/path mappings are checked before species-aware mappings.
-        They represent explicit product decisions for legacy pages that do not
-        follow the species-scoped URL shapes handled below.
+        Generic ``/info`` URLs are redirected to their archive equivalent before
+        static mappings. Static host/path mappings are then checked before
+        species-aware mappings. Static mappings represent explicit product
+        decisions for legacy pages that do not follow the species-scoped URL
+        shapes handled below.
     """
+    parsed_url = urlparse(legacy_url)
+    path_segments = _normalise_path(parsed_url.path)
+
+    # Generic documentation/info pages are not available on new Ensembl. Send
+    # them to the matching archive host before static mappings can claim them.
+    if _is_info_path(path_segments):
+        return build_archive_fallback_url(legacy_url, path_segments)
+
+    # Static mappings cover explicit product decisions for hostnames and
+    # non-species legacy paths, for example tools and search pages.
     if static_legacy_url_mapping is not None:
         mapped_url = static_legacy_url_mapping(legacy_url)
         if mapped_url:
             return mapped_url
 
-    parsed_url = urlparse(legacy_url)
-    path_segments = _normalise_path(parsed_url.path)
     query_params = _parse_query(parsed_url.query)
 
     if not path_segments:
         raise InvalidLegacyUrlError("URL path is empty")
 
+    # Bare species paths resolve to the new genome page when the species exists.
     # The spreadsheet templates place <species> in the first path segment for
     # the supported mappings, e.g. /Homo_sapiens/Gene/Summary?g=...
     species_url = path_segments[0]
@@ -397,6 +457,8 @@ def resolve_legacy_ensembl_url(
         genome_uuid = species_to_genome_uuid(species_url)
         return _build_species_url(genome_uuid, query_params)
 
+    # Species-scoped legacy pages resolve through the rule table. Unsupported
+    # shapes fail explicitly so we do not produce misleading redirects.
     rule = _find_species_rule(legacy_path, query_params)
 
     if rule is None:
