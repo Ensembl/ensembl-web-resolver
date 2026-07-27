@@ -1,4 +1,4 @@
--- TODO: remove all staging host and dev-2020 and replace them with the proper production Ensembl hosts once we're ready for the switch. 
+-- TODO: remove all staging host and replace them with the proper production Ensembl hosts once we're ready for the switch. 
 -- This will require a new migration to update the existing mappings in the database.
 
 CREATE TABLE IF NOT EXISTS legacy_url_path_mappings (
@@ -46,14 +46,14 @@ VALUES
   (
     '',
     '/multi/tools/blast',
-    'https://dev-2020.ensembl.org/tools/blast',
+    'https://beta.ensembl.org/tools/blast',
     TRUE
   ),
   -- VEP mappings
   (
     '',
     '/multi/tools/vep',
-    'https://dev-2020.ensembl.org/tools/vep',
+    'https://beta.ensembl.org/tools/vep',
     TRUE
   ),
   (
@@ -65,14 +65,14 @@ VALUES
   (
     '',
     '/tools/vep',
-    'https://dev-2020.ensembl.org/tools/vep',
+    'https://beta.ensembl.org/tools/vep',
     TRUE
   ),
   -- Search mappings
   (
     '',
     '/multi/search/results',
-    'https://dev-2020.ensembl.org/genome-selector',
+    'https://beta.ensembl.org/genome-selector',
     TRUE
   );
 
@@ -91,26 +91,26 @@ VALUES
   -- Map all divisions to the new Ensembl
   (
     'staging-plants.ensembl.org',
-    'https://dev-2020.ensembl.org',
+    'https://beta.ensembl.org',
     TRUE
   ),
   (
     'staging-metazoa.ensembl.org',
-    'https://dev-2020.ensembl.org',
+    'https://beta.ensembl.org',
     TRUE
   ),
   (
     'staging-fungi.ensembl.org',
-    'https://dev-2020.ensembl.org',
+    'https://beta.ensembl.org',
     TRUE
   ),
   (
     'staging-bacteria.ensembl.org',
-    'https://dev-2020.ensembl.org',
+    'https://beta.ensembl.org',
     TRUE
   ),
   (
     'staging-protists.ensembl.org',
-    'https://dev-2020.ensembl.org',
+    'https://beta.ensembl.org',
     TRUE
   );

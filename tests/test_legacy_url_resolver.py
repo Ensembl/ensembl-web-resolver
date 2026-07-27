@@ -32,7 +32,7 @@ class TestUrlResolver(unittest.TestCase):
     def test_resolve_static_path_mapping_with_redirect(self, mock_species_lookup):
         """Resolve configured static legacy paths before species URL rules."""
         self.mock_static_mapping.return_value = (
-            "https://dev-2020.ensembl.org/tools/blast"
+            "https://beta.ensembl.org/tools/blast"
         )
 
         response = self.client.get(
@@ -49,7 +49,7 @@ class TestUrlResolver(unittest.TestCase):
         self.assertEqual(response.status_code, 308)
         self.assertEqual(
             response.headers["location"],
-            "https://dev-2020.ensembl.org/tools/blast",
+            "https://beta.ensembl.org/tools/blast",
         )
         self.mock_static_mapping.assert_called_once_with(
             "https://staging-plants.ensembl.org/Multi/Tools/Blast/?discard=this"
@@ -59,7 +59,7 @@ class TestUrlResolver(unittest.TestCase):
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_static_host_mapping_with_json_response(self, mock_species_lookup):
         """Return configured static host mappings for JSON clients."""
-        self.mock_static_mapping.return_value = "https://dev-2020.ensembl.org"
+        self.mock_static_mapping.return_value = "https://beta.ensembl.org"
 
         response = self.client.get(
             self.mock_url_resolver_api_url,
@@ -71,7 +71,7 @@ class TestUrlResolver(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
-            {"resolved_url": "https://dev-2020.ensembl.org"},
+            {"resolved_url": "https://beta.ensembl.org"},
         )
         self.mock_static_mapping.assert_called_once_with("staging-protists.ensembl.org")
         mock_species_lookup.assert_not_called()
