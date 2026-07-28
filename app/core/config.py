@@ -46,9 +46,7 @@ ENSEMBL_SEARCH_HUB_API: str = config(
 )
 DEFAULT_APP = config("DEFAULT_APP", cast=str, default="feature-explorer")
 ENSEMBL_URL = config("ENSEMBL_URL", cast=str, default="https://beta.ensembl.org")
-STATIC_PATH = (
-    "/static" if ENSEMBL_URL == "https://beta.ensembl.org" else "/api/resolver/static"
-)
+STATIC_PATH = config("STATIC_PATH", cast=str, default="/static")
 RAPID_ARCHIVE_URL = config(
     "RAPID_ARCHIVE_URL", cast=str, default="https://rapid-archive.ensembl.org"
 )
