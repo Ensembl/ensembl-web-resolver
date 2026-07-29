@@ -67,12 +67,11 @@ async def resolve_url(request: Request, url: str):
                     "details": "No supported new Ensembl equivalent for this URL",
                 }
             )
-        return _archive_fallback_response(url)
+        return _url_resolver_interstitial_response(url)
     except SpeciesNotFoundError:
-        # Archive fallback is an HTTP policy for unresolved species mappings.
-        # The new Ensembl URL resolver stays focused on supported new Ensembl
-        # destinations.
-        return _archive_fallback_response(url)
+        # Browser users can choose the archive when a recognised page cannot
+        # be mapped to a new Ensembl genome.
+        return _url_resolver_interstitial_response(url)
     except InvalidLegacyUrlError as error:
         return response_error_handler({"status": 404, "details": str(error)})
     except UnsupportedLegacyUrlError as error:

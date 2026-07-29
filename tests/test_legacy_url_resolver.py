@@ -28,6 +28,13 @@ class TestUrlResolver(unittest.TestCase):
     def tearDown(self):
         self.static_mapping_patcher.stop()
 
+    def assert_interstitial_response(self, response, archive_url):
+        """Assert that a browser receives an archive-choice interstitial."""
+        self.assertEqual(response.status_code, 404)
+        self.assertNotIn("location", response.headers)
+        self.assertIn("This page could not be resolved", response.text)
+        self.assertIn(archive_url, response.text)
+
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_static_path_mapping_with_redirect(self, mock_species_lookup):
         """Resolve configured static legacy paths before species URL rules."""
@@ -203,10 +210,10 @@ class TestUrlResolver(unittest.TestCase):
         mock_species_lookup.assert_called_once_with("Crocodylus_porosus")
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
-    def test_resolve_bare_species_path_without_uuid_redirects_to_archive(
+    def test_resolve_bare_species_path_without_uuid_renders_interstitial(
         self, mock_species_lookup
     ):
-        """Redirect bare species paths to archive when no new Ensembl UUID exists."""
+        """Offer the archive when a bare species has no new Ensembl UUID."""
         mock_species_lookup.side_effect = SpeciesGenomeUuidNotFoundError("not found")
 
         response = self.client.get(
@@ -215,9 +222,8 @@ class TestUrlResolver(unittest.TestCase):
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, 308)
-        self.assertEqual(
-            response.headers["location"],
+        self.assert_interstitial_response(
+            response,
             "https://jun2026.archive.ensembl.org/Homo_sapiens",
         )
         mock_species_lookup.assert_called_once_with("Homo_sapiens")
@@ -454,10 +460,10 @@ class TestUrlResolver(unittest.TestCase):
         mock_species_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
-    def test_resolve_missing_species_redirects_to_main_archive(
+    def test_resolve_missing_species_renders_main_archive_interstitial(
         self, mock_species_lookup
     ):
-        """Redirect main-site URLs to the release archive when UUID is missing."""
+        """Offer the main release archive when a UUID is missing."""
         mock_species_lookup.side_effect = SpeciesGenomeUuidNotFoundError("not found")
 
         response = self.client.get(
@@ -466,17 +472,16 @@ class TestUrlResolver(unittest.TestCase):
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, 308)
-        self.assertEqual(
-            response.headers["location"],
+        self.assert_interstitial_response(
+            response,
             "https://jun2026.archive.ensembl.org/Homo_sapiens/Info/Index",
         )
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
-    def test_resolve_null_species_uuid_redirects_to_main_archive(
+    def test_resolve_null_species_uuid_renders_main_archive_interstitial(
         self, mock_species_lookup
     ):
-        """Redirect to archive when a species row has no new Ensembl genome UUID."""
+        """Offer the archive when a species row has no new Ensembl UUID."""
         mock_species_lookup.side_effect = SpeciesNotFoundError("not found")
 
         response = self.client.get(
@@ -490,18 +495,17 @@ class TestUrlResolver(unittest.TestCase):
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, 308)
-        self.assertEqual(
-            response.headers["location"],
+        self.assert_interstitial_response(
+            response,
             "https://jun2026.archive.ensembl.org/Homo_sapiens/Gene/Summary"
             "?g=ENSG00000012048",
         )
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
-    def test_resolve_missing_species_redirects_to_plants_archive(
+    def test_resolve_missing_species_renders_plants_archive_interstitial(
         self, mock_species_lookup
     ):
-        """Redirect plants URLs to the Ensembl Genomes archive host."""
+        """Offer the plants archive when the species has no mapping."""
         mock_species_lookup.side_effect = SpeciesNotFoundError("not found")
 
         response = self.client.get(
@@ -512,17 +516,16 @@ class TestUrlResolver(unittest.TestCase):
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, 308)
-        self.assertEqual(
-            response.headers["location"],
+        self.assert_interstitial_response(
+            response,
             "https://eg63-plants.ensembl.org/Arabidopsis_thaliana/Info/Index",
         )
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
-    def test_resolve_missing_species_redirects_to_metazoa_archive(
+    def test_resolve_missing_species_renders_metazoa_archive_interstitial(
         self, mock_species_lookup
     ):
-        """Redirect metazoa URLs to the Ensembl Genomes archive host."""
+        """Offer the metazoa archive when the species has no mapping."""
         mock_species_lookup.side_effect = SpeciesNotFoundError("not found")
 
         response = self.client.get(
@@ -533,17 +536,16 @@ class TestUrlResolver(unittest.TestCase):
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, 308)
-        self.assertEqual(
-            response.headers["location"],
+        self.assert_interstitial_response(
+            response,
             "https://eg63-metazoa.ensembl.org/Caenorhabditis_elegans/Info/Index",
         )
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
-    def test_resolve_missing_species_redirects_to_fungi_archive(
+    def test_resolve_missing_species_renders_fungi_archive_interstitial(
         self, mock_species_lookup
     ):
-        """Redirect fungi URLs to the Ensembl Genomes archive host."""
+        """Offer the fungi archive when the species has no mapping."""
         mock_species_lookup.side_effect = SpeciesNotFoundError("not found")
 
         response = self.client.get(
@@ -554,17 +556,16 @@ class TestUrlResolver(unittest.TestCase):
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, 308)
-        self.assertEqual(
-            response.headers["location"],
+        self.assert_interstitial_response(
+            response,
             "https://eg63-fungi.ensembl.org/Saccharomyces_cerevisiae/Info/Index",
         )
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
-    def test_resolve_missing_species_redirects_to_protists_archive(
+    def test_resolve_missing_species_renders_protists_archive_interstitial(
         self, mock_species_lookup
     ):
-        """Redirect protists URLs to the Ensembl Genomes archive host."""
+        """Offer the protists archive when the species has no mapping."""
         mock_species_lookup.side_effect = SpeciesNotFoundError("not found")
 
         response = self.client.get(
@@ -575,44 +576,44 @@ class TestUrlResolver(unittest.TestCase):
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, 308)
-        self.assertEqual(
-            response.headers["location"],
+        self.assert_interstitial_response(
+            response,
             "https://eg63-protists.ensembl.org/Plasmodium_falciparum/Info/Index",
         )
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
-    def test_resolve_missing_species_redirects_to_bacteria_archive(
+    def test_resolve_missing_species_renders_bacteria_archive_interstitial(
         self, mock_species_lookup
     ):
-        """Redirect bacteria URLs to the Ensembl Genomes archive host."""
+        """Offer the bacteria archive when the species has no mapping."""
         mock_species_lookup.side_effect = SpeciesNotFoundError("not found")
 
         response = self.client.get(
             self.mock_url_resolver_api_url,
             params={
                 "url": (
-                    "https://bacteria.ensembl.org/"
-                    "Aliiglaciecola_lipolytica_e3_gca_000314975/Info/Index"
+                    "https://staging-bacteria.ensembl.org/"
+                    "Acidiphilium_sp_20_67_58_gca_002255515/Gene/Summary"
+                    "?g=ENSB:zhIueFOWMqR0ECN"
                 )
             },
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, 308)
-        self.assertEqual(
-            response.headers["location"],
+        self.assert_interstitial_response(
+            response,
             (
                 "https://eg63-bacteria.ensembl.org/"
-                "Aliiglaciecola_lipolytica_e3_gca_000314975/Info/Index"
+                "Acidiphilium_sp_20_67_58_gca_002255515/Gene/Summary"
+                "?g=ENSB:zhIueFOWMqR0ECN"
             ),
         )
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
-    def test_resolve_missing_species_archive_preserves_query_and_fragment(
+    def test_resolve_missing_species_interstitial_preserves_query_and_fragment(
         self, mock_species_lookup
     ):
-        """Preserve legacy URL query strings and fragments in archive fallback."""
+        """Preserve query strings and fragments in the interstitial archive link."""
         mock_species_lookup.side_effect = SpeciesNotFoundError("not found")
 
         response = self.client.get(
@@ -626,9 +627,8 @@ class TestUrlResolver(unittest.TestCase):
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, 308)
-        self.assertEqual(
-            response.headers["location"],
+        self.assert_interstitial_response(
+            response,
             "https://jun2026.archive.ensembl.org/Homo_sapiens/Location/View"
             "?r=1:1-100#content",
         )
