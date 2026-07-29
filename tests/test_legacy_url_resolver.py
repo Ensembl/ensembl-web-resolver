@@ -19,14 +19,24 @@ class TestUrlResolver(unittest.TestCase):
         api_prefix = "" if APP_PREFIX == "/" else APP_PREFIX
         self.mock_url_resolver_api_url = f"{api_prefix}/legacy"
         self.genome_uuid = "genome_uuid1"
+        self.assembly_accession_id = "GCA_01234567.1"
         self.static_mapping_patcher = patch(
             "app.api.resources.legacy_url_resolver_view.get_static_legacy_url_mapping"
         )
         self.mock_static_mapping = self.static_mapping_patcher.start()
         self.mock_static_mapping.return_value = None
+        self.assembly_accession_patcher = patch(
+            "app.api.resources.legacy_url_resolver_view."
+            "get_assembly_accession_id_from_genome_id"
+        )
+        self.mock_assembly_accession_lookup = (
+            self.assembly_accession_patcher.start()
+        )
+        self.mock_assembly_accession_lookup.return_value = self.assembly_accession_id
 
     def tearDown(self):
         self.static_mapping_patcher.stop()
+        self.assembly_accession_patcher.stop()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_static_path_mapping_with_redirect(self, mock_species_lookup):
@@ -55,6 +65,7 @@ class TestUrlResolver(unittest.TestCase):
             "https://staging-plants.ensembl.org/Multi/Tools/Blast/?discard=this"
         )
         mock_species_lookup.assert_not_called()
+        self.mock_assembly_accession_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_static_host_mapping_with_json_response(self, mock_species_lookup):
@@ -75,6 +86,7 @@ class TestUrlResolver(unittest.TestCase):
         )
         self.mock_static_mapping.assert_called_once_with("staging-protists.ensembl.org")
         mock_species_lookup.assert_not_called()
+        self.mock_assembly_accession_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_info_paths_to_archive_hosts(self, mock_species_lookup):
@@ -122,6 +134,7 @@ class TestUrlResolver(unittest.TestCase):
                 self.assertEqual(response.json(), {"resolved_url": expected_url})
                 self.mock_static_mapping.assert_not_called()
                 mock_species_lookup.assert_not_called()
+                self.mock_assembly_accession_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_info_archive_preserves_query_and_fragment(
@@ -149,6 +162,7 @@ class TestUrlResolver(unittest.TestCase):
         )
         self.mock_static_mapping.assert_not_called()
         mock_species_lookup.assert_not_called()
+        self.mock_assembly_accession_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_info_unknown_host_does_not_redirect(self, mock_species_lookup):
@@ -164,6 +178,7 @@ class TestUrlResolver(unittest.TestCase):
         self.assertNotIn("location", response.headers)
         self.mock_static_mapping.assert_not_called()
         mock_species_lookup.assert_not_called()
+        self.mock_assembly_accession_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_species_home_with_json_response(self, mock_species_lookup):
@@ -180,9 +195,10 @@ class TestUrlResolver(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
-            {"resolved_url": f"{ENSEMBL_URL}/genome/{self.genome_uuid}"},
+            {"resolved_url": f"{ENSEMBL_URL}/genome/{self.assembly_accession_id}"},
         )
         mock_species_lookup.assert_called_once_with("Homo_sapiens")
+        self.mock_assembly_accession_lookup.assert_called_once_with(self.genome_uuid)
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_bare_species_path_with_redirect(self, mock_species_lookup):
@@ -198,9 +214,10 @@ class TestUrlResolver(unittest.TestCase):
         self.assertEqual(response.status_code, 308)
         self.assertEqual(
             response.headers["location"],
-            f"{ENSEMBL_URL}/genome/{self.genome_uuid}",
+            f"{ENSEMBL_URL}/genome/{self.assembly_accession_id}",
         )
         mock_species_lookup.assert_called_once_with("Crocodylus_porosus")
+        self.mock_assembly_accession_lookup.assert_called_once_with(self.genome_uuid)
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_bare_species_path_without_uuid_redirects_to_archive(
@@ -242,14 +259,17 @@ class TestUrlResolver(unittest.TestCase):
         self.assertEqual(
             response.headers["location"],
             (
-                f"{ENSEMBL_URL}/feature-explorer/{self.genome_uuid}"
+                f"{ENSEMBL_URL}/feature-explorer/{self.assembly_accession_id}"
                 "/gene:ENSG00000012048"
             ),
         )
+        self.mock_assembly_accession_lookup.assert_called_once_with(self.genome_uuid)
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
-    def test_resolve_gene_summary_with_uuid_lookup_value(self, mock_species_lookup):
-        """Resolve URLs when DuckDB returns genome UUID as a UUID object."""
+    def test_resolve_gene_summary_uses_accession_for_uuid_lookup_value(
+        self, mock_species_lookup
+    ):
+        """Pass mapped UUIDs to metadata and use the returned accession."""
         genome_uuid = UUID("12345678-1234-5678-1234-567812345678")
         mock_species_lookup.return_value = genome_uuid
 
@@ -270,11 +290,70 @@ class TestUrlResolver(unittest.TestCase):
             response.json(),
             {
                 "resolved_url": (
-                    f"{ENSEMBL_URL}/feature-explorer/{genome_uuid}"
+                    f"{ENSEMBL_URL}/feature-explorer/{self.assembly_accession_id}"
                     "/gene:ENSG00000012048"
                 )
             },
         )
+        self.mock_assembly_accession_lookup.assert_called_once_with(genome_uuid)
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_gene_summary_without_accession_uses_genome_uuid(
+        self, mock_species_lookup
+    ):
+        """Retain the current genome UUID when metadata has no accession."""
+        mock_species_lookup.return_value = self.genome_uuid
+        self.mock_assembly_accession_lookup.return_value = None
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": (
+                    "https://www.ensembl.org/Homo_sapiens/Gene/Summary"
+                    "?g=ENSG00000012048"
+                )
+            },
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "resolved_url": (
+                    f"{ENSEMBL_URL}/feature-explorer/{self.genome_uuid}"
+                    "/gene:ENSG00000012048"
+                )
+            },
+        )
+        self.mock_assembly_accession_lookup.assert_called_once_with(self.genome_uuid)
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_gene_summary_returns_500_for_accession_lookup_failure(
+        self, mock_species_lookup
+    ):
+        """Return an error when the explain endpoint cannot be queried."""
+        mock_species_lookup.return_value = self.genome_uuid
+        self.mock_assembly_accession_lookup.side_effect = Exception(
+            "Failed to fetch assembly accession for genome 'genome_uuid1': 503 Server Error"
+        )
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": (
+                    "https://www.ensembl.org/Homo_sapiens/Gene/Summary"
+                    "?g=ENSG00000012048"
+                )
+            },
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 500)
+        self.assertIn("Failed to fetch assembly accession", response.text)
+        self.mock_assembly_accession_lookup.assert_called_once_with(self.genome_uuid)
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_location_view_with_semicolon_query(self, mock_species_lookup):
@@ -298,7 +377,7 @@ class TestUrlResolver(unittest.TestCase):
             response.json(),
             {
                 "resolved_url": (
-                    f"{ENSEMBL_URL}/genome-browser/{self.genome_uuid}"
+                    f"{ENSEMBL_URL}/genome-browser/{self.assembly_accession_id}"
                     "?focus=location:17:38449840-38530994"
                     "&location=17:38449840-38530994"
                 )
@@ -327,7 +406,7 @@ class TestUrlResolver(unittest.TestCase):
             response.json(),
             {
                 "resolved_url": (
-                    f"{ENSEMBL_URL}/genome-browser/{self.genome_uuid}"
+                    f"{ENSEMBL_URL}/genome-browser/{self.assembly_accession_id}"
                     "?focus=transcript:ENST00000357654"
                 )
             },
@@ -357,7 +436,7 @@ class TestUrlResolver(unittest.TestCase):
                     response.json(),
                     {
                         "resolved_url": (
-                            f"{ENSEMBL_URL}/feature-explorer/{self.genome_uuid}"
+                            f"{ENSEMBL_URL}/feature-explorer/{self.assembly_accession_id}"
                             "/gene:ENSG00000012048"
                         )
                     },
@@ -385,7 +464,7 @@ class TestUrlResolver(unittest.TestCase):
             response.json(),
             {
                 "resolved_url": (
-                    f"{ENSEMBL_URL}/feature-explorer/{self.genome_uuid}"
+                    f"{ENSEMBL_URL}/feature-explorer/{self.assembly_accession_id}"
                     "/transcript:ENST00000357654"
                 )
             },
@@ -413,7 +492,7 @@ class TestUrlResolver(unittest.TestCase):
             response.json(),
             {
                 "resolved_url": (
-                    f"{ENSEMBL_URL}/feature-explorer/{self.genome_uuid}"
+                    f"{ENSEMBL_URL}/feature-explorer/{self.assembly_accession_id}"
                     "/transcript:ENST00000357654"
                 )
             },
@@ -452,6 +531,7 @@ class TestUrlResolver(unittest.TestCase):
 
         self.assertEqual(response.status_code, 404)
         mock_species_lookup.assert_not_called()
+        self.mock_assembly_accession_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_missing_species_redirects_to_main_archive(

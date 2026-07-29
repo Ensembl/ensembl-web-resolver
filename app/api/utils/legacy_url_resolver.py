@@ -91,24 +91,24 @@ def _quote_url_part(value) -> str:
     return quote(str(value), safe="")
 
 
-def _build_species_url(genome_uuid: str, query_params: dict[str, list[str]]) -> str:
+def _build_species_url(genome_id: str, query_params: dict[str, list[str]]) -> str:
     """Build a new Ensembl genome page URL.
 
     Args:
-        genome_uuid: new Ensembl genome UUID from the species mapping table.
+        genome_id: New Ensembl target genome identifier.
         query_params: Parsed legacy query parameters. Unused for this rule.
 
     Returns:
         The resolved new Ensembl genome page URL.
     """
-    return f"{ENSEMBL_URL}/genome/{_quote_url_part(genome_uuid)}"
+    return f"{ENSEMBL_URL}/genome/{_quote_url_part(genome_id)}"
 
 
-def _build_location_url(genome_uuid: str, query_params: dict[str, list[str]]) -> str:
+def _build_location_url(genome_id: str, query_params: dict[str, list[str]]) -> str:
     """Build a new Ensembl genome browser URL focused on a genomic location.
 
     Args:
-        genome_uuid: new Ensembl genome UUID from the species mapping table.
+        genome_id: New Ensembl target genome identifier.
         query_params: Parsed legacy query parameters containing ``r``.
 
     Returns:
@@ -117,18 +117,18 @@ def _build_location_url(genome_uuid: str, query_params: dict[str, list[str]]) ->
     location = _require_query_value(query_params, "r")
     encoded_location = quote(location, safe=":-")
     return (
-        f"{ENSEMBL_URL}/genome-browser/{_quote_url_part(genome_uuid)}"
+        f"{ENSEMBL_URL}/genome-browser/{_quote_url_part(genome_id)}"
         f"?focus=location:{encoded_location}&location={encoded_location}"
     )
 
 
 def _build_gene_browser_url(
-    genome_uuid: str, query_params: dict[str, list[str]]
+    genome_id: str, query_params: dict[str, list[str]]
 ) -> str:
     """Build a new Ensembl genome browser URL focused on a gene.
 
     Args:
-        genome_uuid: new Ensembl genome UUID from the species mapping table.
+        genome_id: New Ensembl target genome identifier.
         query_params: Parsed legacy query parameters containing ``g``.
 
     Returns:
@@ -136,18 +136,18 @@ def _build_gene_browser_url(
     """
     gene_id = _require_query_value(query_params, "g")
     return (
-        f"{ENSEMBL_URL}/genome-browser/{_quote_url_part(genome_uuid)}"
+        f"{ENSEMBL_URL}/genome-browser/{_quote_url_part(genome_id)}"
         f"?focus=gene:{_quote_url_part(gene_id)}"
     )
 
 
 def _build_transcript_browser_url(
-    genome_uuid: str, query_params: dict[str, list[str]]
+    genome_id: str, query_params: dict[str, list[str]]
 ) -> str:
     """Build a new Ensembl genome browser URL focused on a transcript.
 
     Args:
-        genome_uuid: new Ensembl genome UUID from the species mapping table.
+        genome_id: New Ensembl target genome identifier.
         query_params: Parsed legacy query parameters containing ``t``.
 
     Returns:
@@ -155,18 +155,18 @@ def _build_transcript_browser_url(
     """
     transcript_id = _require_query_value(query_params, "t")
     return (
-        f"{ENSEMBL_URL}/genome-browser/{_quote_url_part(genome_uuid)}"
+        f"{ENSEMBL_URL}/genome-browser/{_quote_url_part(genome_id)}"
         f"?focus=transcript:{_quote_url_part(transcript_id)}"
     )
 
 
 def _build_gene_feature_explorer_url(
-    genome_uuid: str, query_params: dict[str, list[str]]
+    genome_id: str, query_params: dict[str, list[str]]
 ) -> str:
     """Build a new Ensembl feature explorer URL for a gene.
 
     Args:
-        genome_uuid: new Ensembl genome UUID from the species mapping table.
+        genome_id: New Ensembl target genome identifier.
         query_params: Parsed legacy query parameters containing ``g``.
 
     Returns:
@@ -174,33 +174,33 @@ def _build_gene_feature_explorer_url(
     """
     gene_id = _require_query_value(query_params, "g")
     return (
-        f"{ENSEMBL_URL}/feature-explorer/{_quote_url_part(genome_uuid)}"
+        f"{ENSEMBL_URL}/feature-explorer/{_quote_url_part(genome_id)}"
         f"/gene:{_quote_url_part(gene_id)}"
     )
 
 
 def _build_gene_homology_url(
-    genome_uuid: str, query_params: dict[str, list[str]]
+    genome_id: str, query_params: dict[str, list[str]]
 ) -> str:
     """Build a new Ensembl feature explorer URL with the homology view selected.
 
     Args:
-        genome_uuid: new Ensembl genome UUID from the species mapping table.
+        genome_id: New Ensembl target genome identifier.
         query_params: Parsed legacy query parameters containing ``g``.
 
     Returns:
         The resolved new Ensembl feature explorer homology URL.
     """
-    return f"{_build_gene_feature_explorer_url(genome_uuid, query_params)}?view=homology"
+    return f"{_build_gene_feature_explorer_url(genome_id, query_params)}?view=homology"
 
 
 def _build_transcript_feature_explorer_url(
-    genome_uuid: str, query_params: dict[str, list[str]]
+    genome_id: str, query_params: dict[str, list[str]]
 ) -> str:
     """Build a new Ensembl feature explorer URL for a transcript.
 
     Args:
-        genome_uuid: new Ensembl genome UUID from the species mapping table.
+        genome_id: New Ensembl target genome identifier.
         query_params: Parsed legacy query parameters containing ``t``.
 
     Returns:
@@ -208,25 +208,25 @@ def _build_transcript_feature_explorer_url(
     """
     transcript_id = _require_query_value(query_params, "t")
     return (
-        f"{ENSEMBL_URL}/feature-explorer/{_quote_url_part(genome_uuid)}"
+        f"{ENSEMBL_URL}/feature-explorer/{_quote_url_part(genome_id)}"
         f"/transcript:{_quote_url_part(transcript_id)}"
     )
 
 
 def _build_transcript_protein_url(
-    genome_uuid: str, query_params: dict[str, list[str]]
+    genome_id: str, query_params: dict[str, list[str]]
 ) -> str:
     """Build a new Ensembl feature explorer URL with the protein view selected.
 
     Args:
-        genome_uuid: new Ensembl genome UUID from the species mapping table.
+        genome_id: New Ensembl target genome identifier.
         query_params: Parsed legacy query parameters containing ``t``.
 
     Returns:
         The resolved new Ensembl transcript URL with the protein view selected.
     """
     return (
-        f"{_build_transcript_feature_explorer_url(genome_uuid, query_params)}"
+        f"{_build_transcript_feature_explorer_url(genome_id, query_params)}"
         "?view=protein"
     )
 
@@ -401,6 +401,7 @@ def _find_species_rule(
 def resolve_legacy_ensembl_url(
     legacy_url: str,
     species_to_genome_uuid: Callable[[str], str],
+    genome_uuid_to_accession_id: Callable[[str], str | None],
     static_legacy_url_mapping: Callable[[str], str | None] | None = None,
 ) -> str:
     """Resolve a supported legacy Ensembl URL to its new Ensembl equivalent.
@@ -409,6 +410,8 @@ def resolve_legacy_ensembl_url(
         legacy_url: Full legacy URL or path submitted by the caller.
         species_to_genome_uuid: Function that maps legacy species URL names to
             new Ensembl genome UUIDs.
+        genome_uuid_to_accession_id: Function that maps current Ensembl genome
+            UUIDs to assembly accession IDs when available.
         static_legacy_url_mapping: Optional function that maps configured legacy
             hosts or paths directly to their new Ensembl URLs.
 
@@ -453,18 +456,18 @@ def resolve_legacy_ensembl_url(
     species_url = path_segments[0]
     legacy_path = path_segments[1:]
 
-    if not legacy_path:
-        genome_uuid = species_to_genome_uuid(species_url)
-        return _build_species_url(genome_uuid, query_params)
-
-    # Species-scoped legacy pages resolve through the rule table. Unsupported
-    # shapes fail explicitly so we do not produce misleading redirects.
-    rule = _find_species_rule(legacy_path, query_params)
-
-    if rule is None:
-        raise UnsupportedLegacyUrlError(
-            "No supported new Ensembl equivalent for this URL"
-        )
+    if legacy_path:
+        # Species-scoped legacy pages resolve through the rule table. Unsupported
+        # shapes fail explicitly so we do not produce misleading redirects.
+        rule = _find_species_rule(legacy_path, query_params)
+        if rule is None:
+            raise UnsupportedLegacyUrlError(
+                "No supported new Ensembl equivalent for this URL"
+            )
+        build_url = rule.build_url
+    else:
+        build_url = _build_species_url
 
     genome_uuid = species_to_genome_uuid(species_url)
-    return rule.build_url(genome_uuid, query_params)
+    target_genome_id = genome_uuid_to_accession_id(genome_uuid) or genome_uuid
+    return build_url(target_genome_id, query_params)
