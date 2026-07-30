@@ -231,6 +231,41 @@ def _build_transcript_protein_url(
     )
 
 
+def _build_variant_feature_explorer_url(genome_id: str, variant: dict) -> str:
+    """Build a Feature Explorer URL for a resolved variant search match."""
+    variant_name = variant.get("variant_name")
+    region_name = variant.get("region_name")
+    start = variant.get("start")
+
+    if not variant_name or not region_name or start is None:
+        raise UnsupportedLegacyUrlError(
+            "Variant search result does not contain a resolvable location"
+        )
+
+    return (
+        f"{ENSEMBL_URL}/feature-explorer/{_quote_url_part(genome_id)}"
+        f"/variant:{_quote_url_part(region_name)}:{_quote_url_part(start)}:"
+        f"{_quote_url_part(variant_name)}?allele=0"
+    )
+
+
+def _resolve_variant_explore_url(
+    genome_uuid: str,
+    variant_id: str,
+    variant_search: Callable[[str, str], dict | None],
+    genome_uuid_to_accession_id: Callable[[str], str | None],
+) -> str:
+    """Resolve a legacy variant page using the variant search service."""
+    variant = variant_search(genome_uuid, variant_id)
+    if variant is None:
+        raise UnsupportedLegacyUrlError(
+            "No supported new Ensembl equivalent for this variant"
+        )
+
+    target_genome_id = genome_uuid_to_accession_id(genome_uuid) or genome_uuid
+    return _build_variant_feature_explorer_url(target_genome_id, variant)
+
+
 # These rules intentionally cover only legacy URL shapes with a practical new
 # Ensembl equivalent. Unsupported shapes, or shapes needing extra
 # variant/regulatory lookup, should fail explicitly rather than produce a
@@ -402,6 +437,7 @@ def resolve_legacy_ensembl_url(
     legacy_url: str,
     species_to_genome_uuid: Callable[[str], str],
     genome_uuid_to_accession_id: Callable[[str], str | None],
+    variant_search: Callable[[str, str], dict | None],
     static_legacy_url_mapping: Callable[[str], str | None] | None = None,
 ) -> str:
     """Resolve a supported legacy Ensembl URL to its new Ensembl equivalent.
@@ -412,6 +448,7 @@ def resolve_legacy_ensembl_url(
             new Ensembl genome UUIDs.
         genome_uuid_to_accession_id: Function that maps current Ensembl genome
             UUIDs to assembly accession IDs when available.
+        variant_search: Function that finds a variant ID within a genome UUID.
         static_legacy_url_mapping: Optional function that maps configured legacy
             hosts or paths directly to their new Ensembl URLs.
 
@@ -455,6 +492,16 @@ def resolve_legacy_ensembl_url(
     # the supported mappings, e.g. /Homo_sapiens/Gene/Summary?g=...
     species_url = path_segments[0]
     legacy_path = path_segments[1:]
+
+    if legacy_path == ("Variation", "Explore"):
+        variant_id = _require_query_value(query_params, "v")
+        genome_uuid = species_to_genome_uuid(species_url)
+        return _resolve_variant_explore_url(
+            genome_uuid,
+            variant_id,
+            variant_search,
+            genome_uuid_to_accession_id,
+        )
 
     if legacy_path:
         # Species-scoped legacy pages resolve through the rule table. Unsupported

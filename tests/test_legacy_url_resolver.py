@@ -33,10 +33,16 @@ class TestUrlResolver(unittest.TestCase):
             self.assembly_accession_patcher.start()
         )
         self.mock_assembly_accession_lookup.return_value = self.assembly_accession_id
+        self.variant_search_patcher = patch(
+            "app.api.resources.legacy_url_resolver_view.search_variant"
+        )
+        self.mock_variant_search = self.variant_search_patcher.start()
+        self.mock_variant_search.return_value = None
 
     def tearDown(self):
         self.static_mapping_patcher.stop()
         self.assembly_accession_patcher.stop()
+        self.variant_search_patcher.stop()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_static_path_mapping_with_redirect(self, mock_species_lookup):
@@ -497,6 +503,80 @@ class TestUrlResolver(unittest.TestCase):
                 )
             },
         )
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_variation_explore(self, mock_species_lookup):
+        """Resolve a legacy variant URL through the variant search API."""
+        mock_species_lookup.return_value = self.genome_uuid
+        self.mock_variant_search.return_value = {
+            "variant_name": "rs99",
+            "genome_id": self.genome_uuid,
+            "region_name": "7",
+            "start": 24399036,
+        }
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": (
+                    "https://www.ensembl.org/Homo_sapiens/Variation/Explore"
+                    "?foo=bar;v=rs99;r=ignored"
+                )
+            },
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "resolved_url": (
+                    f"{ENSEMBL_URL}/feature-explorer/{self.assembly_accession_id}"
+                    "/variant:7:24399036:rs99?allele=0"
+                )
+            },
+        )
+        mock_species_lookup.assert_called_once_with("Homo_sapiens")
+        self.mock_variant_search.assert_called_once_with(self.genome_uuid, "rs99")
+        self.mock_assembly_accession_lookup.assert_called_once_with(self.genome_uuid)
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_variation_explore_requires_variant_id(self, mock_species_lookup):
+        """Return 400 when a variant URL does not provide the ``v`` parameter."""
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": "https://www.ensembl.org/Homo_sapiens/Variation/Explore?x=1"
+            },
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        mock_species_lookup.assert_not_called()
+        self.mock_variant_search.assert_not_called()
+        self.mock_assembly_accession_lookup.assert_not_called()
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_variation_explore_returns_404_when_not_found(
+        self, mock_species_lookup
+    ):
+        """Return 404 when the supplied variant cannot be found in the genome."""
+        mock_species_lookup.return_value = self.genome_uuid
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": "https://www.ensembl.org/Homo_sapiens/Variation/Explore?v=rs99"
+            },
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.mock_variant_search.assert_called_once_with(self.genome_uuid, "rs99")
+        self.mock_assembly_accession_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_missing_required_query_parameter(self, mock_species_lookup):
