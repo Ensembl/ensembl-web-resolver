@@ -500,6 +500,7 @@ def resolve_legacy_ensembl_url(
     variant_views = {
         ("Variation", "Explore"): None,
         ("Variation", "Mappings"): "transcript-consequences",
+        ("Variation", "Population"): "allele-frequencies",
     }
     if legacy_path in variant_views:
         variant_id = _require_query_value(query_params, "v")

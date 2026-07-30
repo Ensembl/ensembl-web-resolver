@@ -575,6 +575,37 @@ class TestUrlResolver(unittest.TestCase):
         self.mock_assembly_accession_lookup.assert_called_once_with(self.genome_uuid)
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_variation_population(self, mock_species_lookup):
+        """Resolve population pages with allele frequencies selected."""
+        mock_species_lookup.return_value = self.genome_uuid
+        self.mock_variant_search.return_value = {
+            "variant_name": "rs99",
+            "genome_id": self.genome_uuid,
+            "region_name": "7",
+            "start": 24399036,
+        }
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": "https://www.ensembl.org/Homo_sapiens/Variation/Population?v=rs99"
+            },
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "resolved_url": (
+                    f"{ENSEMBL_URL}/feature-explorer/{self.assembly_accession_id}"
+                    "/variant:7:24399036:rs99?allele=0&view=allele-frequencies"
+                )
+            },
+        )
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_variation_explore_requires_variant_id(self, mock_species_lookup):
         """Return 400 when a variant URL does not provide the ``v`` parameter."""
         response = self.client.get(
