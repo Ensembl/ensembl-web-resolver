@@ -440,7 +440,7 @@ def _find_species_rule(
 def resolve_legacy_ensembl_url(
     legacy_url: str,
     species_to_genome_uuid: Callable[[str], str],
-    genome_uuid_to_accession_id: Callable[[str], str | None],
+    genome_uuid_to_genome_tag: Callable[[str], str | None],
     variant_search: Callable[[str, str], dict | None],
     static_legacy_url_mapping: Callable[[str], str | None] | None = None,
 ) -> str:
@@ -450,8 +450,8 @@ def resolve_legacy_ensembl_url(
         legacy_url: Full legacy URL or path submitted by the caller.
         species_to_genome_uuid: Function that maps legacy species URL names to
             new Ensembl genome UUIDs.
-        genome_uuid_to_accession_id: Function that maps current Ensembl genome
-            UUIDs to assembly accession IDs when available.
+        genome_uuid_to_genome_tag: Function that maps current Ensembl genome
+            UUIDs to genome tags when available.
         variant_search: Function that finds a variant ID within a genome UUID.
         static_legacy_url_mapping: Optional function that maps configured legacy
             hosts or paths directly to their new Ensembl URLs.
@@ -526,5 +526,5 @@ def resolve_legacy_ensembl_url(
         build_url = _build_species_url
 
     genome_uuid = species_to_genome_uuid(species_url)
-    target_genome_id = genome_uuid_to_accession_id(genome_uuid) or genome_uuid
+    target_genome_id = genome_uuid_to_genome_tag(genome_uuid) or genome_uuid
     return build_url(target_genome_id, query_params)
