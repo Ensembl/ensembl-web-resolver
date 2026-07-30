@@ -45,14 +45,14 @@ def get_genome_id_from_assembly_accession_id(accession_id: str):
         ) from e
 
 
-def get_assembly_accession_id_from_genome_id(genome_id: str) -> str | None:
-    """Fetch the assembly accession ID for a current Ensembl genome ID.
+def get_genome_tag_from_genome_id(genome_id: str) -> str | None:
+    """Fetch the genome tag for a current Ensembl genome ID.
 
     Args:
         genome_id: Current Ensembl genome UUID.
 
     Returns:
-        The assembly accession ID, or ``None`` when the genome has no accession.
+        The genome tag, or ``None`` when the genome has no tag.
 
     Raises:
         Exception: If the metadata explain endpoint cannot be queried or decoded.
@@ -64,10 +64,9 @@ def get_assembly_accession_id_from_genome_id(genome_id: str) -> str | None:
             response.raise_for_status()
             payload = response.json()
 
-        assembly = payload.get("assembly") if isinstance(payload, dict) else None
-        accession_id = assembly.get("accession_id") if isinstance(assembly, dict) else None
-        return accession_id or None
+        genome_tag = payload.get("genome_tag") if isinstance(payload, dict) else None
+        return genome_tag or None
     except Exception as error:
         raise Exception(
-            f"Failed to fetch assembly accession for genome '{genome_id}': {error}"
+            f"Failed to fetch genome tag for genome '{genome_id}': {error}"
         ) from error

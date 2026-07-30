@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from app.api.error_response import response_error_handler
 from app.api.models.resolver import UrlResolverResponse
 from app.api.utils.commons import is_json_request
-from app.api.utils.metadata import get_assembly_accession_id_from_genome_id
+from app.api.utils.metadata import get_genome_tag_from_genome_id
 from app.api.utils.species_mapping import (
     SpeciesMappingNotFoundError,
     SpeciesMappingConfigurationError,
@@ -48,7 +48,7 @@ async def resolve_url(request: Request, url: str):
         resolved_url = resolve_legacy_ensembl_url(
             url,
             get_genome_uuid_from_species_url,
-            get_assembly_accession_id_from_genome_id,
+            get_genome_tag_from_genome_id,
             get_static_legacy_url_mapping,
         )
         response = UrlResolverResponse(resolved_url=resolved_url)
