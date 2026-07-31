@@ -3,6 +3,7 @@ from urllib.parse import parse_qs
 from fastapi import APIRouter, Request, Query, HTTPException
 
 from starlette.responses import HTMLResponse
+from starlette.concurrency import run_in_threadpool
 
 import logging
 
@@ -26,22 +27,25 @@ router = APIRouter()
 async def resolve_rapid_stable_id(request: Request, stable_id: str):
     # Handle only gene stable id for now
     params = SearchPayload(stable_id=stable_id, type="gene", per_page=10)
-    search_results = get_search_results(params)
     rapid_archive_url = construct_rapid_archive_url(request)
 
-    if not search_results or not search_results.get("matches"):
-        if is_json_request(request):
-            return response_error_handler({"status": 404})
-        res = StableIdResolverResponse(
-            stable_id=stable_id,
-            code=404,
-            message="No results",
-            content=None,
-            rapid_archive_url=rapid_archive_url
-        )
-        return HTMLResponse(generate_rapid_id_page(res))
-
     try:
+        # fm_py performs synchronous Redb file I/O. Run it off the async event
+        # loop so concurrent resolver requests can continue to be served.
+        search_results = await run_in_threadpool(get_search_results, params)
+
+        if not search_results or not search_results.get("matches"):
+            if is_json_request(request):
+                return response_error_handler({"status": 404})
+            res = StableIdResolverResponse(
+                stable_id=stable_id,
+                code=404,
+                message="No results",
+                content=None,
+                rapid_archive_url=rapid_archive_url
+            )
+            return HTMLResponse(generate_rapid_id_page(res))
+
         matches = search_results.get("matches")
         metadata_results = get_metadata(matches)
 

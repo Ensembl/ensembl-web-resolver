@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request
 from typing import Optional, Literal
 from fastapi.responses import RedirectResponse, HTMLResponse
+from starlette.concurrency import run_in_threadpool
 import logging
 
 from app.api.error_response import response_error_handler
@@ -27,21 +28,23 @@ async def resolve(
 ):
 
     params = SearchPayload(stable_id=stable_id, type=type, per_page=10)
-    search_results = get_search_results(params)
-
-    if not search_results or not search_results.get("matches"):
-        if is_json_request(request):
-            return response_error_handler({"status": 404})
-
-        res = StableIdResolverResponse(
-            stable_id=stable_id,
-            code=404,
-            message="No results",
-            content=None
-        )
-        return HTMLResponse(generate_resolver_id_page(res))
-
     try:
+        # fm_py performs synchronous Redb file I/O. Run it off the async event
+        # loop so concurrent resolver requests can continue to be served.
+        search_results = await run_in_threadpool(get_search_results, params)
+
+        if not search_results or not search_results.get("matches"):
+            if is_json_request(request):
+                return response_error_handler({"status": 404})
+
+            res = StableIdResolverResponse(
+                stable_id=stable_id,
+                code=404,
+                message="No results",
+                content=None
+            )
+            return HTMLResponse(generate_resolver_id_page(res))
+
         matches = search_results.get("matches")
 
         # Get metadata for all genomes
