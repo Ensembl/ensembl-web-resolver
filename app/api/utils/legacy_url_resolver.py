@@ -256,7 +256,7 @@ def _resolve_variant_url(
     genome_uuid: str,
     variant_id: str,
     variant_search: Callable[[str, str], dict | None],
-    genome_uuid_to_accession_id: Callable[[str], str | None],
+    genome_uuid_to_genome_tag: Callable[[str], str | None],
     view: str | None = None,
 ) -> str:
     """Resolve a legacy variant page using the variant search service."""
@@ -266,7 +266,7 @@ def _resolve_variant_url(
             "No supported new Ensembl equivalent for this variant"
         )
 
-    target_genome_id = genome_uuid_to_accession_id(genome_uuid) or genome_uuid
+    target_genome_id = genome_uuid_to_genome_tag(genome_uuid) or genome_uuid
     return _build_variant_feature_explorer_url(target_genome_id, variant, view)
 
 
@@ -509,7 +509,7 @@ def resolve_legacy_ensembl_url(
             genome_uuid,
             variant_id,
             variant_search,
-            genome_uuid_to_accession_id,
+            genome_uuid_to_genome_tag,
             variant_views[legacy_path],
         )
 
