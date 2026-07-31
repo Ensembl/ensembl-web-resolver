@@ -53,6 +53,20 @@ python -m pip install \
 
 Do not store the GitLab token in `.env` or commit it to source control.
 
+#### GitHub Actions
+
+The test workflow installs `fm_py` from the private GitLab package registry.
+Configure these GitHub repository secrets for CI:
+
+```
+GITLAB_USER    # GitLab username or token username
+GITLAB_TOKEN   # GitLab token with read_api scope and access to project 6228
+```
+
+The GitHub Actions runner is Linux x86_64, so the registry must also contain a
+compatible Linux x86_64 `abi3` wheel, for example
+`fm_py-0.1.1-cp38-abi3-manylinux_2_28_x86_64.whl`.
+
 ### Apply legacy URL mapping SQL
 
 If the legacy URL mapping tables need to be created or refreshed in the local DuckDB file, run:
