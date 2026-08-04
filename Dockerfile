@@ -15,6 +15,10 @@ COPY resolver_mappings.db /app/resolver_mappings.db
 # Install dependencies
 RUN pip install  -r requirements.txt
 
+# Store metrics from all Uvicorn workers.
+ENV PROMETHEUS_MULTIPROC_DIR=/tmp/prometheus-multiproc
+RUN mkdir -p /tmp/prometheus-multiproc
+
 # Expose Ports
 ENV PORT 8001
 EXPOSE 8001

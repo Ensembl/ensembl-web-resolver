@@ -18,6 +18,7 @@ limitations under the License.
 import os.path
 
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.docs import get_swagger_ui_html
@@ -69,6 +70,10 @@ def get_application(app_prefix: str = APP_PREFIX) -> FastAPI:
         return get_swagger_ui_html(
             openapi_url=f"{STATIC_PATH}/APISpecification.yaml", title="API Docs"
         )
+
+    Instrumentator(excluded_handlers=["/metrics"]).instrument(application).expose(
+        application, endpoint="/metrics", include_in_schema=False
+    )
 
     return application
 
