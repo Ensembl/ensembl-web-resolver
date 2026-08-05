@@ -70,3 +70,27 @@ def get_genome_tag_from_genome_id(genome_id: str) -> str | None:
         raise Exception(
             f"Failed to fetch genome tag for genome '{genome_id}': {error}"
         ) from error
+
+
+def search_variant(genome_id: str, variant_id: str) -> dict | None:
+    """Find a variant in a genome through the Ensembl variant search API."""
+    try:
+        session = requests.Session()
+        with session.post(
+            url=f"{ENSEMBL_URL}/api/search/variants",
+            json={"genome_ids": [genome_id], "query": variant_id},
+            timeout=10,
+        ) as response:
+            response.raise_for_status()
+            payload = response.json()
+
+        matches = payload.get("matches") if isinstance(payload, dict) else None
+        if not isinstance(matches, list) or not matches:
+            return None
+
+        first_match = matches[0]
+        return first_match if isinstance(first_match, dict) else None
+    except Exception as error:
+        raise Exception(
+            f"Failed to search for variant '{variant_id}' in genome '{genome_id}': {error}"
+        ) from error
