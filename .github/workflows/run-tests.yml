@@ -17,8 +17,10 @@ jobs:
           python-version: "3.10"
 
       - name: Install dependencies
+        env:
+          PIP_EXTRA_INDEX_URL: https://${{ secrets.GITLAB_USER }}:${{ secrets.GITLAB_TOKEN }}@gitlab.ebi.ac.uk/api/v4/projects/6228/packages/pypi/simple
         run: |
-          pip install -r requirements.txt
+          python -m pip install -r requirements.txt
 
       - name: Run tests
         run: |

@@ -30,6 +30,43 @@ python3 -m uvicorn app.main:app --port 8001 --reload
 
 `APP_PREFIX` defaults to `/`. Set it only when the app should be served under a path prefix, for example `/api/resolver`.
 
+### Stable ID index
+
+`/id/{stable_id}` and `/rapid/id/{stable_id}` can use a local fast-match Redb
+index. Set `FAST_MATCH_ENABLED=true` and configure `FAST_MATCH_DB_PATH` to use
+it; set `FAST_MATCH_ENABLED=false` to retain the search-hub API lookup. The
+index is expected to have stable and unversioned stable IDs as keys and values
+in the `genome_id|doc_type` format, with multiple values delimited by `+`.
+
+The `fm_py` dependency is published to the private GitLab package registry.
+Install the resolver dependencies with a GitLab token that has
+`read_package_registry` access:
+
+```
+export GITLAB_USER="your-gitlab-username"
+export GITLAB_TOKEN="your-read-package-registry-token"
+
+python -m pip install \
+  --extra-index-url "https://${GITLAB_USER}:${GITLAB_TOKEN}@gitlab.ebi.ac.uk/api/v4/projects/6228/packages/pypi/simple" \
+  -r requirements.txt
+```
+
+Do not store the GitLab token in `.env` or commit it to source control.
+
+#### GitHub Actions
+
+The test workflow installs `fm_py` from the private GitLab package registry.
+Configure these GitHub repository secrets for CI:
+
+```
+GITLAB_USER    # GitLab username or token username
+GITLAB_TOKEN   # GitLab token with read_api scope and access to project 6228
+```
+
+The GitHub Actions runner is Linux x86_64, so the registry must also contain a
+compatible Linux x86_64 `abi3` wheel, for example
+`fm_py-0.1.1-cp38-abi3-manylinux_2_28_x86_64.whl`.
+
 ### Apply legacy URL mapping SQL
 
 If the legacy URL mapping tables need to be created or refreshed in the local DuckDB file, run:
