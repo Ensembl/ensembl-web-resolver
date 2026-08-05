@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 # Base image
 FROM python:3.11-slim
 
@@ -12,8 +13,14 @@ COPY ./app /app/
 COPY requirements.txt /requirements.txt
 COPY resolver_mappings.db /app/resolver_mappings.db
 
-# Install dependencies
-RUN pip install  -r requirements.txt
+# Install dependencies. The job token is mounted only for this command and is
+# not retained in the resulting layer or image history.
+ARG GITLAB_USER=gitlab-ci-token
+RUN --mount=type=secret,id=gitlab_token \
+    gitlab_token="$(cat /run/secrets/gitlab_token)" && \
+    pip install --no-cache-dir \
+      --extra-index-url "https://${GITLAB_USER}:${gitlab_token}@gitlab.ebi.ac.uk/api/v4/projects/6228/packages/pypi/simple" \
+      -r /requirements.txt
 
 # Store metrics from all Uvicorn workers.
 ENV PROMETHEUS_MULTIPROC_DIR=/tmp/prometheus-multiproc
