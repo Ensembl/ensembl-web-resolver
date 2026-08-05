@@ -71,9 +71,26 @@ def get_application(app_prefix: str = APP_PREFIX) -> FastAPI:
             openapi_url=f"{STATIC_PATH}/APISpecification.yaml", title="API Docs"
         )
 
-    Instrumentator(excluded_handlers=["/metrics"]).instrument(application).expose(
-        application, endpoint="/metrics", include_in_schema=False
-    )
+    Instrumentator(excluded_handlers=["/metrics"]).instrument(
+        application,
+        latency_lowr_buckets=(
+            0.01,
+            0.025,
+            0.05,
+            0.1,
+            0.25,
+            0.5,
+            1,
+            1.25,
+            1.5,
+            1.75,
+            2,
+            2.5,
+            5,
+            10,
+            30,
+        ),
+    ).expose(application, endpoint="/metrics", include_in_schema=False)
 
     return application
 
