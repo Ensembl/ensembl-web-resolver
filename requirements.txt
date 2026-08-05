@@ -3,6 +3,7 @@ duckdb==1.1.3
 fastapi==0.111.0
 loguru==0.7.2
 pydantic==2.7.1
+prometheus-fastapi-instrumentator==7.1.0
 Requests==2.32.2
 fm_py
 flake8==7.1.1
