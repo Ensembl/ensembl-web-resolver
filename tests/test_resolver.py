@@ -20,7 +20,10 @@ class TestResolverAPI(unittest.TestCase):
         }
         self.mock_single_metadata_results_success = {
             "genome1": {
-                "assembly": {"accession_id": "GCA_018555375.2", "name": "ASM1855537v1.1"},
+                "assembly": {
+                    "accession_id": "GCA_018555375.2",
+                    "name": "ASM1855537v1.1",
+                },
                 "scientific_name": "Anguilla rostrata",
                 "common_name": "American eel",
                 "type": {"kind": "strain", "value": "reference"},
@@ -38,7 +41,10 @@ class TestResolverAPI(unittest.TestCase):
         # Mock metadata API
         self.mock_multiple_metadata_results_success = {
             "genome1": {
-                "assembly": {"accession_id": "GCA_018555375.2", "name": "ASM1855537v1.1"},
+                "assembly": {
+                    "accession_id": "GCA_018555375.2",
+                    "name": "ASM1855537v1.1",
+                },
                 "scientific_name": "Anguilla rostrata",
                 "common_name": "American eel",
                 "type": {"kind": "strain", "value": "reference"},
@@ -118,8 +124,8 @@ class TestResolverAPI(unittest.TestCase):
             response.text,
             "Failed resolving multiple results with html response",
         )
-        self.assertIn(f'{STATIC_PATH}/css/styles.css', response.text)
-        self.assertIn(f'{STATIC_PATH}/js/index.js', response.text)
+        self.assertIn(f"{STATIC_PATH}/css/styles.css", response.text)
+        self.assertIn(f"{STATIC_PATH}/js/index.js", response.text)
 
     @patch("app.api.resources.resolver_view.get_search_results")
     def test_resolve_404(self, mock_get_search_results):
@@ -127,8 +133,9 @@ class TestResolverAPI(unittest.TestCase):
         mock_get_search_results.return_value = {}
 
         response = self.client.get(
-            f"{self.mock_search_api_url}/{self.stable_id}", follow_redirects=False,
-            headers = {"accept": "application/json"}
+            f"{self.mock_search_api_url}/{self.stable_id}",
+            follow_redirects=False,
+            headers={"accept": "application/json"},
         )
         self.assertEqual(response.status_code, 404)
 
@@ -137,15 +144,11 @@ class TestResolverAPI(unittest.TestCase):
         """Offer the main Ensembl archive when a stable ID has no match."""
         mock_get_search_results.return_value = {}
 
-        response = self.client.get(
-            "/id/foo", follow_redirects=False
-        )
+        response = self.client.get("/id/foo", follow_redirects=False)
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("No results", response.text)
-        self.assertIn(
-            "https://jun2026.archive.ensembl.org/id/foo", response.text
-        )
+        self.assertIn("https://jun2026.archive.ensembl.org/id/foo", response.text)
         self.assertIn("Go to archive", response.text)
 
     @patch("app.api.resources.resolver_view.get_search_results")

@@ -14,8 +14,7 @@ def get_metadata(matches: List[SearchMatch] = []):
         try:
             session = requests.Session()
             with session.get(
-                url=f"{ENSEMBL_URL}/api/metadata/genome/{genome_id}/details",
-                timeout=10
+                url=f"{ENSEMBL_URL}/api/metadata/genome/{genome_id}/details", timeout=10
             ) as response:
                 response.raise_for_status()
                 metadata_results[genome_id] = response.json()

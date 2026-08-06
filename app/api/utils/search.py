@@ -25,9 +25,7 @@ def get_search_results(params: SearchPayload):
     try:
         return get_fast_match_results(params)
     except Exception as error:
-        logger.warning(
-            f"Fast-match lookup failed; falling back to search hub: {error}"
-        )
+        logger.warning(f"Fast-match lookup failed; falling back to search hub: {error}")
         return get_search_hub_results(params)
 
 

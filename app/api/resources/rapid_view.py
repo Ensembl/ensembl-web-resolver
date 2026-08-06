@@ -8,12 +8,24 @@ from starlette.concurrency import run_in_threadpool
 import logging
 
 from app.api.error_response import response_error_handler
-from app.api.models.resolver import RapidResolverResponse, RapidResolverHtmlResponseType, SearchPayload, \
-    StableIdResolverResponse
+from app.api.models.resolver import (
+    RapidResolverResponse,
+    RapidResolverHtmlResponseType,
+    SearchPayload,
+    StableIdResolverResponse,
+)
 from app.api.utils.commons import build_stable_id_resolver_content, is_json_request
-from app.api.utils.metadata import get_genome_id_from_assembly_accession_id, get_metadata
-from app.api.utils.rapid import format_assembly_accession, construct_url, \
-    generate_rapid_id_page, generate_rapid_page, construct_rapid_archive_url
+from app.api.utils.metadata import (
+    get_genome_id_from_assembly_accession_id,
+    get_metadata,
+)
+from app.api.utils.rapid import (
+    format_assembly_accession,
+    construct_url,
+    generate_rapid_id_page,
+    generate_rapid_page,
+    construct_rapid_archive_url,
+)
 from app.api.utils.search import get_search_results
 from app.core.config import ENSEMBL_URL
 from app.core.logging import InterceptHandler
@@ -42,7 +54,7 @@ async def resolve_rapid_stable_id(request: Request, stable_id: str):
                 code=404,
                 message="No results",
                 content=None,
-                rapid_archive_url=rapid_archive_url
+                rapid_archive_url=rapid_archive_url,
             )
             return HTMLResponse(generate_rapid_id_page(res))
 
@@ -50,9 +62,7 @@ async def resolve_rapid_stable_id(request: Request, stable_id: str):
         metadata_results = get_metadata(matches)
 
         stable_id_resolver_response = StableIdResolverResponse(
-            stable_id=stable_id,
-            code=308,
-            rapid_archive_url=rapid_archive_url
+            stable_id=stable_id, code=308, rapid_archive_url=rapid_archive_url
         )
         results = build_stable_id_resolver_content(metadata_results)
         stable_id_resolver_response.content = results
@@ -70,7 +80,7 @@ async def resolve_rapid_stable_id(request: Request, stable_id: str):
             code=500,
             message=str(e),
             content=None,
-            rapid_archive_url=rapid_archive_url
+            rapid_archive_url=rapid_archive_url,
         )
         return HTMLResponse(generate_rapid_id_page(res))
 
@@ -81,7 +91,7 @@ async def resolve_rapid_help(request: Request, subpath: str = ""):
         response_type=RapidResolverHtmlResponseType.HELP,
         code=308,
         resolved_url=f"{ENSEMBL_URL}/help",
-        rapid_archive_url=construct_rapid_archive_url(request)
+        rapid_archive_url=construct_rapid_archive_url(request),
     )
     return rapid_resolved_response(response, request)
 
@@ -92,7 +102,7 @@ async def resolve_rapid_blast(request: Request):
         response_type=RapidResolverHtmlResponseType.BLAST,
         code=308,
         resolved_url=f"{ENSEMBL_URL}/blast",
-        rapid_archive_url=construct_rapid_archive_url(request)
+        rapid_archive_url=construct_rapid_archive_url(request),
     )
     return rapid_resolved_response(response, request)
 
@@ -111,7 +121,7 @@ async def resolve_species(
             code=308,
             resolved_url=f"{ENSEMBL_URL}/blast",
             species_name=species_url_name,
-            rapid_archive_url=rapid_archive_url
+            rapid_archive_url=rapid_archive_url,
         )
         return rapid_resolved_response(response, request)
 
@@ -125,7 +135,7 @@ async def resolve_species(
                 resolved_url=f"{ENSEMBL_URL}/genome-selector",
                 message="Invalid input accession ID",
                 species_name=species_url_name,
-                rapid_archive_url=rapid_archive_url
+                rapid_archive_url=rapid_archive_url,
             )
             return rapid_resolved_response(input_error_response, request)
 
@@ -159,7 +169,7 @@ async def resolve_species(
             resolved_url=f"{ENSEMBL_URL}/genome-selector",
             message=e.detail,
             species_name=species_url_name,
-            rapid_archive_url=rapid_archive_url
+            rapid_archive_url=rapid_archive_url,
         )
         return rapid_resolved_response(response, request)
     except Exception as e:
@@ -170,7 +180,7 @@ async def resolve_species(
             code=500,
             resolved_url=f"{ENSEMBL_URL}/genome-selector",
             message=str(e),
-            rapid_archive_url=rapid_archive_url
+            rapid_archive_url=rapid_archive_url,
         )
         return rapid_resolved_response(response, request)
 
@@ -181,7 +191,7 @@ async def resolve_home(request: Request):
         response_type=RapidResolverHtmlResponseType.HOME,
         code=308,
         resolved_url=ENSEMBL_URL,
-        rapid_archive_url=construct_rapid_archive_url(request)
+        rapid_archive_url=construct_rapid_archive_url(request),
     )
     return rapid_resolved_response(response, request)
 

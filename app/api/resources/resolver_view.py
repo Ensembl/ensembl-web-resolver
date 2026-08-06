@@ -45,7 +45,7 @@ async def resolve(
                 code=404,
                 message="No results",
                 archive_url=f"{MAIN_ARCHIVE_URL}/id/{quote(stable_id, safe='')}",
-                content=None
+                content=None,
             )
             return HTMLResponse(generate_resolver_id_page(res))
 
@@ -77,9 +77,6 @@ async def resolve(
         if is_json_request(request):
             return response_error_handler({"status": 500, "details": str(e)})
         res = StableIdResolverResponse(
-            stable_id=stable_id,
-            code=500,
-            message=str(e),
-            content=None
+            stable_id=stable_id, code=500, message=str(e), content=None
         )
         return HTMLResponse(generate_resolver_id_page(res))

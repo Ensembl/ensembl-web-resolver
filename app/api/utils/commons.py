@@ -12,8 +12,12 @@ def build_stable_id_resolver_content(metadata_results) -> list[StableIdResolverC
             continue
 
         content = StableIdResolverContent(
-            feature_explorer_url=build_feature_explorer_url(genome_id, metadata['unversioned_stable_id']),
-            genome_browser_url=build_genome_browser_url(genome_id, metadata['unversioned_stable_id']),
+            feature_explorer_url=build_feature_explorer_url(
+                genome_id, metadata["unversioned_stable_id"]
+            ),
+            genome_browser_url=build_genome_browser_url(
+                genome_id, metadata["unversioned_stable_id"]
+            ),
             release_type=metadata.get("release", {}).get("type", ""),
             release_name=metadata.get("release", {}).get("name", ""),
             **metadata,

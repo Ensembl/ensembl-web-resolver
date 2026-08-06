@@ -14,8 +14,7 @@ class TestLegacyUrlMapping(unittest.TestCase):
         self.db_path = f"{self.temp_dir.name}/resolver_mappings.db"
 
         with duckdb.connect(self.db_path) as connection:
-            connection.execute(
-                """
+            connection.execute("""
                     CREATE TABLE legacy_url_path_mappings (
                       source_host TEXT NOT NULL DEFAULT '',
                       source_path TEXT NOT NULL,
@@ -76,8 +75,7 @@ class TestLegacyUrlMapping(unittest.TestCase):
                         'https://beta.ensembl.org',
                         TRUE
                       );
-                """
-            )
+                """)
 
         self.original_db_path = legacy_url_mapping.SPECIES_MAPPING_DB_PATH
         legacy_url_mapping.SPECIES_MAPPING_DB_PATH = self.db_path
@@ -97,18 +95,14 @@ class TestLegacyUrlMapping(unittest.TestCase):
             "https://beta.ensembl.org/tools/blast",
         )
         self.assertEqual(
-            get_static_legacy_url_mapping(
-                "https://www.ensembl.org/Multi/Tools/Blast"
-            ),
+            get_static_legacy_url_mapping("https://www.ensembl.org/Multi/Tools/Blast"),
             "https://beta.ensembl.org/tools/blast",
         )
 
     def test_get_static_mapping_normalizes_path_case_and_trailing_slash(self):
         """Treat case and a final slash as insignificant for exact path matches."""
         self.assertEqual(
-            get_static_legacy_url_mapping(
-                "https://www.ensembl.org/multi/tools/blast/"
-            ),
+            get_static_legacy_url_mapping("https://www.ensembl.org/multi/tools/blast/"),
             "https://beta.ensembl.org/tools/blast",
         )
         self.assertEqual(
@@ -132,9 +126,7 @@ class TestLegacyUrlMapping(unittest.TestCase):
             "https://jun2026.archive.ensembl.org/biomart/martview",
         )
         self.assertEqual(
-            get_static_legacy_url_mapping(
-                "https://fungi.ensembl.org/biomart/martview"
-            ),
+            get_static_legacy_url_mapping("https://fungi.ensembl.org/biomart/martview"),
             "https://eg63-fungi.archive.ensembl.org/biomart/martview",
         )
 
@@ -185,9 +177,7 @@ class TestLegacyUrlMappingSqlSeed(unittest.TestCase):
         self.db_path = f"{self.temp_dir.name}/resolver_mappings.db"
 
         with duckdb.connect(self.db_path) as connection:
-            connection.execute(
-                Path("sql/legacy_url_path_mappings.sql").read_text()
-            )
+            connection.execute(Path("sql/legacy_url_path_mappings.sql").read_text())
 
         self.original_db_path = legacy_url_mapping.SPECIES_MAPPING_DB_PATH
         legacy_url_mapping.SPECIES_MAPPING_DB_PATH = self.db_path

@@ -131,9 +131,7 @@ def _build_location_url(genome_id: str, query_params: dict[str, list[str]]) -> s
     )
 
 
-def _build_gene_browser_url(
-    genome_id: str, query_params: dict[str, list[str]]
-) -> str:
+def _build_gene_browser_url(genome_id: str, query_params: dict[str, list[str]]) -> str:
     """Build a new Ensembl genome browser URL focused on a gene.
 
     Args:
@@ -415,11 +413,9 @@ def _is_info_path(path_segments: tuple[str, ...]) -> bool:
 
 def _is_species_vep_path(path_segments: tuple[str, ...]) -> bool:
     """Check whether a URL uses the legacy species-scoped VEP path."""
-    return (
-        len(path_segments) == 3
-        and tuple(segment.lower() for segment in path_segments[1:])
-        == ("tools", "vep")
-    )
+    return len(path_segments) == 3 and tuple(
+        segment.lower() for segment in path_segments[1:]
+    ) == ("tools", "vep")
 
 
 def _find_species_rule(
