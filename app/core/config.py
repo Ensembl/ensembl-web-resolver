@@ -48,7 +48,7 @@ FAST_MATCH_ENABLED: bool = config("FAST_MATCH_ENABLED", cast=bool, default=True)
 FAST_MATCH_DB_PATH: str = config("FAST_MATCH_DB_PATH", cast=str, default="")
 DEFAULT_APP = config("DEFAULT_APP", cast=str, default="feature-explorer")
 ENSEMBL_URL = config("ENSEMBL_URL", cast=str, default="https://beta.ensembl.org")
-STATIC_PATH = config("STATIC_PATH", cast=str, default="/static")
+STATIC_PATH = config("STATIC_PATH", cast=str, default="/resolver-static")
 RAPID_ARCHIVE_URL = config(
     "RAPID_ARCHIVE_URL", cast=str, default="https://rapid-archive.ensembl.org"
 )

@@ -1,5 +1,5 @@
--- TODO: remove all staging host and replace them with the proper production Ensembl hosts once we're ready for the switch. 
--- This will require a new migration to update the existing mappings in the database.
+-- Support both staging and production legacy Ensembl hosts.
+-- on the day of the switch to www, we replace beta.ensembl.org with www.ensembl.org
 
 CREATE TABLE IF NOT EXISTS legacy_url_path_mappings (
   source_host TEXT NOT NULL DEFAULT '',
@@ -25,7 +25,19 @@ VALUES
     TRUE
   ),
   (
+    'www.ensembl.org',
+    '/biomart/martview',
+    'https://jun2026.archive.ensembl.org/biomart/martview',
+    TRUE
+  ),
+  (
     'staging-plants.ensembl.org',
+    '/biomart/martview',
+    'https://eg63-plants.archive.ensembl.org/biomart/martview',
+    TRUE
+  ),
+  (
+    'plants.ensembl.org',
     '/biomart/martview',
     'https://eg63-plants.archive.ensembl.org/biomart/martview',
     TRUE
@@ -37,7 +49,19 @@ VALUES
     TRUE
   ),
   (
+    'fungi.ensembl.org',
+    '/biomart/martview',
+    'https://eg63-fungi.archive.ensembl.org/biomart/martview',
+    TRUE
+  ),
+  (
     'staging-protists.ensembl.org',
+    '/biomart/martview',
+    'https://eg63-protists.archive.ensembl.org/biomart/martview',
+    TRUE
+  ),
+  (
+    'protists.ensembl.org',
     '/biomart/martview',
     'https://eg63-protists.archive.ensembl.org/biomart/martview',
     TRUE
@@ -88,9 +112,14 @@ INSERT OR REPLACE INTO legacy_url_host_mappings (
   enabled
 )
 VALUES
-  -- Map all divisions to the new Ensembl
+  -- Map divisions to the new Ensembl.
   (
     'staging-plants.ensembl.org',
+    'https://beta.ensembl.org',
+    TRUE
+  ),
+  (
+    'plants.ensembl.org',
     'https://beta.ensembl.org',
     TRUE
   ),
@@ -100,7 +129,17 @@ VALUES
     TRUE
   ),
   (
+    'metazoa.ensembl.org',
+    'https://beta.ensembl.org',
+    TRUE
+  ),
+  (
     'staging-fungi.ensembl.org',
+    'https://beta.ensembl.org',
+    TRUE
+  ),
+  (
+    'fungi.ensembl.org',
     'https://beta.ensembl.org',
     TRUE
   ),
@@ -110,7 +149,17 @@ VALUES
     TRUE
   ),
   (
+    'bacteria.ensembl.org',
+    'https://beta.ensembl.org',
+    TRUE
+  ),
+  (
     'staging-protists.ensembl.org',
+    'https://beta.ensembl.org',
+    TRUE
+  ),
+  (
+    'protists.ensembl.org',
     'https://beta.ensembl.org',
     TRUE
   );
