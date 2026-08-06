@@ -122,8 +122,10 @@ Fallback:
   environment:
     name: fallback
   variables:
-    AGENT: ${FALLABACK_AGENT}
+    AGENT: ${FALLBACK_AGENT}
     NS: ${FALLBACK_NS}
+    NFS_SERVER: ${HX_NFS_SERVER_CODON}
+    NFS_PATH: ${HX_NFS_PATH_CODON}
 
 # Dev: dev-2020.ensembl.org
 Dev:
