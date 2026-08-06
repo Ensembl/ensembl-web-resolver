@@ -361,6 +361,35 @@ class TestUrlResolver(unittest.TestCase):
         self.mock_genome_tag_lookup.assert_called_once_with(self.genome_uuid)
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_location_genome_with_region(self, mock_species_lookup):
+        """Resolve Location/Genome URLs with a region to genome browser focus."""
+        mock_species_lookup.return_value = self.genome_uuid
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": (
+                    "https://staging.ensembl.org/Mus_musculus/Location/Genome"
+                    "?db=core;r=11:101061349-101082747"
+                )
+            },
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "resolved_url": (
+                    f"{ENSEMBL_URL}/genome-browser/{self.genome_tag}"
+                    "?focus=location:11:101061349-101082747"
+                    "&location=11:101061349-101082747"
+                )
+            },
+        )
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_location_view_with_semicolon_query(self, mock_species_lookup):
         """Resolve old-style semicolon-delimited query strings."""
         mock_species_lookup.return_value = self.genome_uuid

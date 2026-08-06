@@ -276,6 +276,7 @@ def _resolve_variant_url(
 # misleading redirect.
 SUPPORTED_SPECIES_RULES = (
     LegacyUrlRule(("Info", "Index"), (), _build_species_url),
+    LegacyUrlRule(("Location", "Genome"), ("r",), _build_location_url),
     LegacyUrlRule(("Location", "Genome"), (), _build_species_url),
     LegacyUrlRule(("Location", "View"), ("r",), _build_location_url),
     LegacyUrlRule(("Location", "View"), ("g",), _build_gene_browser_url),
