@@ -284,7 +284,6 @@ SUPPORTED_SPECIES_RULES = (
     LegacyUrlRule(("Gene", "Summary"), ("g",), _build_gene_feature_explorer_url),
     LegacyUrlRule(("Gene", "Sequence"), ("g",), _build_gene_feature_explorer_url),
     LegacyUrlRule(("Gene", "Expression"), ("g",), _build_gene_feature_explorer_url),
-    LegacyUrlRule(("Gene", "Phenotype"), ("g",), _build_gene_feature_explorer_url),
     LegacyUrlRule(
         ("Transcript", "Summary"), ("t",), _build_transcript_feature_explorer_url
     ),
@@ -466,11 +465,11 @@ def resolve_legacy_ensembl_url(
         UnsupportedLegacyUrlError: If no supported mapping exists.
 
     Business rules:
-        Generic ``/info`` URLs are redirected to their archive equivalent before
-        static mappings. Static host/path mappings are then checked before
-        species-aware mappings. Static mappings represent explicit product
-        decisions for legacy pages that do not follow the species-scoped URL
-        shapes handled below.
+        Generic ``/info`` URLs are redirected to their archive equivalents
+        before static mappings. Static host/path mappings are then checked
+        before species-aware mappings. Static mappings represent explicit
+        product decisions for legacy pages that do not follow the
+        species-scoped URL shapes handled below.
     """
     parsed_url = urlparse(legacy_url)
     path_segments = _normalise_path(parsed_url.path)

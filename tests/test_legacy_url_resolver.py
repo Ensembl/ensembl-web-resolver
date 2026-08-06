@@ -170,6 +170,45 @@ class TestUrlResolver(unittest.TestCase):
         self.mock_genome_tag_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_gene_phenotype_paths_with_html_interstitial(
+        self, mock_species_lookup
+    ):
+        """Offer new Ensembl and archive choices for gene phenotype pages."""
+        test_cases = [
+            (
+                "https://staging.ensembl.org/Homo_sapiens/Gene/Phenotype"
+                "?g=ENSG00000012048",
+                "https://jun2026.archive.ensembl.org/Homo_sapiens/Gene/Phenotype"
+                "?g=ENSG00000012048",
+            ),
+            (
+                "https://staging-plants.ensembl.org/Triticum_aestivum/Gene/Phenotype"
+                "?g=TraesCS3D02G273600",
+                "https://eg63-plants.ensembl.org/Triticum_aestivum/Gene/Phenotype"
+                "?g=TraesCS3D02G273600",
+            ),
+        ]
+
+        for legacy_url, expected_url in test_cases:
+            with self.subTest(legacy_url=legacy_url):
+                self.mock_static_mapping.reset_mock()
+                mock_species_lookup.reset_mock()
+
+                response = self.client.get(
+                    self.mock_url_resolver_api_url,
+                    params={"url": legacy_url},
+                    follow_redirects=False,
+                )
+
+                self.assertEqual(response.status_code, 404)
+                self.assertNotIn("location", response.headers)
+                self.assertIn("This page could not be resolved", response.text)
+                self.assertIn(f"{ENSEMBL_URL}/genome-selector", response.text)
+                self.assertIn(expected_url, response.text)
+                mock_species_lookup.assert_not_called()
+                self.mock_genome_tag_lookup.assert_not_called()
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_info_unknown_host_does_not_redirect(self, mock_species_lookup):
         """Return an error for unknown info hosts instead of guessing an archive."""
         response = self.client.get(
@@ -451,7 +490,7 @@ class TestUrlResolver(unittest.TestCase):
         """Resolve supported gene pages to the new Ensembl feature explorer."""
         mock_species_lookup.return_value = self.genome_uuid
 
-        for page in ("Sequence", "Expression", "Phenotype"):
+        for page in ("Sequence", "Expression"):
             with self.subTest(page=page):
                 response = self.client.get(
                     self.mock_url_resolver_api_url,
