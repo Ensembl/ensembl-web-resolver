@@ -188,21 +188,6 @@ def _build_gene_feature_explorer_url(
     )
 
 
-def _build_gene_homology_url(
-    genome_id: str, query_params: dict[str, list[str]]
-) -> str:
-    """Build a new Ensembl feature explorer URL with the homology view selected.
-
-    Args:
-        genome_id: New Ensembl target genome identifier.
-        query_params: Parsed legacy query parameters containing ``g``.
-
-    Returns:
-        The resolved new Ensembl feature explorer homology URL.
-    """
-    return f"{_build_gene_feature_explorer_url(genome_id, query_params)}?view=homology"
-
-
 def _build_transcript_feature_explorer_url(
     genome_id: str, query_params: dict[str, list[str]]
 ) -> str:
@@ -303,8 +288,6 @@ SUPPORTED_SPECIES_RULES = (
     LegacyUrlRule(
         ("Transcript", "ProteinSummary"), ("t",), _build_transcript_protein_url
     ),
-    LegacyUrlRule(("Gene", "Compara_Ortholog"), ("g",), _build_gene_homology_url),
-    LegacyUrlRule(("Gene", "Compara_Paralog"), ("g",), _build_gene_homology_url),
 )
 
 

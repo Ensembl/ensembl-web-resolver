@@ -209,6 +209,49 @@ class TestUrlResolver(unittest.TestCase):
                 self.mock_genome_tag_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_gene_compara_paths_with_html_interstitial(
+        self, mock_species_lookup
+    ):
+        """Offer new Ensembl and archive choices for legacy Compara pages."""
+        archive_hosts = [
+            ("staging.ensembl.org", "jun2026.archive.ensembl.org"),
+            ("staging-plants.ensembl.org", "eg63-plants.ensembl.org"),
+            ("staging-metazoa.ensembl.org", "eg63-metazoa.ensembl.org"),
+            ("staging-fungi.ensembl.org", "eg63-fungi.ensembl.org"),
+            ("staging-protists.ensembl.org", "eg63-protists.ensembl.org"),
+            ("staging-bacteria.ensembl.org", "eg63-bacteria.ensembl.org"),
+        ]
+
+        for page in ("Compara_Ortholog", "Compara_Paralog"):
+            for source_host, archive_host in archive_hosts:
+                with self.subTest(page=page, source_host=source_host):
+                    mock_species_lookup.reset_mock()
+                    response = self.client.get(
+                        self.mock_url_resolver_api_url,
+                        params={
+                            "url": (
+                                f"https://{source_host}/Homo_sapiens/Gene/{page}"
+                                "?g=ENSG00000012048"
+                            )
+                        },
+                        follow_redirects=False,
+                    )
+
+                    self.assertEqual(response.status_code, 404)
+                    self.assertNotIn("location", response.headers)
+                    self.assertIn("This page could not be resolved", response.text)
+                    self.assertIn(f"{ENSEMBL_URL}/genome-selector", response.text)
+                    self.assertIn(
+                        (
+                            f"https://{archive_host}/Homo_sapiens/Gene/{page}"
+                            "?g=ENSG00000012048"
+                        ),
+                        response.text,
+                    )
+                    mock_species_lookup.assert_not_called()
+                    self.mock_genome_tag_lookup.assert_not_called()
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_species_scoped_blast_to_blast_tool(self, mock_species_lookup):
         """Resolve legacy species-scoped BLAST URLs to the shared BLAST tool."""
         mock_species_lookup.return_value = self.genome_uuid
