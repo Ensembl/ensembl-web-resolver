@@ -8,7 +8,9 @@ stages:
 variables:
   DOCKER_TLS_CERTDIR: ""
   DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}
-  BASE: k8s/base
+  BASE: ensembl-k8s-manifests/ensembl-web-resolver
+  NFS_SERVER: ${HL_NFS_SERVER_CODON}
+  NFS_PATH: ${HL_NFS_PATH_CODON}
 
 # Template to build docker image
 .build:
@@ -29,22 +31,23 @@ variables:
     - docker logout $CI_REGISTRY
 
   rules:
-    - if: '$CI_DEPLOY_FREEZE == null'
+    - if: "$CI_DEPLOY_FREEZE == null"
 
 .deploy:
   stage: deploy
   image: dockerhub.ebi.ac.uk/ensembl-web/deploy-tools:latest
   before_script:
     - kubectl config use-context ${AGENT}
-    - kubectl config set-context --current --namespace=${NS}  
+    - kubectl config set-context --current --namespace=${NS}
   script:
     - git clone https://gitlab.ebi.ac.uk/ensembl-web/ensembl-k8s-manifests.git
     - git -C ensembl-k8s-manifests/ checkout k8s123-migration
+    - sed -i "s#<NFS_SERVER>#${NFS_SERVER}#g" ${BASE}/deployment.yaml
+    - sed -i "s#<NFS_PATH>#${NFS_PATH}#g" ${BASE}/deployment.yaml
     - cd ensembl-k8s-manifests/ensembl-web-resolver
     - kustomize edit set image DOCKER_IMAGE=${DOCKER_IMAGE}
     - kubectl apply -k ./
 
-  
 .deploy_rules:
   rules:
     - if: '$CI_DEPLOY_FREEZE == null && $CI_COMMIT_BRANCH == "main"'
@@ -66,8 +69,6 @@ Prod:
     AGENT: ${PROD_AGENT}
     NS: ${PROD_NS}
 
-
-
 # Setup Review app in its own namespace named by branch name (CI_COMMIT_REF_SLUG)
 Setup:Review:
   stage: setup
@@ -78,9 +79,9 @@ Setup:Review:
     - kubectl create namespace ${CI_COMMIT_REF_SLUG} --dry-run=client -o yaml | kubectl apply -f -
     - kubectl create configmap metadata-api-configmap --from-env-file=.env.sample --dry-run=client -o yaml | kubectl apply -f -
   rules:
-    - if: $CI_PIPELINE_SOURCE == "push" && 
-          $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000" && 
-          $CI_COMMIT_REF_NAME !~  "/^nodeploy\/.*$/"
+    - if: $CI_PIPELINE_SOURCE == "push" &&
+        $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000" &&
+        $CI_COMMIT_REF_NAME !~  "/^nodeploy\/.*$/"
       when: always
 
 # Run Tests
@@ -115,23 +116,24 @@ Review:
 
 #Prod:WP41:HX:
 Fallback:
-  extends: 
+  extends:
     - .deploy
     - .deploy_rules
   environment:
     name: fallback
   variables:
-    AGENT: ${FALLABACK_AGENT}
+    AGENT: ${FALLBACK_AGENT}
     NS: ${FALLBACK_NS}
-
+    NFS_SERVER: ${HX_NFS_SERVER_CODON}
+    NFS_PATH: ${HX_NFS_PATH_CODON}
 
 # Dev: dev-2020.ensembl.org
 Dev:
-  extends: 
+  extends:
     - .deploy
     - .deploy_rules
   environment:
     name: development
-  variables: 
+  variables:
     AGENT: ${DEV_AGENT}
     NS: ${DEV_NS}
