@@ -104,6 +104,15 @@ def _build_species_url(genome_id: str, query_params: dict[str, list[str]]) -> st
     return f"{ENSEMBL_URL}/genome/{_quote_url_part(genome_id)}"
 
 
+def _build_blast_url(genome_id: str, query_params: dict[str, list[str]]) -> str:
+    """Build the new Ensembl BLAST tool URL.
+
+    Legacy species-scoped BLAST URLs identify the originating species in their
+    path, but the new BLAST tool is shared across genomes.
+    """
+    return f"{ENSEMBL_URL}/tools/blast"
+
+
 def _build_location_url(genome_id: str, query_params: dict[str, list[str]]) -> str:
     """Build a new Ensembl genome browser URL focused on a genomic location.
 
@@ -276,6 +285,7 @@ def _resolve_variant_url(
 # misleading redirect.
 SUPPORTED_SPECIES_RULES = (
     LegacyUrlRule(("Info", "Index"), (), _build_species_url),
+    LegacyUrlRule(("Multi", "Tools", "Blast"), (), _build_blast_url),
     LegacyUrlRule(("Location", "Genome"), ("r",), _build_location_url),
     LegacyUrlRule(("Location", "Genome"), (), _build_species_url),
     LegacyUrlRule(("Location", "View"), ("r",), _build_location_url),

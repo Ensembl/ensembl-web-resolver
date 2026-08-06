@@ -209,6 +209,26 @@ class TestUrlResolver(unittest.TestCase):
                 self.mock_genome_tag_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_species_scoped_blast_to_blast_tool(self, mock_species_lookup):
+        """Resolve legacy species-scoped BLAST URLs to the shared BLAST tool."""
+        mock_species_lookup.return_value = self.genome_uuid
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": "https://staging.ensembl.org/Homo_sapiens/Multi/Tools/Blast"
+            },
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(), {"resolved_url": f"{ENSEMBL_URL}/tools/blast"}
+        )
+        mock_species_lookup.assert_called_once_with("Homo_sapiens")
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_info_unknown_host_does_not_redirect(self, mock_species_lookup):
         """Return an error for unknown info hosts instead of guessing an archive."""
         response = self.client.get(
