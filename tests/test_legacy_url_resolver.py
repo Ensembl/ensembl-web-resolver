@@ -707,14 +707,14 @@ class TestUrlResolver(unittest.TestCase):
             response.json(),
             {
                 "resolved_url": (
-                    f"{ENSEMBL_URL}/feature-explorer/{self.assembly_accession_id}"
+                    f"{ENSEMBL_URL}/feature-explorer/{self.genome_tag}"
                     "/variant:7:24399036:rs99?allele=0"
                 )
             },
         )
         mock_species_lookup.assert_called_once_with("Homo_sapiens")
         self.mock_variant_search.assert_called_once_with(self.genome_uuid, "rs99")
-        self.mock_assembly_accession_lookup.assert_called_once_with(self.genome_uuid)
+        self.mock_genome_tag_lookup.assert_called_once_with(self.genome_uuid)
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_variation_mappings(self, mock_species_lookup):
@@ -741,13 +741,13 @@ class TestUrlResolver(unittest.TestCase):
             response.json(),
             {
                 "resolved_url": (
-                    f"{ENSEMBL_URL}/feature-explorer/{self.assembly_accession_id}"
+                    f"{ENSEMBL_URL}/feature-explorer/{self.genome_tag}"
                     "/variant:7:24399036:rs99?allele=0&view=transcript-consequences"
                 )
             },
         )
         self.mock_variant_search.assert_called_once_with(self.genome_uuid, "rs99")
-        self.mock_assembly_accession_lookup.assert_called_once_with(self.genome_uuid)
+        self.mock_genome_tag_lookup.assert_called_once_with(self.genome_uuid)
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_variation_population(self, mock_species_lookup):
@@ -774,11 +774,12 @@ class TestUrlResolver(unittest.TestCase):
             response.json(),
             {
                 "resolved_url": (
-                    f"{ENSEMBL_URL}/feature-explorer/{self.assembly_accession_id}"
+                    f"{ENSEMBL_URL}/feature-explorer/{self.genome_tag}"
                     "/variant:7:24399036:rs99?allele=0&view=allele-frequencies"
                 )
             },
         )
+        self.mock_genome_tag_lookup.assert_called_once_with(self.genome_uuid)
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_variation_explore_requires_variant_id(self, mock_species_lookup):
@@ -795,7 +796,7 @@ class TestUrlResolver(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         mock_species_lookup.assert_not_called()
         self.mock_variant_search.assert_not_called()
-        self.mock_assembly_accession_lookup.assert_not_called()
+        self.mock_genome_tag_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_variation_explore_returns_404_when_not_found(
@@ -815,7 +816,7 @@ class TestUrlResolver(unittest.TestCase):
 
         self.assertEqual(response.status_code, 404)
         self.mock_variant_search.assert_called_once_with(self.genome_uuid, "rs99")
-        self.mock_assembly_accession_lookup.assert_not_called()
+        self.mock_genome_tag_lookup.assert_not_called()
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_missing_required_query_parameter(self, mock_species_lookup):
