@@ -394,6 +394,30 @@ def build_archive_fallback_url(
     )
 
 
+def build_archive_vep_url(legacy_url: str, path_segments: tuple[str, ...]) -> str:
+    """Build the archive equivalent of a species-scoped legacy VEP URL.
+
+    Both the legacy and archive sites use ``/<species>/Tools/VEP``. Query
+    strings and fragments are preserved while the host is switched to the
+    relevant archive.
+    """
+    parsed_url = urlparse(legacy_url)
+    archive_host = ARCHIVE_HOSTS.get((parsed_url.hostname or "").lower())
+    if archive_host is None:
+        raise UnsupportedLegacyUrlError("No archive fallback configured for this URL")
+
+    return urlunparse(
+        (
+            "https",
+            archive_host,
+            f"/{path_segments[0]}/Tools/VEP",
+            "",
+            parsed_url.query,
+            parsed_url.fragment,
+        )
+    )
+
+
 def _is_info_path(path_segments: tuple[str, ...]) -> bool:
     """Check whether a parsed legacy path points under ``/info``.
 
@@ -404,6 +428,15 @@ def _is_info_path(path_segments: tuple[str, ...]) -> bool:
         ``True`` for ``/info`` and all URLs below it, case-insensitively.
     """
     return bool(path_segments) and path_segments[0].lower() == "info"
+
+
+def _is_species_vep_path(path_segments: tuple[str, ...]) -> bool:
+    """Check whether a URL uses the legacy species-scoped VEP path."""
+    return (
+        len(path_segments) == 3
+        and tuple(segment.lower() for segment in path_segments[1:])
+        == ("tools", "vep")
+    )
 
 
 def _find_species_rule(
@@ -475,11 +508,11 @@ def resolve_legacy_ensembl_url(
         UnsupportedLegacyUrlError: If no supported mapping exists.
 
     Business rules:
-        Generic ``/info`` URLs are redirected to their archive equivalents
-        before static mappings. Static host/path mappings are then checked
-        before species-aware mappings. Static mappings represent explicit
-        product decisions for legacy pages that do not follow the
-        species-scoped URL shapes handled below.
+        Generic ``/info`` URLs and species-scoped VEP URLs are redirected to
+        their archive equivalents before static mappings. Static host/path
+        mappings are then checked before species-aware mappings. Static
+        mappings represent explicit product decisions for legacy pages that do
+        not follow the species-scoped URL shapes handled below.
     """
     parsed_url = urlparse(legacy_url)
     path_segments = _normalise_path(parsed_url.path)
@@ -488,6 +521,9 @@ def resolve_legacy_ensembl_url(
     # them to the matching archive host before static mappings can claim them.
     if _is_info_path(path_segments):
         return build_archive_fallback_url(legacy_url, path_segments)
+
+    if _is_species_vep_path(path_segments):
+        return build_archive_vep_url(legacy_url, path_segments)
 
     # Static mappings cover explicit product decisions for hostnames and
     # non-species legacy paths, for example tools and search pages.

@@ -229,6 +229,51 @@ class TestUrlResolver(unittest.TestCase):
         mock_species_lookup.assert_called_once_with("Homo_sapiens")
 
     @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_species_scoped_vep_to_division_archive(
+        self, mock_species_lookup
+    ):
+        """Resolve species-scoped VEP URLs to the matching division archive."""
+        test_cases = [
+            ("staging.ensembl.org", "jun2026.archive.ensembl.org"),
+            ("staging-plants.ensembl.org", "eg63-plants.ensembl.org"),
+            ("staging-metazoa.ensembl.org", "eg63-metazoa.ensembl.org"),
+            ("staging-fungi.ensembl.org", "eg63-fungi.ensembl.org"),
+            ("staging-protists.ensembl.org", "eg63-protists.ensembl.org"),
+            ("staging-bacteria.ensembl.org", "eg63-bacteria.ensembl.org"),
+        ]
+
+        for source_host, archive_host in test_cases:
+            with self.subTest(source_host=source_host):
+                self.mock_static_mapping.reset_mock()
+                mock_species_lookup.reset_mock()
+
+                response = self.client.get(
+                    self.mock_url_resolver_api_url,
+                    params={
+                        "url": (
+                            f"https://{source_host}/Homo_sapiens/Tools/VEP"
+                            "?foo=bar#content"
+                        )
+                    },
+                    headers={"accept": "application/json"},
+                    follow_redirects=False,
+                )
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(
+                    response.json(),
+                    {
+                        "resolved_url": (
+                            f"https://{archive_host}/Homo_sapiens/Tools/VEP"
+                            "?foo=bar#content"
+                        )
+                    },
+                )
+                self.mock_static_mapping.assert_not_called()
+                mock_species_lookup.assert_not_called()
+                self.mock_genome_tag_lookup.assert_not_called()
+
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
     def test_resolve_info_unknown_host_does_not_redirect(self, mock_species_lookup):
         """Return an error for unknown info hosts instead of guessing an archive."""
         response = self.client.get(
