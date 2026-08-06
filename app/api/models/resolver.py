@@ -99,5 +99,6 @@ class StableIdResolverResponse(BaseModel):
     stable_id: str
     code: int | None = None
     message: str | None = None
+    archive_url: str | None = None
     rapid_archive_url: str | None = None
     content: list[StableIdResolverContent] | None = None

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request
 from typing import Optional, Literal
 from fastapi.responses import RedirectResponse, HTMLResponse
 from starlette.concurrency import run_in_threadpool
+from urllib.parse import quote
 import logging
 
 from app.api.error_response import response_error_handler
@@ -10,12 +11,14 @@ from app.api.utils.commons import build_stable_id_resolver_content, is_json_requ
 from app.api.utils.metadata import get_metadata
 from app.api.utils.resolver import generate_resolver_id_page
 from app.api.utils.search import get_search_results
+from app.api.utils.legacy_url_resolver import ARCHIVE_HOSTS
 from app.core.config import DEFAULT_APP
 from app.core.logging import InterceptHandler
 
 logging.getLogger().handlers = [InterceptHandler()]
 
 router = APIRouter()
+MAIN_ARCHIVE_URL = f"https://{ARCHIVE_HOSTS['staging.ensembl.org']}"
 
 
 @router.get("/{stable_id}", name="Resolver")
@@ -41,6 +44,7 @@ async def resolve(
                 stable_id=stable_id,
                 code=404,
                 message="No results",
+                archive_url=f"{MAIN_ARCHIVE_URL}/id/{quote(stable_id, safe='')}",
                 content=None
             )
             return HTMLResponse(generate_resolver_id_page(res))

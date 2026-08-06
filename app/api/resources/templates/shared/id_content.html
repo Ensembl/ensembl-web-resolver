@@ -11,6 +11,9 @@
                 {{ response.message }}
             </div>
             {{ url_helper.render_url("Go to", "https://beta.ensembl.org/genome-selector") }}
+            {% if response.archive_url %}
+                {{ url_helper.render_url("Go to archive", response.archive_url) }}
+            {% endif %}
         {% else %}
             {% for item in response.content %}
                 <div class="genome-detail-container"

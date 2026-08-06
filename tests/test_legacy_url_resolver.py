@@ -1088,6 +1088,27 @@ class TestUrlResolver(unittest.TestCase):
         self.assertIn(f"{STATIC_PATH}/css/styles.css", response.text)
         mock_species_lookup.assert_called_once_with("foo")
 
+    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    def test_resolve_unknown_stable_id_with_html_interstitial(
+        self, mock_species_lookup
+    ):
+        """Offer the archive stable-ID URL when a legacy ID cannot be resolved."""
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={"url": "https://staging.ensembl.org/id/foo"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertNotIn("location", response.headers)
+        self.assertIn("This page could not be resolved", response.text)
+        self.assertIn(f"{ENSEMBL_URL}/genome-selector", response.text)
+        self.assertIn(
+            "https://jun2026.archive.ensembl.org/id/foo", response.text
+        )
+        self.mock_genome_tag_lookup.assert_not_called()
+        mock_species_lookup.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
