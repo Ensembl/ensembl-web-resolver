@@ -6,7 +6,12 @@ from fastapi import Request
 import requests
 import re
 
-from app.core.config import NCBI_DATASETS_URL, ENSEMBL_URL, RAPID_ARCHIVE_URL, STATIC_PATH
+from app.core.config import (
+    NCBI_DATASETS_URL,
+    ENSEMBL_URL,
+    RAPID_ARCHIVE_URL,
+    STATIC_PATH,
+)
 
 
 def get_assembly_accession_from_ncbi(accession_id: str):

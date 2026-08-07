@@ -34,7 +34,7 @@ class TestRapid(unittest.TestCase):
             "genome1": f"{ENSEMBL_URL}/genome/genome_uuid1",
             "genome2": f"{ENSEMBL_URL}/genome/xyz",
         }
-    
+
     # Test rapid home page
     def test_rapid_home_success(self):
         # test with accept header for JSON response
@@ -46,7 +46,7 @@ class TestRapid(unittest.TestCase):
         self.assertEqual(response.status_code, 200)  # OK
         self.assertEqual(
             response.json(),
-            RapidResolverResponse(resolved_url=ENSEMBL_URL).model_dump(mode='json')
+            RapidResolverResponse(resolved_url=ENSEMBL_URL).model_dump(mode="json"),
         )
 
     def test_rapid_home_html_uses_configured_static_path(self):
@@ -56,7 +56,7 @@ class TestRapid(unittest.TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(f'{STATIC_PATH}/css/styles.css', response.text)
+        self.assertIn(f"{STATIC_PATH}/css/styles.css", response.text)
 
     # Test rapid help page
     def test_rapid_help_success(self):
@@ -69,9 +69,10 @@ class TestRapid(unittest.TestCase):
         self.assertEqual(response.status_code, 200)  # OK
         self.assertEqual(
             response.json(),
-            RapidResolverResponse(resolved_url=f"{ENSEMBL_URL}/help").model_dump(mode='json')
+            RapidResolverResponse(resolved_url=f"{ENSEMBL_URL}/help").model_dump(
+                mode="json"
+            ),
         )
-
 
     # Test rapid blast page
     def test_rapid_blast_success(self):
@@ -84,7 +85,9 @@ class TestRapid(unittest.TestCase):
         self.assertEqual(response1.status_code, 200)
         self.assertEqual(
             response1.json(),
-            RapidResolverResponse(resolved_url=f"{ENSEMBL_URL}/blast").model_dump(mode='json')
+            RapidResolverResponse(resolved_url=f"{ENSEMBL_URL}/blast").model_dump(
+                mode="json"
+            ),
         )
 
         response2 = self.client.get(
@@ -95,9 +98,10 @@ class TestRapid(unittest.TestCase):
         self.assertEqual(response2.status_code, 200)
         self.assertEqual(
             response2.json(),
-            RapidResolverResponse(resolved_url=f"{ENSEMBL_URL}/blast").model_dump(mode='json')
+            RapidResolverResponse(resolved_url=f"{ENSEMBL_URL}/blast").model_dump(
+                mode="json"
+            ),
         )
-
 
     # Test species home page
     @patch("app.api.resources.rapid_view.get_genome_id_from_assembly_accession_id")
@@ -117,10 +121,11 @@ class TestRapid(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)  # OK
         self.assertEqual(
-            response.json(), 
-            RapidResolverResponse(resolved_url = self.mock_resolved_url["genome1"]).model_dump(mode='json')
+            response.json(),
+            RapidResolverResponse(
+                resolved_url=self.mock_resolved_url["genome1"]
+            ).model_dump(mode="json"),
         )
-
 
     # Test Region in detail page
     @patch("app.api.resources.rapid_view.get_genome_id_from_assembly_accession_id")
@@ -141,8 +146,10 @@ class TestRapid(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)  # OK
         self.assertEqual(
-            response.json(), 
-            RapidResolverResponse(resolved_url = f"{ENSEMBL_URL}/genome-browser/genome_uuid1?focus=location:1:1000-2000").model_dump(mode='json')
+            response.json(),
+            RapidResolverResponse(
+                resolved_url=f"{ENSEMBL_URL}/genome-browser/genome_uuid1?focus=location:1:1000-2000"
+            ).model_dump(mode="json"),
         )
 
     # Test Gene pages
@@ -167,7 +174,7 @@ class TestRapid(unittest.TestCase):
             response.json(),
             RapidResolverResponse(
                 resolved_url=f"{ENSEMBL_URL}/feature-explorer/genome_uuid1/gene:GENE123?view=homology"
-            ).model_dump(mode='json'),
+            ).model_dump(mode="json"),
         )
 
     # Test 404
@@ -185,7 +192,10 @@ class TestRapid(unittest.TestCase):
 
     # Test invalid url entity
     def test_rapid_species_422_unprocessable_entity(self):
-        response = self.client.get(f"{self.mock_rapid_api_url}/Invalid_Name/", headers={"accept": "application/json"},)
+        response = self.client.get(
+            f"{self.mock_rapid_api_url}/Invalid_Name/",
+            headers={"accept": "application/json"},
+        )
         self.assertEqual(response.status_code, 422)
 
     # Test POST
@@ -215,14 +225,14 @@ class TestRapid(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 500)
 
-
     @patch("app.api.resources.rapid_view.get_search_results")
     def test_rapid_id_resolve_404(self, mock_get_search_results):
 
         mock_get_search_results.return_value = {}
 
         response = self.client.get(
-            f"{self.mock_rapid_api_url}/id/{self.stable_id}", follow_redirects=False,
-            headers = {"accept": "application/json"}
+            f"{self.mock_rapid_api_url}/id/{self.stable_id}",
+            follow_redirects=False,
+            headers={"accept": "application/json"},
         )
         self.assertEqual(response.status_code, 404)

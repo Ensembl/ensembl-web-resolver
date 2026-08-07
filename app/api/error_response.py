@@ -32,16 +32,12 @@ def http_unknown_error(result):
 
 
 def http_400_bad_request(details="Bad Request"):
-    response_msg = json.dumps(
-        {"status_code": HTTP_400_BAD_REQUEST, "details": details}
-    )
+    response_msg = json.dumps({"status_code": HTTP_400_BAD_REQUEST, "details": details})
     return PlainTextResponse(response_msg, status_code=HTTP_400_BAD_REQUEST)
 
 
 def http_404_not_found(details="Not Found"):
-    response_msg = json.dumps(
-        {"status_code": HTTP_404_NOT_FOUND, "details": details}
-    )
+    response_msg = json.dumps({"status_code": HTTP_404_NOT_FOUND, "details": details})
     return PlainTextResponse(response_msg, status_code=HTTP_404_NOT_FOUND)
 
 

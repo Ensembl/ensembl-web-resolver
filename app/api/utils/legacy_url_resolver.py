@@ -104,6 +104,15 @@ def _build_species_url(genome_id: str, query_params: dict[str, list[str]]) -> st
     return f"{ENSEMBL_URL}/genome/{_quote_url_part(genome_id)}"
 
 
+def _build_blast_url(genome_id: str, query_params: dict[str, list[str]]) -> str:
+    """Build the new Ensembl BLAST tool URL.
+
+    Legacy species-scoped BLAST URLs identify the originating species in their
+    path, but the new BLAST tool is shared across genomes.
+    """
+    return f"{ENSEMBL_URL}/tools/blast"
+
+
 def _build_location_url(genome_id: str, query_params: dict[str, list[str]]) -> str:
     """Build a new Ensembl genome browser URL focused on a genomic location.
 
@@ -122,9 +131,7 @@ def _build_location_url(genome_id: str, query_params: dict[str, list[str]]) -> s
     )
 
 
-def _build_gene_browser_url(
-    genome_id: str, query_params: dict[str, list[str]]
-) -> str:
+def _build_gene_browser_url(genome_id: str, query_params: dict[str, list[str]]) -> str:
     """Build a new Ensembl genome browser URL focused on a gene.
 
     Args:
@@ -177,21 +184,6 @@ def _build_gene_feature_explorer_url(
         f"{ENSEMBL_URL}/feature-explorer/{_quote_url_part(genome_id)}"
         f"/gene:{_quote_url_part(gene_id)}"
     )
-
-
-def _build_gene_homology_url(
-    genome_id: str, query_params: dict[str, list[str]]
-) -> str:
-    """Build a new Ensembl feature explorer URL with the homology view selected.
-
-    Args:
-        genome_id: New Ensembl target genome identifier.
-        query_params: Parsed legacy query parameters containing ``g``.
-
-    Returns:
-        The resolved new Ensembl feature explorer homology URL.
-    """
-    return f"{_build_gene_feature_explorer_url(genome_id, query_params)}?view=homology"
 
 
 def _build_transcript_feature_explorer_url(
@@ -276,6 +268,8 @@ def _resolve_variant_url(
 # misleading redirect.
 SUPPORTED_SPECIES_RULES = (
     LegacyUrlRule(("Info", "Index"), (), _build_species_url),
+    LegacyUrlRule(("Multi", "Tools", "Blast"), (), _build_blast_url),
+    LegacyUrlRule(("Location", "Genome"), ("r",), _build_location_url),
     LegacyUrlRule(("Location", "Genome"), (), _build_species_url),
     LegacyUrlRule(("Location", "View"), ("r",), _build_location_url),
     LegacyUrlRule(("Location", "View"), ("g",), _build_gene_browser_url),
@@ -283,7 +277,6 @@ SUPPORTED_SPECIES_RULES = (
     LegacyUrlRule(("Gene", "Summary"), ("g",), _build_gene_feature_explorer_url),
     LegacyUrlRule(("Gene", "Sequence"), ("g",), _build_gene_feature_explorer_url),
     LegacyUrlRule(("Gene", "Expression"), ("g",), _build_gene_feature_explorer_url),
-    LegacyUrlRule(("Gene", "Phenotype"), ("g",), _build_gene_feature_explorer_url),
     LegacyUrlRule(
         ("Transcript", "Summary"), ("t",), _build_transcript_feature_explorer_url
     ),
@@ -293,8 +286,6 @@ SUPPORTED_SPECIES_RULES = (
     LegacyUrlRule(
         ("Transcript", "ProteinSummary"), ("t",), _build_transcript_protein_url
     ),
-    LegacyUrlRule(("Gene", "Compara_Ortholog"), ("g",), _build_gene_homology_url),
-    LegacyUrlRule(("Gene", "Compara_Paralog"), ("g",), _build_gene_homology_url),
 )
 
 
@@ -384,6 +375,30 @@ def build_archive_fallback_url(
     )
 
 
+def build_archive_vep_url(legacy_url: str, path_segments: tuple[str, ...]) -> str:
+    """Build the archive equivalent of a species-scoped legacy VEP URL.
+
+    Both the legacy and archive sites use ``/<species>/Tools/VEP``. Query
+    strings and fragments are preserved while the host is switched to the
+    relevant archive.
+    """
+    parsed_url = urlparse(legacy_url)
+    archive_host = ARCHIVE_HOSTS.get((parsed_url.hostname or "").lower())
+    if archive_host is None:
+        raise UnsupportedLegacyUrlError("No archive fallback configured for this URL")
+
+    return urlunparse(
+        (
+            "https",
+            archive_host,
+            f"/{path_segments[0]}/Tools/VEP",
+            "",
+            parsed_url.query,
+            parsed_url.fragment,
+        )
+    )
+
+
 def _is_info_path(path_segments: tuple[str, ...]) -> bool:
     """Check whether a parsed legacy path points under ``/info``.
 
@@ -394,6 +409,13 @@ def _is_info_path(path_segments: tuple[str, ...]) -> bool:
         ``True`` for ``/info`` and all URLs below it, case-insensitively.
     """
     return bool(path_segments) and path_segments[0].lower() == "info"
+
+
+def _is_species_vep_path(path_segments: tuple[str, ...]) -> bool:
+    """Check whether a URL uses the legacy species-scoped VEP path."""
+    return len(path_segments) == 3 and tuple(
+        segment.lower() for segment in path_segments[1:]
+    ) == ("tools", "vep")
 
 
 def _find_species_rule(
@@ -465,11 +487,11 @@ def resolve_legacy_ensembl_url(
         UnsupportedLegacyUrlError: If no supported mapping exists.
 
     Business rules:
-        Generic ``/info`` URLs are redirected to their archive equivalent before
-        static mappings. Static host/path mappings are then checked before
-        species-aware mappings. Static mappings represent explicit product
-        decisions for legacy pages that do not follow the species-scoped URL
-        shapes handled below.
+        Generic ``/info`` URLs and species-scoped VEP URLs are redirected to
+        their archive equivalents before static mappings. Static host/path
+        mappings are then checked before species-aware mappings. Static
+        mappings represent explicit product decisions for legacy pages that do
+        not follow the species-scoped URL shapes handled below.
     """
     parsed_url = urlparse(legacy_url)
     path_segments = _normalise_path(parsed_url.path)
@@ -478,6 +500,9 @@ def resolve_legacy_ensembl_url(
     # them to the matching archive host before static mappings can claim them.
     if _is_info_path(path_segments):
         return build_archive_fallback_url(legacy_url, path_segments)
+
+    if _is_species_vep_path(path_segments):
+        return build_archive_vep_url(legacy_url, path_segments)
 
     # Static mappings cover explicit product decisions for hostnames and
     # non-species legacy paths, for example tools and search pages.

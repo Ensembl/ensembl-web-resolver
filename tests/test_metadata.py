@@ -27,12 +27,12 @@ class TestMetadata(unittest.TestCase):
         response.raise_for_status.assert_called_once_with()
 
     @patch("app.api.utils.metadata.requests.Session")
-    def test_get_genome_tag_returns_none_when_tag_is_absent(
-        self, mock_session_class
-    ):
+    def test_get_genome_tag_returns_none_when_tag_is_absent(self, mock_session_class):
         response = MagicMock()
         response.json.return_value = {}
-        mock_session_class.return_value.get.return_value.__enter__.return_value = response
+        mock_session_class.return_value.get.return_value.__enter__.return_value = (
+            response
+        )
 
         genome_tag = get_genome_tag_from_genome_id("genome_uuid1")
 
@@ -42,7 +42,9 @@ class TestMetadata(unittest.TestCase):
     def test_get_genome_tag_wraps_endpoint_errors(self, mock_session_class):
         response = MagicMock()
         response.raise_for_status.side_effect = Exception("503 Server Error")
-        mock_session_class.return_value.get.return_value.__enter__.return_value = response
+        mock_session_class.return_value.get.return_value.__enter__.return_value = (
+            response
+        )
 
         with self.assertRaisesRegex(
             Exception,
@@ -81,7 +83,9 @@ class TestMetadata(unittest.TestCase):
     def test_search_variant_returns_none_when_no_matches(self, mock_session_class):
         response = MagicMock()
         response.json.return_value = {"matches": []}
-        mock_session_class.return_value.post.return_value.__enter__.return_value = response
+        mock_session_class.return_value.post.return_value.__enter__.return_value = (
+            response
+        )
 
         self.assertIsNone(search_variant("genome_uuid1", "rs99"))
 

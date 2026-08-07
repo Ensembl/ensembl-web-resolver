@@ -94,11 +94,10 @@ Test:
     - |
       umask 077
       printf 'machine gitlab.ebi.ac.uk\nlogin gitlab-ci-token\npassword %s\n' "$CI_JOB_TOKEN" > ~/.netrc
-    - pip install --extra-index-url "${CI_API_V4_URL}/projects/6228/packages/pypi/simple" -r requirements.txt
-    - cd app/
-    - cp ../sample-env .env
+    - pip install --extra-index-url "${CI_API_V4_URL}/projects/6228/packages/pypi/simple" -r requirements-dev.txt
+    - cp sample-env .env
   script:
-    - python -m unittest
+    - pytest
   artifacts:
     when: always
 

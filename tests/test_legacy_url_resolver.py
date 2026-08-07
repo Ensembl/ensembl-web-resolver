@@ -28,9 +28,7 @@ class TestUrlResolver(unittest.TestCase):
         self.genome_tag_patcher = patch(
             "app.api.resources.legacy_url_resolver_view.get_genome_tag_from_genome_id"
         )
-        self.mock_genome_tag_lookup = (
-            self.genome_tag_patcher.start()
-        )
+        self.mock_genome_tag_lookup = self.genome_tag_patcher.start()
         self.mock_genome_tag_lookup.return_value = self.genome_tag
         self.variant_search_patcher = patch(
             "app.api.resources.legacy_url_resolver_view.search_variant"
@@ -43,12 +41,12 @@ class TestUrlResolver(unittest.TestCase):
         self.genome_tag_patcher.stop()
         self.variant_search_patcher.stop()
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_static_path_mapping_with_redirect(self, mock_species_lookup):
         """Resolve configured static legacy paths before species URL rules."""
-        self.mock_static_mapping.return_value = (
-            "https://beta.ensembl.org/tools/blast"
-        )
+        self.mock_static_mapping.return_value = "https://beta.ensembl.org/tools/blast"
 
         response = self.client.get(
             self.mock_url_resolver_api_url,
@@ -72,7 +70,9 @@ class TestUrlResolver(unittest.TestCase):
         mock_species_lookup.assert_not_called()
         self.mock_genome_tag_lookup.assert_not_called()
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_static_host_mapping_with_json_response(self, mock_species_lookup):
         """Return configured static host mappings for JSON clients."""
         self.mock_static_mapping.return_value = "https://beta.ensembl.org"
@@ -93,7 +93,9 @@ class TestUrlResolver(unittest.TestCase):
         mock_species_lookup.assert_not_called()
         self.mock_genome_tag_lookup.assert_not_called()
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_info_paths_to_archive_hosts(self, mock_species_lookup):
         """Redirect generic info paths to the matching archive host."""
         test_cases = [
@@ -141,7 +143,9 @@ class TestUrlResolver(unittest.TestCase):
                 mock_species_lookup.assert_not_called()
                 self.mock_genome_tag_lookup.assert_not_called()
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_info_archive_preserves_query_and_fragment(
         self, mock_species_lookup
     ):
@@ -169,7 +173,162 @@ class TestUrlResolver(unittest.TestCase):
         mock_species_lookup.assert_not_called()
         self.mock_genome_tag_lookup.assert_not_called()
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
+    def test_resolve_gene_phenotype_paths_with_html_interstitial(
+        self, mock_species_lookup
+    ):
+        """Offer new Ensembl and archive choices for gene phenotype pages."""
+        test_cases = [
+            (
+                "https://staging.ensembl.org/Homo_sapiens/Gene/Phenotype"
+                "?g=ENSG00000012048",
+                "https://jun2026.archive.ensembl.org/Homo_sapiens/Gene/Phenotype"
+                "?g=ENSG00000012048",
+            ),
+            (
+                "https://staging-plants.ensembl.org/Triticum_aestivum/Gene/Phenotype"
+                "?g=TraesCS3D02G273600",
+                "https://eg63-plants.ensembl.org/Triticum_aestivum/Gene/Phenotype"
+                "?g=TraesCS3D02G273600",
+            ),
+        ]
+
+        for legacy_url, expected_url in test_cases:
+            with self.subTest(legacy_url=legacy_url):
+                self.mock_static_mapping.reset_mock()
+                mock_species_lookup.reset_mock()
+
+                response = self.client.get(
+                    self.mock_url_resolver_api_url,
+                    params={"url": legacy_url},
+                    follow_redirects=False,
+                )
+
+                self.assertEqual(response.status_code, 404)
+                self.assertNotIn("location", response.headers)
+                self.assertIn("This page could not be resolved", response.text)
+                self.assertIn(f"{ENSEMBL_URL}/genome-selector", response.text)
+                self.assertIn(expected_url, response.text)
+                mock_species_lookup.assert_not_called()
+                self.mock_genome_tag_lookup.assert_not_called()
+
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
+    def test_resolve_gene_compara_paths_with_html_interstitial(
+        self, mock_species_lookup
+    ):
+        """Offer new Ensembl and archive choices for legacy Compara pages."""
+        archive_hosts = [
+            ("staging.ensembl.org", "jun2026.archive.ensembl.org"),
+            ("staging-plants.ensembl.org", "eg63-plants.ensembl.org"),
+            ("staging-metazoa.ensembl.org", "eg63-metazoa.ensembl.org"),
+            ("staging-fungi.ensembl.org", "eg63-fungi.ensembl.org"),
+            ("staging-protists.ensembl.org", "eg63-protists.ensembl.org"),
+            ("staging-bacteria.ensembl.org", "eg63-bacteria.ensembl.org"),
+        ]
+
+        for page in ("Compara_Ortholog", "Compara_Paralog"):
+            for source_host, archive_host in archive_hosts:
+                with self.subTest(page=page, source_host=source_host):
+                    mock_species_lookup.reset_mock()
+                    response = self.client.get(
+                        self.mock_url_resolver_api_url,
+                        params={
+                            "url": (
+                                f"https://{source_host}/Homo_sapiens/Gene/{page}"
+                                "?g=ENSG00000012048"
+                            )
+                        },
+                        follow_redirects=False,
+                    )
+
+                    self.assertEqual(response.status_code, 404)
+                    self.assertNotIn("location", response.headers)
+                    self.assertIn("This page could not be resolved", response.text)
+                    self.assertIn(f"{ENSEMBL_URL}/genome-selector", response.text)
+                    self.assertIn(
+                        (
+                            f"https://{archive_host}/Homo_sapiens/Gene/{page}"
+                            "?g=ENSG00000012048"
+                        ),
+                        response.text,
+                    )
+                    mock_species_lookup.assert_not_called()
+                    self.mock_genome_tag_lookup.assert_not_called()
+
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
+    def test_resolve_species_scoped_blast_to_blast_tool(self, mock_species_lookup):
+        """Resolve legacy species-scoped BLAST URLs to the shared BLAST tool."""
+        mock_species_lookup.return_value = self.genome_uuid
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": "https://staging.ensembl.org/Homo_sapiens/Multi/Tools/Blast"
+            },
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(), {"resolved_url": f"{ENSEMBL_URL}/tools/blast"}
+        )
+        mock_species_lookup.assert_called_once_with("Homo_sapiens")
+
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
+    def test_resolve_species_scoped_vep_to_division_archive(self, mock_species_lookup):
+        """Resolve species-scoped VEP URLs to the matching division archive."""
+        test_cases = [
+            ("staging.ensembl.org", "jun2026.archive.ensembl.org"),
+            ("staging-plants.ensembl.org", "eg63-plants.ensembl.org"),
+            ("staging-metazoa.ensembl.org", "eg63-metazoa.ensembl.org"),
+            ("staging-fungi.ensembl.org", "eg63-fungi.ensembl.org"),
+            ("staging-protists.ensembl.org", "eg63-protists.ensembl.org"),
+            ("staging-bacteria.ensembl.org", "eg63-bacteria.ensembl.org"),
+        ]
+
+        for source_host, archive_host in test_cases:
+            with self.subTest(source_host=source_host):
+                self.mock_static_mapping.reset_mock()
+                mock_species_lookup.reset_mock()
+
+                response = self.client.get(
+                    self.mock_url_resolver_api_url,
+                    params={
+                        "url": (
+                            f"https://{source_host}/Homo_sapiens/Tools/VEP"
+                            "?foo=bar#content"
+                        )
+                    },
+                    headers={"accept": "application/json"},
+                    follow_redirects=False,
+                )
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(
+                    response.json(),
+                    {
+                        "resolved_url": (
+                            f"https://{archive_host}/Homo_sapiens/Tools/VEP"
+                            "?foo=bar#content"
+                        )
+                    },
+                )
+                self.mock_static_mapping.assert_not_called()
+                mock_species_lookup.assert_not_called()
+                self.mock_genome_tag_lookup.assert_not_called()
+
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_info_unknown_host_does_not_redirect(self, mock_species_lookup):
         """Return an error for unknown info hosts instead of guessing an archive."""
         response = self.client.get(
@@ -185,7 +344,9 @@ class TestUrlResolver(unittest.TestCase):
         mock_species_lookup.assert_not_called()
         self.mock_genome_tag_lookup.assert_not_called()
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_species_home_with_json_response(self, mock_species_lookup):
         """Resolve a species home URL to the new Ensembl genome page."""
         mock_species_lookup.return_value = self.genome_uuid
@@ -205,7 +366,9 @@ class TestUrlResolver(unittest.TestCase):
         mock_species_lookup.assert_called_once_with("Homo_sapiens")
         self.mock_genome_tag_lookup.assert_called_once_with(self.genome_uuid)
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_bare_species_path_with_redirect(self, mock_species_lookup):
         """Resolve a bare species path to the new Ensembl species page."""
         mock_species_lookup.return_value = self.genome_uuid
@@ -224,7 +387,9 @@ class TestUrlResolver(unittest.TestCase):
         mock_species_lookup.assert_called_once_with("Crocodylus_porosus")
         self.mock_genome_tag_lookup.assert_called_once_with(self.genome_uuid)
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_bare_species_path_without_uuid_redirects_to_archive(
         self, mock_species_lookup
     ):
@@ -244,7 +409,9 @@ class TestUrlResolver(unittest.TestCase):
         )
         mock_species_lookup.assert_called_once_with("Homo_sapiens")
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_gene_summary_with_redirect(self, mock_species_lookup):
         """Resolve a supported gene URL to a permanent new Ensembl redirect."""
         mock_species_lookup.return_value = self.genome_uuid
@@ -270,7 +437,9 @@ class TestUrlResolver(unittest.TestCase):
         )
         self.mock_genome_tag_lookup.assert_called_once_with(self.genome_uuid)
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_gene_summary_uses_genome_tag_for_uuid_lookup_value(
         self, mock_species_lookup
     ):
@@ -302,7 +471,9 @@ class TestUrlResolver(unittest.TestCase):
         )
         self.mock_genome_tag_lookup.assert_called_once_with(genome_uuid)
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_gene_summary_without_genome_tag_uses_genome_uuid(
         self, mock_species_lookup
     ):
@@ -334,7 +505,9 @@ class TestUrlResolver(unittest.TestCase):
         )
         self.mock_genome_tag_lookup.assert_called_once_with(self.genome_uuid)
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_gene_summary_returns_500_for_genome_tag_lookup_failure(
         self, mock_species_lookup
     ):
@@ -360,7 +533,40 @@ class TestUrlResolver(unittest.TestCase):
         self.assertIn("Failed to fetch genome tag", response.text)
         self.mock_genome_tag_lookup.assert_called_once_with(self.genome_uuid)
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
+    def test_resolve_location_genome_with_region(self, mock_species_lookup):
+        """Resolve Location/Genome URLs with a region to genome browser focus."""
+        mock_species_lookup.return_value = self.genome_uuid
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": (
+                    "https://staging.ensembl.org/Mus_musculus/Location/Genome"
+                    "?db=core;r=11:101061349-101082747"
+                )
+            },
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "resolved_url": (
+                    f"{ENSEMBL_URL}/genome-browser/{self.genome_tag}"
+                    "?focus=location:11:101061349-101082747"
+                    "&location=11:101061349-101082747"
+                )
+            },
+        )
+
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_location_view_with_semicolon_query(self, mock_species_lookup):
         """Resolve old-style semicolon-delimited query strings."""
         mock_species_lookup.return_value = self.genome_uuid
@@ -389,7 +595,9 @@ class TestUrlResolver(unittest.TestCase):
             },
         )
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_location_view_with_transcript_focus(self, mock_species_lookup):
         """Resolve Location/View transcript URLs to genome browser focus."""
         mock_species_lookup.return_value = self.genome_uuid
@@ -417,12 +625,14 @@ class TestUrlResolver(unittest.TestCase):
             },
         )
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_gene_feature_explorer_pages(self, mock_species_lookup):
         """Resolve supported gene pages to the new Ensembl feature explorer."""
         mock_species_lookup.return_value = self.genome_uuid
 
-        for page in ("Sequence", "Expression", "Phenotype"):
+        for page in ("Sequence", "Expression"):
             with self.subTest(page=page):
                 response = self.client.get(
                     self.mock_url_resolver_api_url,
@@ -447,7 +657,9 @@ class TestUrlResolver(unittest.TestCase):
                     },
                 )
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_transcript_summary(self, mock_species_lookup):
         """Resolve a transcript summary URL to the new Ensembl feature explorer."""
         mock_species_lookup.return_value = self.genome_uuid
@@ -475,7 +687,9 @@ class TestUrlResolver(unittest.TestCase):
             },
         )
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_transcript_sequence(self, mock_species_lookup):
         """Resolve transcript sequence URLs to the new Ensembl feature explorer."""
         mock_species_lookup.return_value = self.genome_uuid
@@ -503,7 +717,9 @@ class TestUrlResolver(unittest.TestCase):
             },
         )
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_variation_explore(self, mock_species_lookup):
         """Resolve a legacy variant URL through the variant search API."""
         mock_species_lookup.return_value = self.genome_uuid
@@ -531,16 +747,18 @@ class TestUrlResolver(unittest.TestCase):
             response.json(),
             {
                 "resolved_url": (
-                    f"{ENSEMBL_URL}/feature-explorer/{self.assembly_accession_id}"
+                    f"{ENSEMBL_URL}/feature-explorer/{self.genome_tag}"
                     "/variant:7:24399036:rs99?allele=0"
                 )
             },
         )
         mock_species_lookup.assert_called_once_with("Homo_sapiens")
         self.mock_variant_search.assert_called_once_with(self.genome_uuid, "rs99")
-        self.mock_assembly_accession_lookup.assert_called_once_with(self.genome_uuid)
+        self.mock_genome_tag_lookup.assert_called_once_with(self.genome_uuid)
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_variation_mappings(self, mock_species_lookup):
         """Resolve mappings pages with transcript consequences selected."""
         mock_species_lookup.return_value = self.genome_uuid
@@ -565,15 +783,17 @@ class TestUrlResolver(unittest.TestCase):
             response.json(),
             {
                 "resolved_url": (
-                    f"{ENSEMBL_URL}/feature-explorer/{self.assembly_accession_id}"
+                    f"{ENSEMBL_URL}/feature-explorer/{self.genome_tag}"
                     "/variant:7:24399036:rs99?allele=0&view=transcript-consequences"
                 )
             },
         )
         self.mock_variant_search.assert_called_once_with(self.genome_uuid, "rs99")
-        self.mock_assembly_accession_lookup.assert_called_once_with(self.genome_uuid)
+        self.mock_genome_tag_lookup.assert_called_once_with(self.genome_uuid)
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_variation_population(self, mock_species_lookup):
         """Resolve population pages with allele frequencies selected."""
         mock_species_lookup.return_value = self.genome_uuid
@@ -598,13 +818,16 @@ class TestUrlResolver(unittest.TestCase):
             response.json(),
             {
                 "resolved_url": (
-                    f"{ENSEMBL_URL}/feature-explorer/{self.assembly_accession_id}"
+                    f"{ENSEMBL_URL}/feature-explorer/{self.genome_tag}"
                     "/variant:7:24399036:rs99?allele=0&view=allele-frequencies"
                 )
             },
         )
+        self.mock_genome_tag_lookup.assert_called_once_with(self.genome_uuid)
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_variation_explore_requires_variant_id(self, mock_species_lookup):
         """Return 400 when a variant URL does not provide the ``v`` parameter."""
         response = self.client.get(
@@ -619,9 +842,11 @@ class TestUrlResolver(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         mock_species_lookup.assert_not_called()
         self.mock_variant_search.assert_not_called()
-        self.mock_assembly_accession_lookup.assert_not_called()
+        self.mock_genome_tag_lookup.assert_not_called()
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_variation_explore_returns_404_when_not_found(
         self, mock_species_lookup
     ):
@@ -639,9 +864,11 @@ class TestUrlResolver(unittest.TestCase):
 
         self.assertEqual(response.status_code, 404)
         self.mock_variant_search.assert_called_once_with(self.genome_uuid, "rs99")
-        self.mock_assembly_accession_lookup.assert_not_called()
+        self.mock_genome_tag_lookup.assert_not_called()
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_missing_required_query_parameter(self, mock_species_lookup):
         """Return 400 when a URL shape is known but its parameter is missing."""
         mock_species_lookup.return_value = self.genome_uuid
@@ -655,7 +882,9 @@ class TestUrlResolver(unittest.TestCase):
 
         self.assertEqual(response.status_code, 400)
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_unsupported_template(self, mock_species_lookup):
         """Return 404 for URL shapes with no supported new Ensembl mapping."""
         mock_species_lookup.return_value = self.genome_uuid
@@ -676,7 +905,9 @@ class TestUrlResolver(unittest.TestCase):
         mock_species_lookup.assert_not_called()
         self.mock_genome_tag_lookup.assert_not_called()
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_missing_species_redirects_to_main_archive(
         self, mock_species_lookup
     ):
@@ -695,7 +926,9 @@ class TestUrlResolver(unittest.TestCase):
             "https://jun2026.archive.ensembl.org/Homo_sapiens/Info/Index",
         )
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_null_species_uuid_redirects_to_main_archive(
         self, mock_species_lookup
     ):
@@ -720,7 +953,9 @@ class TestUrlResolver(unittest.TestCase):
             "?g=ENSG00000012048",
         )
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_missing_species_redirects_to_plants_archive(
         self, mock_species_lookup
     ):
@@ -741,7 +976,9 @@ class TestUrlResolver(unittest.TestCase):
             "https://eg63-plants.ensembl.org/Arabidopsis_thaliana/Info/Index",
         )
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_missing_species_redirects_to_metazoa_archive(
         self, mock_species_lookup
     ):
@@ -762,7 +999,9 @@ class TestUrlResolver(unittest.TestCase):
             "https://eg63-metazoa.ensembl.org/Caenorhabditis_elegans/Info/Index",
         )
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_missing_species_redirects_to_fungi_archive(
         self, mock_species_lookup
     ):
@@ -783,7 +1022,9 @@ class TestUrlResolver(unittest.TestCase):
             "https://eg63-fungi.ensembl.org/Saccharomyces_cerevisiae/Info/Index",
         )
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_missing_species_redirects_to_protists_archive(
         self, mock_species_lookup
     ):
@@ -804,7 +1045,9 @@ class TestUrlResolver(unittest.TestCase):
             "https://eg63-protists.ensembl.org/Plasmodium_falciparum/Info/Index",
         )
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_missing_species_redirects_to_bacteria_archive(
         self, mock_species_lookup
     ):
@@ -831,7 +1074,9 @@ class TestUrlResolver(unittest.TestCase):
             ),
         )
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_missing_species_archive_preserves_query_and_fragment(
         self, mock_species_lookup
     ):
@@ -856,7 +1101,9 @@ class TestUrlResolver(unittest.TestCase):
             "?r=1:1-100#content",
         )
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_missing_species_unknown_host_does_not_redirect(
         self, mock_species_lookup
     ):
@@ -873,7 +1120,9 @@ class TestUrlResolver(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertNotIn("location", response.headers)
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_unknown_page_with_json_response(self, mock_species_lookup):
         """Return JSON error for unsupported one-segment legacy paths."""
         mock_species_lookup.side_effect = SpeciesMappingNotFoundError("not found")
@@ -889,7 +1138,9 @@ class TestUrlResolver(unittest.TestCase):
         self.assertNotIn("location", response.headers)
         mock_species_lookup.assert_called_once_with("foo")
 
-    @patch("app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url")
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_unknown_page_with_html_interstitial(self, mock_species_lookup):
         """Render a choice page for browser users on unsupported legacy paths."""
         mock_species_lookup.side_effect = SpeciesMappingNotFoundError("not found")
@@ -911,6 +1162,27 @@ class TestUrlResolver(unittest.TestCase):
         self.assertIn("https://jun2026.archive.ensembl.org/foo", response.text)
         self.assertIn(f"{STATIC_PATH}/css/styles.css", response.text)
         mock_species_lookup.assert_called_once_with("foo")
+
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
+    def test_resolve_unknown_stable_id_with_html_interstitial(
+        self, mock_species_lookup
+    ):
+        """Offer the archive stable-ID URL when a legacy ID cannot be resolved."""
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={"url": "https://staging.ensembl.org/id/foo"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertNotIn("location", response.headers)
+        self.assertIn("This page could not be resolved", response.text)
+        self.assertIn(f"{ENSEMBL_URL}/genome-selector", response.text)
+        self.assertIn("https://jun2026.archive.ensembl.org/id/foo", response.text)
+        self.mock_genome_tag_lookup.assert_not_called()
+        mock_species_lookup.assert_not_called()
 
 
 if __name__ == "__main__":

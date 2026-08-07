@@ -100,9 +100,7 @@ class TestFastMatchSearch(unittest.TestCase):
     @patch("app.api.utils.search.get_search_hub_results")
     @patch("app.api.utils.search.FAST_MATCH_ENABLED", True)
     @patch("app.api.utils.search.FAST_MATCH_DB_PATH", "/data/stable-ids.redb")
-    def test_falls_back_to_search_hub_for_malformed_index_values(
-        self, mock_search_hub
-    ):
+    def test_falls_back_to_search_hub_for_malformed_index_values(self, mock_search_hub):
         mock_search_hub.return_value = {"matches": []}
 
         self.assertEqual(get_search_results(self.params), {"matches": []})

@@ -78,6 +78,6 @@ duckdb resolver_mappings.db < sql/legacy_url_path_mappings.sql
 ### Run unit tests
 
 ```
-python -m unittest tests.test_resolver
-python -m unittest tests.test_rapid
+python -m pip install -r requirements-dev.txt
+pytest
 ```
