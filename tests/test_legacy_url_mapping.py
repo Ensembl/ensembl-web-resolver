@@ -235,6 +235,18 @@ class TestLegacyUrlMappingSqlSeed(unittest.TestCase):
                 "https://staging-bacteria.ensembl.org/Tools/VEP",
                 "https://beta.ensembl.org/tools/vep",
             ),
+            (
+                "https://bacteria.ensembl.org/index.html",
+                "https://beta.ensembl.org/",
+            ),
+            (
+                "https://plants.ensembl.org/index.html",
+                "https://beta.ensembl.org/",
+            ),
+            (
+                "https://staging-metazoa.ensembl.org/index.html",
+                "https://beta.ensembl.org/",
+            ),
         ]
 
         for legacy_url, expected_url in test_cases:
