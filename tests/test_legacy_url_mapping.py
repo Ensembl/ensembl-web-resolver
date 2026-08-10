@@ -212,6 +212,46 @@ class TestLegacyUrlMappingSqlSeed(unittest.TestCase):
                 "https://jun2026.archive.ensembl.org/info/docs/tools/vep/index.html",
             ),
             (
+                "https://plants.ensembl.org/vep",
+                "https://eg63-plants.ensembl.org/info/docs/tools/vep/index.html",
+            ),
+            (
+                "https://staging-plants.ensembl.org/vep",
+                "https://eg63-plants.ensembl.org/info/docs/tools/vep/index.html",
+            ),
+            (
+                "https://metazoa.ensembl.org/vep",
+                "https://eg63-metazoa.ensembl.org/info/docs/tools/vep/index.html",
+            ),
+            (
+                "https://staging-metazoa.ensembl.org/vep",
+                "https://eg63-metazoa.ensembl.org/info/docs/tools/vep/index.html",
+            ),
+            (
+                "https://fungi.ensembl.org/vep",
+                "https://eg63-fungi.ensembl.org/info/docs/tools/vep/index.html",
+            ),
+            (
+                "https://staging-fungi.ensembl.org/vep",
+                "https://eg63-fungi.ensembl.org/info/docs/tools/vep/index.html",
+            ),
+            (
+                "https://protists.ensembl.org/vep",
+                "https://eg63-protists.ensembl.org/info/docs/tools/vep/index.html",
+            ),
+            (
+                "https://staging-protists.ensembl.org/vep",
+                "https://eg63-protists.ensembl.org/info/docs/tools/vep/index.html",
+            ),
+            (
+                "https://bacteria.ensembl.org/vep",
+                "https://eg63-bacteria.ensembl.org/info/docs/tools/vep/index.html",
+            ),
+            (
+                "https://staging-bacteria.ensembl.org/vep",
+                "https://eg63-bacteria.ensembl.org/info/docs/tools/vep/index.html",
+            ),
+            (
                 "https://staging.ensembl.org/Tools/VEP",
                 "https://www.ensembl.org/tools/vep",
             ),

@@ -85,6 +85,67 @@ VALUES
     'https://jun2026.archive.ensembl.org/info/docs/tools/vep/index.html',
     TRUE
   ),
+  -- Division VEP documentation is only available on its matching archive.
+  (
+    'staging-plants.ensembl.org',
+    '/vep',
+    'https://eg63-plants.ensembl.org/info/docs/tools/vep/index.html',
+    TRUE
+  ),
+  (
+    'plants.ensembl.org',
+    '/vep',
+    'https://eg63-plants.ensembl.org/info/docs/tools/vep/index.html',
+    TRUE
+  ),
+  (
+    'staging-metazoa.ensembl.org',
+    '/vep',
+    'https://eg63-metazoa.ensembl.org/info/docs/tools/vep/index.html',
+    TRUE
+  ),
+  (
+    'metazoa.ensembl.org',
+    '/vep',
+    'https://eg63-metazoa.ensembl.org/info/docs/tools/vep/index.html',
+    TRUE
+  ),
+  (
+    'staging-fungi.ensembl.org',
+    '/vep',
+    'https://eg63-fungi.ensembl.org/info/docs/tools/vep/index.html',
+    TRUE
+  ),
+  (
+    'fungi.ensembl.org',
+    '/vep',
+    'https://eg63-fungi.ensembl.org/info/docs/tools/vep/index.html',
+    TRUE
+  ),
+  (
+    'staging-protists.ensembl.org',
+    '/vep',
+    'https://eg63-protists.ensembl.org/info/docs/tools/vep/index.html',
+    TRUE
+  ),
+  (
+    'protists.ensembl.org',
+    '/vep',
+    'https://eg63-protists.ensembl.org/info/docs/tools/vep/index.html',
+    TRUE
+  ),
+  (
+    'staging-bacteria.ensembl.org',
+    '/vep',
+    'https://eg63-bacteria.ensembl.org/info/docs/tools/vep/index.html',
+    TRUE
+  ),
+  (
+    'bacteria.ensembl.org',
+    '/vep',
+    'https://eg63-bacteria.ensembl.org/info/docs/tools/vep/index.html',
+    TRUE
+  ),
   (
     '',
     '/tools/vep',
