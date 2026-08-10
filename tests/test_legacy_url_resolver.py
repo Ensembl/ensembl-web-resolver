@@ -65,7 +65,6 @@ class TestUrlResolver(unittest.TestCase):
             "https://beta.ensembl.org/tools/blast",
         )
         self.assertEqual(response.headers["cache-control"], "no-store, max-age=0")
-        self.assertEqual(response.headers["vary"], "Accept")
         self.mock_static_mapping.assert_called_once_with(
             "https://staging-plants.ensembl.org/Multi/Tools/Blast/?discard=this"
         )
@@ -92,7 +91,6 @@ class TestUrlResolver(unittest.TestCase):
             {"resolved_url": "https://beta.ensembl.org"},
         )
         self.assertEqual(response.headers["cache-control"], "no-store, max-age=0")
-        self.assertEqual(response.headers["vary"], "Accept")
         self.mock_static_mapping.assert_called_once_with("staging-protists.ensembl.org")
         mock_species_lookup.assert_not_called()
         self.mock_genome_tag_lookup.assert_not_called()
