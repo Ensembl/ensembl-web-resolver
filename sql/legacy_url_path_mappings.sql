@@ -98,6 +98,13 @@ VALUES
     '/multi/search/results',
     'https://beta.ensembl.org/genome-selector',
     TRUE
+  ),
+  -- Legacy division landing pages now share the new Ensembl homepage.
+  (
+    '',
+    '/index.html',
+    'https://beta.ensembl.org/',
+    TRUE
   );
 
 CREATE TABLE IF NOT EXISTS legacy_url_host_mappings (

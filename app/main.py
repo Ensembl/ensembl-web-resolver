@@ -34,6 +34,11 @@ from app.core.config import (
 )
 
 
+LEGACY_NO_CACHE_HEADERS = {
+    "Cache-Control": "no-store, max-age=0",
+}
+
+
 def _fastapi_prefix(prefix: str) -> str:
     return "" if prefix == "/" else prefix
 
@@ -62,6 +67,17 @@ def get_application(app_prefix: str = APP_PREFIX) -> FastAPI:
         allow_methods=["GET"],
         allow_headers=["*"],
     )
+
+    legacy_path = _prefixed_path(app_prefix, "/legacy")
+
+    @application.middleware("http")
+    async def disable_legacy_response_caching(request, call_next):
+        """Keep content-negotiated legacy resolver responses out of shared caches."""
+        response = await call_next(request)
+        if request.url.path == legacy_path:
+            for header, value in LEGACY_NO_CACHE_HEADERS.items():
+                response.headers[header] = value
+        return response
 
     application.include_router(router, prefix=_fastapi_prefix(app_prefix))
 
