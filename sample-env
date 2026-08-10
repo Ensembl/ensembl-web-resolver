@@ -1,7 +1,7 @@
 PORT=8001
-ENSEMBL_SEARCH_HUB_API=https://beta.ensembl.org/api/search/stable-id
+ENSEMBL_SEARCH_HUB_API=https://www.ensembl.org/api/search/stable-id
 DEFAULT_APP=feature-explorer
-ENSEMBL_URL=http://beta.ensembl.org
+ENSEMBL_URL=http://www.ensembl.org
 DEBUG=true
 NCBI_DATASETS_URL=https://api.ncbi.nlm.nih.gov/datasets/v2
 SPECIES_MAPPING_DB_PATH=./resolver_mappings.db
