@@ -47,7 +47,7 @@ ENSEMBL_SEARCH_HUB_API: str = config(
 FAST_MATCH_ENABLED: bool = config("FAST_MATCH_ENABLED", cast=bool, default=True)
 FAST_MATCH_DB_PATH: str = config("FAST_MATCH_DB_PATH", cast=str, default="")
 DEFAULT_APP = config("DEFAULT_APP", cast=str, default="feature-explorer")
-ENSEMBL_URL = config("ENSEMBL_URL", cast=str, default="https://beta.ensembl.org")
+ENSEMBL_URL = config("ENSEMBL_URL", cast=str, default="https://www.ensembl.org")
 STATIC_PATH = config("STATIC_PATH", cast=str, default="/resolver-static")
 RAPID_ARCHIVE_URL = config(
     "RAPID_ARCHIVE_URL", cast=str, default="https://rapid-archive.ensembl.org"
@@ -55,7 +55,7 @@ RAPID_ARCHIVE_URL = config(
 NCBI_DATASETS_URL = config(
     "NCBI_DATASETS_URL", cast=str, default="https://api.ncbi.nlm.nih.gov/datasets/v2"
 )
-SPECIES_MAPPING_DB_PATH = config("SPECIES_MAPPING_DB_PATH", cast=str, default="")
+SPECIES_MAPPING_DB_PATH = config("SPECIES_MAPPING_DB_PATH", cast=str, default="./resolver_mappings.db")
 SPECIES_MAPPING_TABLE = config(
     "SPECIES_MAPPING_TABLE", cast=str, default="species_genome_uuid_mapping"
 )

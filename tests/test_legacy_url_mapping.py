@@ -34,13 +34,13 @@ class TestLegacyUrlMapping(unittest.TestCase):
                       (
                         '',
                         '/multi/tools/blast',
-                        'https://beta.ensembl.org/tools/blast',
+                        'https://www.ensembl.org/tools/blast',
                         TRUE
                       ),
                       (
                         '',
                         '/multi/search/results',
-                        'https://beta.ensembl.org/genome-selector',
+                        'https://www.ensembl.org/genome-selector',
                         TRUE
                       ),
                       (
@@ -52,7 +52,7 @@ class TestLegacyUrlMapping(unittest.TestCase):
                       (
                         '',
                         '/tools/vep',
-                        'https://beta.ensembl.org/tools/vep',
+                        'https://www.ensembl.org/tools/vep',
                         TRUE
                       ),
                       (
@@ -72,7 +72,7 @@ class TestLegacyUrlMapping(unittest.TestCase):
                     VALUES
                       (
                         'staging-protists.ensembl.org',
-                        'https://beta.ensembl.org',
+                        'https://www.ensembl.org',
                         TRUE
                       );
                 """)
@@ -92,18 +92,18 @@ class TestLegacyUrlMapping(unittest.TestCase):
             get_static_legacy_url_mapping(
                 "https://staging-plants.ensembl.org/Multi/Tools/Blast"
             ),
-            "https://beta.ensembl.org/tools/blast",
+            "https://www.ensembl.org/tools/blast",
         )
         self.assertEqual(
             get_static_legacy_url_mapping("https://www.ensembl.org/Multi/Tools/Blast"),
-            "https://beta.ensembl.org/tools/blast",
+            "https://www.ensembl.org/tools/blast",
         )
 
     def test_get_static_mapping_normalizes_path_case_and_trailing_slash(self):
         """Treat case and a final slash as insignificant for exact path matches."""
         self.assertEqual(
             get_static_legacy_url_mapping("https://www.ensembl.org/multi/tools/blast/"),
-            "https://beta.ensembl.org/tools/blast",
+            "https://www.ensembl.org/tools/blast",
         )
         self.assertEqual(
             get_static_legacy_url_mapping("https://staging.ensembl.org/VEP/"),
@@ -116,7 +116,7 @@ class TestLegacyUrlMapping(unittest.TestCase):
             get_static_legacy_url_mapping(
                 "https://www.ensembl.org/Multi/Search/Results?q=brca2"
             ),
-            "https://beta.ensembl.org/genome-selector",
+            "https://www.ensembl.org/genome-selector",
         )
 
     def test_get_static_mapping_prefers_host_specific_path_mapping(self):
@@ -136,30 +136,30 @@ class TestLegacyUrlMapping(unittest.TestCase):
             get_static_legacy_url_mapping(
                 "https://www.ensembl.org/Multi/Search/Results"
             ),
-            "https://beta.ensembl.org/genome-selector",
+            "https://www.ensembl.org/genome-selector",
         )
         self.assertEqual(
             get_static_legacy_url_mapping(
                 "https://plants.ensembl.org/Multi/Search/Results"
             ),
-            "https://beta.ensembl.org/genome-selector",
+            "https://www.ensembl.org/genome-selector",
         )
         self.assertEqual(
             get_static_legacy_url_mapping("https://staging.ensembl.org/Tools/VEP"),
-            "https://beta.ensembl.org/tools/vep",
+            "https://www.ensembl.org/tools/vep",
         )
         self.assertEqual(
             get_static_legacy_url_mapping(
                 "https://staging-plants.ensembl.org/Tools/VEP"
             ),
-            "https://beta.ensembl.org/tools/vep",
+            "https://www.ensembl.org/tools/vep",
         )
 
     def test_get_static_mapping_handles_bare_host_homepage(self):
         """Resolve configured scheme-less host homepages."""
         self.assertEqual(
             get_static_legacy_url_mapping("staging-protists.ensembl.org"),
-            "https://beta.ensembl.org",
+            "https://www.ensembl.org",
         )
 
     def test_get_static_mapping_does_not_apply_host_mapping_to_paths(self):
@@ -213,39 +213,39 @@ class TestLegacyUrlMappingSqlSeed(unittest.TestCase):
             ),
             (
                 "https://staging.ensembl.org/Tools/VEP",
-                "https://beta.ensembl.org/tools/vep",
+                "https://www.ensembl.org/tools/vep",
             ),
             (
                 "https://staging-plants.ensembl.org/Tools/VEP",
-                "https://beta.ensembl.org/tools/vep",
+                "https://www.ensembl.org/tools/vep",
             ),
             (
                 "https://staging-metazoa.ensembl.org/Tools/VEP",
-                "https://beta.ensembl.org/tools/vep",
+                "https://www.ensembl.org/tools/vep",
             ),
             (
                 "https://staging-fungi.ensembl.org/Tools/VEP",
-                "https://beta.ensembl.org/tools/vep",
+                "https://www.ensembl.org/tools/vep",
             ),
             (
                 "https://staging-protists.ensembl.org/Tools/VEP",
-                "https://beta.ensembl.org/tools/vep",
+                "https://www.ensembl.org/tools/vep",
             ),
             (
                 "https://staging-bacteria.ensembl.org/Tools/VEP",
-                "https://beta.ensembl.org/tools/vep",
+                "https://www.ensembl.org/tools/vep",
             ),
             (
                 "https://bacteria.ensembl.org/index.html",
-                "https://beta.ensembl.org/",
+                "https://www.ensembl.org/",
             ),
             (
                 "https://plants.ensembl.org/index.html",
-                "https://beta.ensembl.org/",
+                "https://www.ensembl.org/",
             ),
             (
                 "https://staging-metazoa.ensembl.org/index.html",
-                "https://beta.ensembl.org/",
+                "https://www.ensembl.org/",
             ),
         ]
 
