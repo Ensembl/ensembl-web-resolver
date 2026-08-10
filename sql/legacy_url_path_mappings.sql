@@ -1,5 +1,4 @@
 -- Support both staging and production legacy Ensembl hosts.
--- on the day of the switch to www, we replace beta.ensembl.org with www.ensembl.org
 
 CREATE TABLE IF NOT EXISTS legacy_url_path_mappings (
   source_host TEXT NOT NULL DEFAULT '',
@@ -70,14 +69,14 @@ VALUES
   (
     '',
     '/multi/tools/blast',
-    'https://beta.ensembl.org/tools/blast',
+    'https://www.ensembl.org/tools/blast',
     TRUE
   ),
   -- VEP mappings
   (
     '',
     '/multi/tools/vep',
-    'https://beta.ensembl.org/tools/vep',
+    'https://www.ensembl.org/tools/vep',
     TRUE
   ),
   (
@@ -89,21 +88,21 @@ VALUES
   (
     '',
     '/tools/vep',
-    'https://beta.ensembl.org/tools/vep',
+    'https://www.ensembl.org/tools/vep',
     TRUE
   ),
   -- Search mappings
   (
     '',
     '/multi/search/results',
-    'https://beta.ensembl.org/genome-selector',
+    'https://www.ensembl.org/genome-selector',
     TRUE
   ),
   -- Legacy division landing pages now share the new Ensembl homepage.
   (
     '',
     '/index.html',
-    'https://beta.ensembl.org/',
+    'https://www.ensembl.org/',
     TRUE
   );
 
@@ -122,51 +121,51 @@ VALUES
   -- Map divisions to the new Ensembl.
   (
     'staging-plants.ensembl.org',
-    'https://beta.ensembl.org',
+    'https://www.ensembl.org',
     TRUE
   ),
   (
     'plants.ensembl.org',
-    'https://beta.ensembl.org',
+    'https://www.ensembl.org',
     TRUE
   ),
   (
     'staging-metazoa.ensembl.org',
-    'https://beta.ensembl.org',
+    'https://www.ensembl.org',
     TRUE
   ),
   (
     'metazoa.ensembl.org',
-    'https://beta.ensembl.org',
+    'https://www.ensembl.org',
     TRUE
   ),
   (
     'staging-fungi.ensembl.org',
-    'https://beta.ensembl.org',
+    'https://www.ensembl.org',
     TRUE
   ),
   (
     'fungi.ensembl.org',
-    'https://beta.ensembl.org',
+    'https://www.ensembl.org',
     TRUE
   ),
   (
     'staging-bacteria.ensembl.org',
-    'https://beta.ensembl.org',
+    'https://www.ensembl.org',
     TRUE
   ),
   (
     'bacteria.ensembl.org',
-    'https://beta.ensembl.org',
+    'https://www.ensembl.org',
     TRUE
   ),
   (
     'staging-protists.ensembl.org',
-    'https://beta.ensembl.org',
+    'https://www.ensembl.org',
     TRUE
   ),
   (
     'protists.ensembl.org',
-    'https://beta.ensembl.org',
+    'https://www.ensembl.org',
     TRUE
   );

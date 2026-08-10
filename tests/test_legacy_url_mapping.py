@@ -237,15 +237,15 @@ class TestLegacyUrlMappingSqlSeed(unittest.TestCase):
             ),
             (
                 "https://bacteria.ensembl.org/index.html",
-                "https://beta.ensembl.org/",
+                "https://www.ensembl.org/",
             ),
             (
                 "https://plants.ensembl.org/index.html",
-                "https://beta.ensembl.org/",
+                "https://www.ensembl.org/",
             ),
             (
                 "https://staging-metazoa.ensembl.org/index.html",
-                "https://beta.ensembl.org/",
+                "https://www.ensembl.org/",
             ),
         ]
 
