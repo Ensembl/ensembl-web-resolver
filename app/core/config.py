@@ -55,7 +55,7 @@ RAPID_ARCHIVE_URL = config(
 NCBI_DATASETS_URL = config(
     "NCBI_DATASETS_URL", cast=str, default="https://api.ncbi.nlm.nih.gov/datasets/v2"
 )
-SPECIES_MAPPING_DB_PATH = config("SPECIES_MAPPING_DB_PATH", cast=str, default="")
+SPECIES_MAPPING_DB_PATH = config("SPECIES_MAPPING_DB_PATH", cast=str, default="./resolver_mappings.db")
 SPECIES_MAPPING_TABLE = config(
     "SPECIES_MAPPING_TABLE", cast=str, default="species_genome_uuid_mapping"
 )
