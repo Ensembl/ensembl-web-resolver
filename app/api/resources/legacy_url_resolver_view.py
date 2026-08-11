@@ -7,6 +7,7 @@ from app.api.error_response import response_error_handler
 from app.api.models.resolver import UrlResolverResponse
 from app.api.utils.commons import is_json_request
 from app.api.utils.metadata import (
+    MetadataNotFoundError,
     get_genome_tag_from_genome_id,
     search_variant,
 )
@@ -85,6 +86,8 @@ async def resolve_url(request: Request, url: str):
         if not is_json_request(request):
             return _url_resolver_interstitial_response(url)
 
+        return response_error_handler({"status": 404, "details": str(error)})
+    except MetadataNotFoundError as error:
         return response_error_handler({"status": 404, "details": str(error)})
     except SpeciesMappingConfigurationError as error:
         logging.error(f"Species mapping configuration error: {error}")

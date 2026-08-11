@@ -538,6 +538,36 @@ class TestUrlResolver(unittest.TestCase):
     @patch(
         "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
     )
+    def test_resolve_gene_summary_returns_404_when_genome_metadata_is_missing(
+        self, mock_species_lookup
+    ):
+        """Do not convert a missing metadata genome into a server error."""
+        from app.api.utils.metadata import MetadataNotFoundError
+
+        mock_species_lookup.return_value = self.genome_uuid
+        self.mock_genome_tag_lookup.side_effect = MetadataNotFoundError(
+            f"Genome '{self.genome_uuid}' was not found in the metadata API"
+        )
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": (
+                    "https://www.ensembl.org/Homo_sapiens/Gene/Summary"
+                    "?g=ENSG00000012048"
+                )
+            },
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("was not found in the metadata API", response.text)
+        self.mock_genome_tag_lookup.assert_called_once_with(self.genome_uuid)
+
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_location_genome_with_region(self, mock_species_lookup):
         """Resolve Location/Genome URLs with a region to genome browser focus."""
         mock_species_lookup.return_value = self.genome_uuid

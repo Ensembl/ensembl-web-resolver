@@ -5,6 +5,10 @@ from app.api.models.resolver import SearchMatch
 from app.core.config import ENSEMBL_URL
 
 
+class MetadataNotFoundError(Exception):
+    """Raised when a requested genome is absent from the metadata API."""
+
+
 def get_metadata(matches: List[SearchMatch] = []):
 
     metadata_results = {}
@@ -65,6 +69,14 @@ def get_genome_tag_from_genome_id(genome_id: str) -> str | None:
 
         genome_tag = payload.get("genome_tag") if isinstance(payload, dict) else None
         return genome_tag or None
+    except requests.HTTPError as error:
+        if error.response is not None and error.response.status_code == 404:
+            raise MetadataNotFoundError(
+                f"Genome '{genome_id}' was not found in the metadata API"
+            ) from error
+        raise Exception(
+            f"Failed to fetch genome tag for genome '{genome_id}': {error}"
+        ) from error
     except Exception as error:
         raise Exception(
             f"Failed to fetch genome tag for genome '{genome_id}': {error}"
