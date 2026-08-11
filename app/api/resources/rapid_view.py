@@ -8,6 +8,7 @@ from starlette.concurrency import run_in_threadpool
 import logging
 
 from app.api.error_response import response_error_handler
+from app.api.metrics import record_resolver_outcome
 from app.api.models.resolver import (
     RapidResolverResponse,
     RapidResolverHtmlResponseType,
@@ -40,6 +41,7 @@ async def resolve_rapid_stable_id(request: Request, stable_id: str):
     # Handle only gene stable id for now
     params = SearchPayload(stable_id=stable_id, type="gene", per_page=10)
     rapid_archive_url = construct_rapid_archive_url(request)
+    response_mode = "json" if is_json_request(request) else "html"
 
     try:
         # fm_py performs synchronous Redb file I/O. Run it off the async event
@@ -47,7 +49,8 @@ async def resolve_rapid_stable_id(request: Request, stable_id: str):
         search_results = await run_in_threadpool(get_search_results, params)
 
         if not search_results or not search_results.get("matches"):
-            if is_json_request(request):
+            record_resolver_outcome("rapid_stable_id", "not_found", response_mode)
+            if response_mode == "json":
                 return response_error_handler({"status": 404})
             res = StableIdResolverResponse(
                 stable_id=stable_id,
@@ -67,13 +70,15 @@ async def resolve_rapid_stable_id(request: Request, stable_id: str):
         results = build_stable_id_resolver_content(metadata_results)
         stable_id_resolver_response.content = results
 
-        if is_json_request(request):
+        record_resolver_outcome("rapid_stable_id", "resolved", response_mode)
+        if response_mode == "json":
             return results
 
         return HTMLResponse(generate_rapid_id_page(stable_id_resolver_response))
     except Exception as e:
         logging.error(f"Error: {e}")
-        if is_json_request(request):
+        record_resolver_outcome("rapid_stable_id", "internal_error", response_mode)
+        if response_mode == "json":
             return response_error_handler({"status": 500, "details": str(e)})
         res = StableIdResolverResponse(
             stable_id=stable_id,
@@ -129,15 +134,9 @@ async def resolve_species(
         assembly_accession_id = format_assembly_accession(species_url_name)
 
         if assembly_accession_id is None:
-            input_error_response = RapidResolverResponse(
-                response_type=RapidResolverHtmlResponseType.ERROR,
-                code=422,
-                resolved_url=f"{ENSEMBL_URL}/genome-selector",
-                message="Invalid input accession ID",
-                species_name=species_url_name,
-                rapid_archive_url=rapid_archive_url,
+            raise HTTPException(
+                status_code=422, detail="Invalid input accession ID"
             )
-            return rapid_resolved_response(input_error_response, request)
 
         genome_object = get_genome_id_from_assembly_accession_id(assembly_accession_id)
 
@@ -197,7 +196,20 @@ async def resolve_home(request: Request):
 
 
 def rapid_resolved_response(response: RapidResolverResponse, request: Request):
-    if is_json_request(request):
+    response_mode = "json" if is_json_request(request) else "html"
+    if response.response_type == RapidResolverHtmlResponseType.ERROR:
+        outcome = (
+            "invalid_request"
+            if response.code == 422
+            else "not_found"
+            if response.code == 404
+            else "internal_error"
+        )
+    else:
+        outcome = "resolved"
+    record_resolver_outcome("rapid", outcome, response_mode)
+
+    if response_mode == "json":
         if response.response_type == RapidResolverHtmlResponseType.ERROR:
             raise HTTPException(
                 status_code=response.code,

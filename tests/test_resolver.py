@@ -139,6 +139,23 @@ class TestResolverAPI(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 404)
 
+    @patch("app.api.resources.resolver_view.record_resolver_outcome")
+    @patch("app.api.resources.resolver_view.get_search_results")
+    def test_records_stable_id_not_found_outcome(
+        self, mock_get_search_results, mock_record_outcome
+    ):
+        """Record stable-ID misses independently of their HTTP response."""
+        mock_get_search_results.return_value = {}
+
+        response = self.client.get(
+            f"{self.mock_search_api_url}/{self.stable_id}",
+            headers={"accept": "application/json"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 404)
+        mock_record_outcome.assert_called_once_with("stable_id", "not_found", "json")
+
     @patch("app.api.resources.resolver_view.get_search_results")
     def test_resolve_404_html_includes_archive_url(self, mock_get_search_results):
         """Offer the main Ensembl archive when a stable ID has no match."""

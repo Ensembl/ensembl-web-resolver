@@ -191,12 +191,14 @@ class TestRapid(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
 
     # Test invalid url entity
-    def test_rapid_species_422_unprocessable_entity(self):
+    @patch("app.api.resources.rapid_view.record_resolver_outcome")
+    def test_rapid_species_422_unprocessable_entity(self, mock_record_outcome):
         response = self.client.get(
             f"{self.mock_rapid_api_url}/Invalid_Name/",
             headers={"accept": "application/json"},
         )
         self.assertEqual(response.status_code, 422)
+        mock_record_outcome.assert_called_once_with("rapid", "invalid_request", "json")
 
     # Test POST
     def test_rapid_species_post_method_not_allowed(self):
@@ -225,8 +227,9 @@ class TestRapid(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 500)
 
+    @patch("app.api.resources.rapid_view.record_resolver_outcome")
     @patch("app.api.resources.rapid_view.get_search_results")
-    def test_rapid_id_resolve_404(self, mock_get_search_results):
+    def test_rapid_id_resolve_404(self, mock_get_search_results, mock_record_outcome):
 
         mock_get_search_results.return_value = {}
 
@@ -236,3 +239,6 @@ class TestRapid(unittest.TestCase):
             headers={"accept": "application/json"},
         )
         self.assertEqual(response.status_code, 404)
+        mock_record_outcome.assert_called_once_with(
+            "rapid_stable_id", "not_found", "json"
+        )

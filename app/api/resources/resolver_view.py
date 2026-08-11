@@ -6,6 +6,7 @@ from urllib.parse import quote
 import logging
 
 from app.api.error_response import response_error_handler
+from app.api.metrics import record_resolver_outcome
 from app.api.models.resolver import SearchPayload, StableIdResolverResponse
 from app.api.utils.commons import build_stable_id_resolver_content, is_json_request
 from app.api.utils.metadata import get_metadata
@@ -31,13 +32,15 @@ async def resolve(
 ):
 
     params = SearchPayload(stable_id=stable_id, type=type, per_page=10)
+    response_mode = "json" if is_json_request(request) else "html"
     try:
         # fm_py performs synchronous Redb file I/O. Run it off the async event
         # loop so concurrent resolver requests can continue to be served.
         search_results = await run_in_threadpool(get_search_results, params)
 
         if not search_results or not search_results.get("matches"):
-            if is_json_request(request):
+            record_resolver_outcome("stable_id", "not_found", response_mode)
+            if response_mode == "json":
                 return response_error_handler({"status": 404})
 
             res = StableIdResolverResponse(
@@ -61,7 +64,8 @@ async def resolve(
         results = build_stable_id_resolver_content(metadata_results)
         stable_id_resolver_response.content = results
 
-        if is_json_request(request):
+        record_resolver_outcome("stable_id", "resolved", response_mode)
+        if response_mode == "json":
             return results
 
         if len(results) == 1:
@@ -74,7 +78,8 @@ async def resolve(
             return HTMLResponse(generate_resolver_id_page(stable_id_resolver_response))
     except Exception as e:
         logging.error(f"Error: {e}")
-        if is_json_request(request):
+        record_resolver_outcome("stable_id", "internal_error", response_mode)
+        if response_mode == "json":
             return response_error_handler({"status": 500, "details": str(e)})
         res = StableIdResolverResponse(
             stable_id=stable_id, code=500, message=str(e), content=None

@@ -30,11 +30,12 @@ python3 -m uvicorn app.main:app --port 8001 --reload
 
 `APP_PREFIX` defaults to `/`. Set it only when the app should be served under a path prefix, for example `/api/resolver`.
 
-### Legacy URL resolver metrics
+### Resolver outcome metrics
 
-In addition to HTTP metrics, `/metrics` exposes
-`legacy_url_resolver_requests_total`. Its `outcome` label records the resolver
-result independently of the HTTP status:
+In addition to HTTP metrics, `/metrics` exposes `resolver_requests_total`.
+Its `endpoint` and `outcome` labels record the resolver result independently
+of the HTTP status. Endpoints are `legacy_url`, `stable_id`, `rapid`, and
+`rapid_stable_id`:
 
 | Outcome | Meaning |
 | --- | --- |
