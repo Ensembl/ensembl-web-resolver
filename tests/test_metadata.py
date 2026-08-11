@@ -1,7 +1,10 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+import requests
+
 from app.api.utils.metadata import (
+    MetadataNotFoundError,
     get_genome_tag_from_genome_id,
     search_variant,
 )
@@ -49,6 +52,22 @@ class TestMetadata(unittest.TestCase):
         with self.assertRaisesRegex(
             Exception,
             "Failed to fetch genome tag for genome 'genome_uuid1': 503 Server Error",
+        ):
+            get_genome_tag_from_genome_id("genome_uuid1")
+
+    @patch("app.api.utils.metadata.requests.Session")
+    def test_get_genome_tag_raises_not_found_for_a_missing_genome(
+        self, mock_session_class
+    ):
+        response = MagicMock(status_code=404)
+        response.raise_for_status.side_effect = requests.HTTPError(response=response)
+        mock_session_class.return_value.get.return_value.__enter__.return_value = (
+            response
+        )
+
+        with self.assertRaisesRegex(
+            MetadataNotFoundError,
+            "Genome 'genome_uuid1' was not found in the metadata API",
         ):
             get_genome_tag_from_genome_id("genome_uuid1")
 
