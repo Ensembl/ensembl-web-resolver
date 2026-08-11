@@ -30,6 +30,25 @@ python3 -m uvicorn app.main:app --port 8001 --reload
 
 `APP_PREFIX` defaults to `/`. Set it only when the app should be served under a path prefix, for example `/api/resolver`.
 
+### Legacy URL resolver metrics
+
+In addition to HTTP metrics, `/metrics` exposes
+`legacy_url_resolver_requests_total`. Its `outcome` label records the resolver
+result independently of the HTTP status:
+
+| Outcome | Meaning |
+| --- | --- |
+| `resolved` | A new Ensembl URL was returned or redirected to. |
+| `archive_fallback` | The request was redirected to an Ensembl archive. |
+| `interstitial` | A browser was shown the expected HTML interstitial (HTTP 404). |
+| `not_found` | No suitable destination was found. |
+| `invalid_request` | The submitted URL was invalid. |
+| `internal_error` | An unexpected resolver or configuration failure occurred. |
+
+We can use `outcome="internal_error"` for the resolver failure alert and track
+`outcome="interstitial"` separately, rather than treating its expected HTTP
+404 response as a service failure.
+
 ### Stable ID index
 
 `/id/{stable_id}` and `/rapid/id/{stable_id}` can use a local fast-match Redb
