@@ -4,6 +4,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.api.error_response import response_error_handler
+from app.api.metrics import record_legacy_url_resolver_outcome
 from app.api.models.resolver import UrlResolverResponse
 from app.api.utils.commons import is_json_request
 from app.api.utils.metadata import (
@@ -48,6 +49,8 @@ async def resolve_url(request: Request, url: str):
         JSON containing ``resolved_url`` when the client requests JSON, otherwise
         a redirect response to the resolved new Ensembl URL.
     """
+    response_mode = "json" if is_json_request(request) else "html"
+
     try:
         resolved_url = resolve_legacy_ensembl_url(
             url,
@@ -58,48 +61,58 @@ async def resolve_url(request: Request, url: str):
         )
         response = UrlResolverResponse(resolved_url=resolved_url)
 
-        if is_json_request(request):
+        if response_mode == "json":
+            record_legacy_url_resolver_outcome("resolved", response_mode)
             return response.model_dump(exclude_none=True)
 
+        record_legacy_url_resolver_outcome("resolved", response_mode)
         return RedirectResponse(resolved_url, status_code=308)
     except MissingUrlParameterError as error:
+        record_legacy_url_resolver_outcome("invalid_request", response_mode)
         return response_error_handler({"status": 400, "details": str(error)})
     except SpeciesMappingNotFoundError:
         if is_bare_legacy_path(url):
-            if not is_json_request(request):
-                return _url_resolver_interstitial_response(url)
+            if response_mode == "html":
+                return _url_resolver_interstitial_response(url, response_mode)
+            record_legacy_url_resolver_outcome("not_found", response_mode)
             return response_error_handler(
                 {
                     "status": 404,
                     "details": "No supported new Ensembl equivalent for this URL",
                 }
             )
-        return _archive_fallback_response(url)
+        return _archive_fallback_response(url, response_mode)
     except SpeciesNotFoundError:
         # Archive fallback is an HTTP policy for unresolved species mappings.
         # The new Ensembl URL resolver stays focused on supported new Ensembl
         # destinations.
-        return _archive_fallback_response(url)
+        return _archive_fallback_response(url, response_mode)
     except InvalidLegacyUrlError as error:
+        record_legacy_url_resolver_outcome("not_found", response_mode)
         return response_error_handler({"status": 404, "details": str(error)})
     except UnsupportedLegacyUrlError as error:
-        if not is_json_request(request):
-            return _url_resolver_interstitial_response(url)
+        if response_mode == "html":
+            return _url_resolver_interstitial_response(url, response_mode)
 
+        record_legacy_url_resolver_outcome("not_found", response_mode)
         return response_error_handler({"status": 404, "details": str(error)})
     except MetadataNotFoundError as error:
+        record_legacy_url_resolver_outcome("not_found", response_mode)
         return response_error_handler({"status": 404, "details": str(error)})
     except SpeciesMappingConfigurationError as error:
         logging.error(f"Species mapping configuration error: {error}")
+        record_legacy_url_resolver_outcome("internal_error", response_mode)
         return response_error_handler({"status": 500, "details": str(error)})
     except LegacyUrlResolverError as error:
+        record_legacy_url_resolver_outcome("invalid_request", response_mode)
         return response_error_handler({"status": 400, "details": str(error)})
     except Exception as error:
         logging.error(f"Error resolving legacy URL: {error}")
+        record_legacy_url_resolver_outcome("internal_error", response_mode)
         return response_error_handler({"status": 500, "details": str(error)})
 
 
-def _archive_fallback_response(url: str):
+def _archive_fallback_response(url: str, response_mode: str):
     """Redirect to the archive equivalent for unresolved species mappings.
 
     Args:
@@ -111,14 +124,17 @@ def _archive_fallback_response(url: str):
     """
     try:
         archive_url = build_archive_fallback_url(url)
+        record_legacy_url_resolver_outcome("archive_fallback", response_mode)
         return RedirectResponse(archive_url, status_code=308)
     except UnsupportedLegacyUrlError as error:
+        record_legacy_url_resolver_outcome("not_found", response_mode)
         return response_error_handler({"status": 404, "details": str(error)})
     except InvalidLegacyUrlError as error:
+        record_legacy_url_resolver_outcome("not_found", response_mode)
         return response_error_handler({"status": 404, "details": str(error)})
 
 
-def _url_resolver_interstitial_response(url: str):
+def _url_resolver_interstitial_response(url: str, response_mode: str):
     """Render an interstitial with new Ensembl and archive choices.
 
     Args:
@@ -133,6 +149,7 @@ def _url_resolver_interstitial_response(url: str):
     except (InvalidLegacyUrlError, UnsupportedLegacyUrlError):
         archive_url = None
 
+    record_legacy_url_resolver_outcome("interstitial", response_mode)
     response = UrlResolverResponse(
         source_url=url,
         archive_url=archive_url,

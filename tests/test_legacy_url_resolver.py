@@ -72,6 +72,66 @@ class TestUrlResolver(unittest.TestCase):
         self.mock_genome_tag_lookup.assert_not_called()
 
     @patch(
+        "app.api.resources.legacy_url_resolver_view.record_legacy_url_resolver_outcome"
+    )
+    def test_records_resolved_outcome(self, mock_record_outcome):
+        """Record successful browser redirects as resolved."""
+        self.mock_static_mapping.return_value = "https://www.ensembl.org/tools/blast"
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={"url": "https://staging.ensembl.org/Multi/Tools/Blast/"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 308)
+        mock_record_outcome.assert_called_once_with("resolved", "html")
+
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.record_legacy_url_resolver_outcome"
+    )
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
+    def test_records_archive_fallback_outcome(
+        self, mock_species_lookup, mock_record_outcome
+    ):
+        """Record redirects to an archive as archive fallbacks."""
+        mock_species_lookup.side_effect = SpeciesNotFoundError("not found")
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": "https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG1"
+            },
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 308)
+        mock_record_outcome.assert_called_once_with("archive_fallback", "html")
+
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.record_legacy_url_resolver_outcome"
+    )
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
+    def test_records_interstitial_outcome(
+        self, mock_species_lookup, mock_record_outcome
+    ):
+        """Record browser interstitials separately from ordinary not-found results."""
+        mock_species_lookup.side_effect = SpeciesMappingNotFoundError("not found")
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={"url": "https://www.ensembl.org/foo"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 404)
+        mock_record_outcome.assert_called_once_with("interstitial", "html")
+
+    @patch(
         "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
     )
     def test_resolve_static_host_mapping_with_json_response(self, mock_species_lookup):
