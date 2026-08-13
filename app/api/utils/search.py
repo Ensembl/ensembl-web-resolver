@@ -59,6 +59,7 @@ def get_fast_match_results(params: SearchPayload):
         raise RuntimeError("FAST_MATCH_DB_PATH is not configured")
 
     raw_matches = fm_py.find_key(params.stable_id, FAST_MATCH_DB_PATH)
+    logger.info(f"Fast-match stable ID lookup result: {raw_matches!r} ")
     if raw_matches is None:
         logger.info(
             f"Fast-match stable ID lookup result: 0 matches "
@@ -97,5 +98,8 @@ def get_fast_match_results(params: SearchPayload):
             )
             seen_genome_ids.add(genome_id)
 
-    logger.info(f"Fast-match stable ID lookup result: {len(matches)} matches")
+    logger.info(
+            f"Fast-match stable ID lookup result: {len(matches)} matches "
+            f"(stable_id={params.stable_id!r}, type={params.type!r})"
+        )
     return {"matches": matches}
