@@ -60,7 +60,10 @@ def get_fast_match_results(params: SearchPayload):
 
     raw_matches = fm_py.find_key(params.stable_id, FAST_MATCH_DB_PATH)
     if raw_matches is None:
-        logger.info("Fast-match stable ID lookup result: 0 matches")
+        logger.info(
+            f"Fast-match stable ID lookup result: 0 matches "
+            f"(stable_id={params.stable_id!r}, type={params.type!r})"
+        )
         return {"matches": []}
 
     # Unversioned IDs are unchanged; only conventional terminal numeric
