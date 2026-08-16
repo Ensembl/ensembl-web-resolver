@@ -42,7 +42,7 @@ paths:
       parameters:
         - name: stable_id
           in: path
-          description: Gene stable id used to represent a gene in a genome.
+          description: Gene, transcript, or protein stable ID.
           required: true
           explode: true
           schema:
@@ -50,11 +50,11 @@ paths:
             example: ENSG00000221914.11
         - name: type
           in: query
-          description: Defines a type - gene/transcript/variant etc
+          description: Optional stable-ID type filter. If omitted, all supported types are searched.
           required: false
           schema:
             type: string
-            enum: [ gene, transcript, variant ]
+            enum: [ gene, transcript, protein ]
             example:
               gene
         - name: app

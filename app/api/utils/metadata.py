@@ -25,6 +25,11 @@ def get_metadata(matches: List[SearchMatch] = []):
                 metadata_results[genome_id]["unversioned_stable_id"] = match.get(
                     "unversioned_stable_id"
                 )
+                # Fast-match supplies this field. Keep the historical gene
+                # default for search-hub responses that do not yet include it.
+                metadata_results[genome_id]["stable_id_type"] = (
+                    match.get("type") or match.get("doc_type") or "gene"
+                )
         except Exception as e:
             raise Exception(
                 f"Failed to fetch metadata for genome '{genome_id}': {e}"

@@ -71,7 +71,7 @@ def get_fast_match_results(params: SearchPayload):
     # version suffixes (for example, ``ENSG00000127720.3``) are removed.
     unversioned_stable_id = re.sub(r"\.\d+$", "", params.stable_id)
     matches = []
-    seen_genome_ids = set()
+    seen_matches = set()
 
     for raw_match in raw_matches.split("+"):
         try:
@@ -89,14 +89,19 @@ def get_fast_match_results(params: SearchPayload):
         if params.type and doc_type != params.type:
             continue
 
-        if genome_id not in seen_genome_ids:
+        # A stable ID normally identifies one feature type, but retain the type
+        # in both the result and deduplication key when no filter was supplied.
+        # The resolver needs it to construct a gene or transcript destination.
+        match_key = (genome_id, doc_type)
+        if match_key not in seen_matches:
             matches.append(
                 {
                     "genome_id": genome_id,
                     "unversioned_stable_id": unversioned_stable_id,
+                    "type": doc_type,
                 }
             )
-            seen_genome_ids.add(genome_id)
+            seen_matches.add(match_key)
 
     logger.info(
             f"Fast-match stable ID lookup result: {len(matches)} matches "

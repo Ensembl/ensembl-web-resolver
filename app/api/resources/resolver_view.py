@@ -26,7 +26,7 @@ MAIN_ARCHIVE_URL = f"https://{ARCHIVE_HOSTS['staging.ensembl.org']}"
 async def resolve(
     request: Request,
     stable_id: str,
-    type: Optional[str] = "gene",
+    type: Optional[Literal["gene", "transcript", "protein"]] = None,
     gca: Optional[str] = "",
     app: Optional[Literal["genome-browser", "feature-explorer"]] = DEFAULT_APP,
 ):
