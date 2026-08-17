@@ -108,6 +108,39 @@ class TestResolverAPI(unittest.TestCase):
 
     @patch("app.api.resources.resolver_view.get_search_results")
     @patch("app.api.resources.resolver_view.get_metadata")
+    def test_resolves_transcript_using_the_matched_type(
+        self, mock_get_metadata, mock_get_search_results
+    ):
+        transcript_id = "ENST00000357654"
+        mock_get_search_results.return_value = {
+            "matches": [
+                {
+                    "genome_id": "genome1",
+                    "unversioned_stable_id": transcript_id,
+                    "type": "transcript",
+                }
+            ]
+        }
+        mock_get_metadata.return_value = {
+            "genome1": {
+                **self.mock_single_metadata_results_success["genome1"],
+                "unversioned_stable_id": transcript_id,
+                "stable_id_type": "transcript",
+            }
+        }
+
+        response = self.client.get(
+            f"/id/{transcript_id}", params={"app": "genome-browser"}, follow_redirects=False
+        )
+
+        self.assertEqual(response.status_code, 307)
+        self.assertEqual(
+            response.headers["location"],
+            f"{ENSEMBL_URL}/genome-browser/genome1?focus=transcript:{transcript_id}",
+        )
+
+    @patch("app.api.resources.resolver_view.get_search_results")
+    @patch("app.api.resources.resolver_view.get_metadata")
     def test_resolve_success_with_html_response(
         self, mock_get_metadata, mock_get_search_results
     ):

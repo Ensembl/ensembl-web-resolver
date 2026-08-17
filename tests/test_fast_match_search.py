@@ -51,10 +51,12 @@ class TestFastMatchSearch(unittest.TestCase):
                     {
                         "genome_id": "genome-1",
                         "unversioned_stable_id": "ENSG00000127720",
+                        "type": "gene",
                     },
                     {
                         "genome_id": "genome-2",
                         "unversioned_stable_id": "ENSG00000127720",
+                        "type": "gene",
                     },
                 ]
             },
@@ -80,7 +82,35 @@ class TestFastMatchSearch(unittest.TestCase):
                     {
                         "genome_id": "genome-2",
                         "unversioned_stable_id": "ENSG00000127720",
+                        "type": "gene",
                     }
+                ]
+            },
+        )
+
+    @patch("app.api.utils.search.fm_py")
+    @patch("app.api.utils.search.FAST_MATCH_ENABLED", True)
+    @patch("app.api.utils.search.FAST_MATCH_DB_PATH", "/data/stable-ids.redb")
+    def test_returns_supported_types_when_no_type_filter_is_supplied(self, mock_fm_py):
+        mock_fm_py.find_key.return_value = "genome-1|gene+genome-1|transcript"
+        params = SearchPayload(stable_id="ENSX000001", type=None, per_page=10)
+
+        result = get_search_results(params)
+
+        self.assertEqual(
+            result,
+            {
+                "matches": [
+                    {
+                        "genome_id": "genome-1",
+                        "unversioned_stable_id": "ENSX000001",
+                        "type": "gene",
+                    },
+                    {
+                        "genome_id": "genome-1",
+                        "unversioned_stable_id": "ENSX000001",
+                        "type": "transcript",
+                    },
                 ]
             },
         )

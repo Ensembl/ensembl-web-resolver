@@ -4,9 +4,9 @@ from pydantic import BaseModel, Field, ConfigDict
 
 
 class SearchPayload(BaseModel):
-    stable_id: str = Field(default=None, title="Stable ID of a gene")
-    type: Literal["gene"] | None = Field(
-        default=None, title="Type of stable id, e.g. gene"
+    stable_id: str = Field(default=None, title="Stable ID")
+    type: Literal["gene", "transcript", "protein"] | None = Field(
+        default=None, title="Optional stable-ID type filter"
     )
     per_page: int = 1
     app: Literal["genome-browser", "feature-explorer"] = Field(
@@ -15,8 +15,9 @@ class SearchPayload(BaseModel):
 
 
 class SearchMatch(BaseModel):
-    genome: str
+    genome_id: str
     unversioned_stable_id: str
+    type: Literal["gene", "transcript", "protein"] | None = None
 
 
 class SearchResult(BaseModel):
@@ -89,6 +90,7 @@ class UrlResolverResponse(BaseModel):
 
 
 class StableIdResolverContent(MetadataResult):
+    stable_id_type: Literal["gene", "transcript", "protein"] = "gene"
     feature_explorer_url: str | None = None
     genome_browser_url: str | None = None
     release_type: str | None = None

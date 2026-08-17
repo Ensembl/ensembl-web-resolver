@@ -13,10 +13,14 @@ def build_stable_id_resolver_content(metadata_results) -> list[StableIdResolverC
 
         content = StableIdResolverContent(
             feature_explorer_url=build_feature_explorer_url(
-                genome_id, metadata["unversioned_stable_id"]
+                genome_id,
+                metadata["unversioned_stable_id"],
+                metadata.get("stable_id_type", "gene"),
             ),
             genome_browser_url=build_genome_browser_url(
-                genome_id, metadata["unversioned_stable_id"]
+                genome_id,
+                metadata["unversioned_stable_id"],
+                metadata.get("stable_id_type", "gene"),
             ),
             release_type=metadata.get("release", {}).get("type", ""),
             release_name=metadata.get("release", {}).get("name", ""),
@@ -27,12 +31,19 @@ def build_stable_id_resolver_content(metadata_results) -> list[StableIdResolverC
     return results
 
 
-def build_feature_explorer_url(genome_id: str, stable_id: str) -> str:
-    return f"{ENSEMBL_URL}/feature-explorer/{genome_id}/gene:{stable_id}"
+def build_feature_explorer_url(
+    genome_id: str, stable_id: str, stable_id_type: str = "gene"
+) -> str:
+    return f"{ENSEMBL_URL}/feature-explorer/{genome_id}/{stable_id_type}:{stable_id}"
 
 
-def build_genome_browser_url(genome_id: str, stable_id: str) -> str:
-    return f"{ENSEMBL_URL}/genome-browser/{genome_id}?focus=gene:{stable_id}"
+def build_genome_browser_url(
+    genome_id: str, stable_id: str, stable_id_type: str = "gene"
+) -> str:
+    return (
+        f"{ENSEMBL_URL}/genome-browser/{genome_id}"
+        f"?focus={stable_id_type}:{stable_id}"
+    )
 
 
 def is_json_request(request) -> bool:
