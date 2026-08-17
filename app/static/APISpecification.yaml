@@ -55,8 +55,6 @@ paths:
           schema:
             type: string
             enum: [ gene, transcript, protein ]
-            example:
-              gene
         - name: app
           in: query
           description: Choose between apps - Genome Browser/ Feature Explorer
@@ -64,16 +62,12 @@ paths:
           schema:
             type: string
             enum: [ genome-browser, feature-explorer ]
-            example:
-              genome-browser
         - name: gca
           in: query
           description: GCA assembly accession id of the genome
           required: false
           schema:
             type: string
-            example:
-              GCA_000001405.29
       responses:
         '200':
           description: OK

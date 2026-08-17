@@ -49,7 +49,9 @@ def get_fast_match_results(params: SearchPayload):
     """Look up stable IDs in the local fast-match Redb index.
 
     The index is generated with keys for stable and unversioned stable IDs, and
-    values in the ``genome_id|doc_type`` format. Multiple matching records are
+    values in the ``genome_id|doc_type|parent_transcript_id`` format. The
+    parent transcript field is empty for genes and transcripts, and identifies
+    the transcript to display for proteins. Multiple matching records are
     delimited by ``+``.
     """
     if fm_py is None:
@@ -75,7 +77,7 @@ def get_fast_match_results(params: SearchPayload):
 
     for raw_match in raw_matches.split("+"):
         try:
-            genome_id, doc_type = raw_match.split("|", maxsplit=1)
+            genome_id, doc_type, parent_transcript_id = raw_match.split("|")
         except ValueError as error:
             raise ValueError(
                 f"Invalid fast-match value for stable ID '{params.stable_id}'"
@@ -86,19 +88,25 @@ def get_fast_match_results(params: SearchPayload):
                 f"Invalid fast-match value for stable ID '{params.stable_id}'"
             )
 
+        if doc_type == "protein" and not parent_transcript_id:
+            raise ValueError(
+                f"Protein stable ID '{params.stable_id}' has no parent transcript"
+            )
+
         if params.type and doc_type != params.type:
             continue
 
         # A stable ID normally identifies one feature type, but retain the type
         # in both the result and deduplication key when no filter was supplied.
         # The resolver needs it to construct a gene or transcript destination.
-        match_key = (genome_id, doc_type)
+        match_key = (genome_id, doc_type, parent_transcript_id)
         if match_key not in seen_matches:
             matches.append(
                 {
                     "genome_id": genome_id,
                     "unversioned_stable_id": unversioned_stable_id,
                     "type": doc_type,
+                    "parent_transcript_id": parent_transcript_id or None,
                 }
             )
             seen_matches.add(match_key)

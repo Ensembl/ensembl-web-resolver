@@ -141,6 +141,46 @@ class TestResolverAPI(unittest.TestCase):
 
     @patch("app.api.resources.resolver_view.get_search_results")
     @patch("app.api.resources.resolver_view.get_metadata")
+    def test_resolves_protein_using_its_parent_transcript(
+        self, mock_get_metadata, mock_get_search_results
+    ):
+        protein_id = "ENSP00000419060"
+        transcript_id = "ENST00000357654"
+        mock_get_search_results.return_value = {
+            "matches": [
+                {
+                    "genome_id": "genome1",
+                    "unversioned_stable_id": protein_id,
+                    "type": "protein",
+                    "parent_transcript_id": transcript_id,
+                }
+            ]
+        }
+        mock_get_metadata.return_value = {
+            "genome1": {
+                **self.mock_single_metadata_results_success["genome1"],
+                "unversioned_stable_id": protein_id,
+                "stable_id_type": "protein",
+                "parent_transcript_id": transcript_id,
+            }
+        }
+
+        response = self.client.get(
+            f"/id/{protein_id}", headers={"Accept": "application/json"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()[0]["feature_explorer_url"],
+            f"{ENSEMBL_URL}/feature-explorer/genome1/transcript:{transcript_id}?view=protein",
+        )
+        self.assertEqual(
+            response.json()[0]["genome_browser_url"],
+            f"{ENSEMBL_URL}/genome-browser/genome1?focus=transcript:{transcript_id}",
+        )
+
+    @patch("app.api.resources.resolver_view.get_search_results")
+    @patch("app.api.resources.resolver_view.get_metadata")
     def test_resolve_success_with_html_response(
         self, mock_get_metadata, mock_get_search_results
     ):
