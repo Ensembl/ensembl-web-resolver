@@ -56,7 +56,9 @@ We can use `outcome="internal_error"` for the resolver failure alert and track
 index. Set `FAST_MATCH_ENABLED=true` and configure `FAST_MATCH_DB_PATH` to use
 it; set `FAST_MATCH_ENABLED=false` to retain the search-hub API lookup. The
 index is expected to have stable and unversioned stable IDs as keys and values
-in the `genome_id|doc_type` format, with multiple values delimited by `+`.
+in the `genome_id|doc_type|parent_transcript_id` format, with multiple values
+delimited by `+`. The final field is empty for genes and transcripts; for a
+protein, it contains the parent transcript stable ID.
 
 The `fm_py` dependency is published to the private GitLab package registry.
 Install the resolver dependencies with a GitLab token that has

@@ -30,6 +30,9 @@ def get_metadata(matches: List[SearchMatch] = []):
                 metadata_results[genome_id]["stable_id_type"] = (
                     match.get("type") or match.get("doc_type") or "gene"
                 )
+                metadata_results[genome_id]["parent_transcript_id"] = match.get(
+                    "parent_transcript_id"
+                )
         except Exception as e:
             raise Exception(
                 f"Failed to fetch metadata for genome '{genome_id}': {e}"

@@ -18,6 +18,7 @@ class SearchMatch(BaseModel):
     genome_id: str
     unversioned_stable_id: str
     type: Literal["gene", "transcript", "protein"] | None = None
+    parent_transcript_id: str | None = None
 
 
 class SearchResult(BaseModel):
