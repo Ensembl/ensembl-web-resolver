@@ -2,8 +2,8 @@ from fastapi import APIRouter, Request
 from typing import Optional, Literal
 from fastapi.responses import RedirectResponse, HTMLResponse
 from starlette.concurrency import run_in_threadpool
-from urllib.parse import quote
 import logging
+from urllib.parse import quote
 
 from app.api.error_response import response_error_handler
 from app.api.metrics import record_resolver_outcome
@@ -43,14 +43,9 @@ async def resolve(
             if response_mode == "json":
                 return response_error_handler({"status": 404})
 
-            res = StableIdResolverResponse(
-                stable_id=stable_id,
-                code=404,
-                message="No results",
-                archive_url=f"{MAIN_ARCHIVE_URL}/id/{quote(stable_id, safe='')}",
-                content=None,
+            return RedirectResponse(
+                f"{MAIN_ARCHIVE_URL}/id/{quote(stable_id, safe='')}", status_code=308
             )
-            return HTMLResponse(generate_resolver_id_page(res))
 
         matches = search_results.get("matches")
 
