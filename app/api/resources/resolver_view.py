@@ -3,7 +3,6 @@ from typing import Optional, Literal
 from fastapi.responses import RedirectResponse, HTMLResponse
 from starlette.concurrency import run_in_threadpool
 import logging
-import re
 from urllib.parse import quote
 
 from app.api.error_response import response_error_handler
@@ -21,7 +20,6 @@ logging.getLogger().handlers = [InterceptHandler()]
 
 router = APIRouter()
 MAIN_ARCHIVE_URL = f"https://{ARCHIVE_HOSTS['staging.ensembl.org']}"
-STABLE_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\Z")
 
 
 @router.get("/{stable_id}", name="Resolver")
@@ -35,12 +33,6 @@ async def resolve(
 
     params = SearchPayload(stable_id=stable_id, type=type, per_page=10)
     response_mode = "json" if is_json_request(request) else "html"
-    if not STABLE_ID_PATTERN.fullmatch(stable_id):
-        record_resolver_outcome("stable_id", "invalid_request", response_mode)
-        return response_error_handler(
-            {"status": 400, "details": "Invalid stable ID format"}
-        )
-
     try:
         # fm_py performs synchronous Redb file I/O. Run it off the async event
         # loop so concurrent resolver requests can continue to be served.
