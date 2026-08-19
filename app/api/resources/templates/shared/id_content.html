@@ -66,7 +66,11 @@
     </div>
     <div class="redirect-text">
         <span>
-            You will be redirected to the new Ensembl website, where you will find the latest genomic information
+            {% if response.content and response.content|length > 1 %}
+                Select a genome above to continue to the new Ensembl website.
+            {% else %}
+                You will be redirected to the new Ensembl website, where you will find the latest genomic information.
+            {% endif %}
         </span>
     </div>
 </div>

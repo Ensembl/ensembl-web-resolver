@@ -199,6 +199,14 @@ class TestResolverAPI(unittest.TestCase):
         )
         self.assertIn(f"{STATIC_PATH}/css/styles.css", response.text)
         self.assertIn(f"{STATIC_PATH}/js/index.js", response.text)
+        self.assertIn(
+            "Select a genome above to continue to the new Ensembl website.",
+            response.text,
+        )
+        self.assertNotIn(
+            "You will be redirected to the new Ensembl website, where you will find the latest genomic information.",
+            response.text,
+        )
 
     @patch("app.api.resources.resolver_view.get_search_results")
     def test_resolve_404(self, mock_get_search_results):
