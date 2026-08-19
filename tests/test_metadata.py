@@ -108,6 +108,18 @@ class TestMetadata(unittest.TestCase):
 
         self.assertIsNone(search_variant("genome_uuid1", "rs99"))
 
+    @patch("app.api.utils.metadata.requests.Session")
+    def test_search_variant_returns_none_when_endpoint_returns_404(
+        self, mock_session_class
+    ):
+        response = MagicMock(status_code=404)
+        response.raise_for_status.side_effect = requests.HTTPError(response=response)
+        mock_session_class.return_value.post.return_value.__enter__.return_value = (
+            response
+        )
+
+        self.assertIsNone(search_variant("genome_uuid1", "rs99"))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -109,6 +109,15 @@ def search_variant(genome_id: str, variant_id: str) -> dict | None:
 
         first_match = matches[0]
         return first_match if isinstance(first_match, dict) else None
+    except requests.HTTPError as error:
+        # The variants endpoint uses 404 to indicate that a query has no match.
+        # Treat this the same as an empty ``matches`` list so the legacy
+        # resolver can return its normal 404 response.
+        if error.response is not None and error.response.status_code == 404:
+            return None
+        raise Exception(
+            f"Failed to search for variant '{variant_id}' in genome '{genome_id}': {error}"
+        ) from error
     except Exception as error:
         raise Exception(
             f"Failed to search for variant '{variant_id}' in genome '{genome_id}': {error}"
