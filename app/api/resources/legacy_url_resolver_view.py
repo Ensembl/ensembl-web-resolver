@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 
 from app.api.error_response import response_error_handler
 from app.api.metrics import record_legacy_url_resolver_outcome
@@ -28,8 +28,6 @@ from app.api.utils.legacy_url_resolver import (
     resolve_legacy_ensembl_url,
 )
 from app.api.utils.legacy_url_mapping import get_static_legacy_url_mapping
-from app.api.utils.resolver import generate_resolver_url_page
-from app.core.config import ENSEMBL_URL
 from app.core.logging import InterceptHandler
 
 logging.getLogger().handlers = [InterceptHandler()]
@@ -73,7 +71,7 @@ async def resolve_url(request: Request, url: str):
     except SpeciesMappingNotFoundError:
         if is_bare_legacy_path(url):
             if response_mode == "html":
-                return _url_resolver_interstitial_response(url, response_mode)
+                return _archive_fallback_response(url, response_mode)
             record_legacy_url_resolver_outcome("not_found", response_mode)
             return response_error_handler(
                 {
@@ -92,7 +90,7 @@ async def resolve_url(request: Request, url: str):
         return response_error_handler({"status": 404, "details": str(error)})
     except UnsupportedLegacyUrlError as error:
         if response_mode == "html":
-            return _url_resolver_interstitial_response(url, response_mode)
+            return _archive_fallback_response(url, response_mode)
 
         record_legacy_url_resolver_outcome("not_found", response_mode)
         return response_error_handler({"status": 404, "details": str(error)})
@@ -132,29 +130,3 @@ def _archive_fallback_response(url: str, response_mode: str):
     except InvalidLegacyUrlError as error:
         record_legacy_url_resolver_outcome("not_found", response_mode)
         return response_error_handler({"status": 404, "details": str(error)})
-
-
-def _url_resolver_interstitial_response(url: str, response_mode: str):
-    """Render an interstitial with new Ensembl and archive choices.
-
-    Args:
-        url: Legacy URL submitted by the caller.
-
-    Returns:
-        HTML response with links to the new Ensembl site and, when possible, the
-        archive equivalent of the submitted URL.
-    """
-    try:
-        archive_url = build_archive_fallback_url(url)
-    except (InvalidLegacyUrlError, UnsupportedLegacyUrlError):
-        archive_url = None
-
-    record_legacy_url_resolver_outcome("interstitial", response_mode)
-    response = UrlResolverResponse(
-        source_url=url,
-        archive_url=archive_url,
-        new_ensembl_url=f"{ENSEMBL_URL}/genome-selector",
-        code=404,
-        message="This page could not be resolved on the new Ensembl website.",
-    )
-    return HTMLResponse(generate_resolver_url_page(response), status_code=404)

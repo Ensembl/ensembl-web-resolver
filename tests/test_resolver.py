@@ -199,6 +199,14 @@ class TestResolverAPI(unittest.TestCase):
         )
         self.assertIn(f"{STATIC_PATH}/css/styles.css", response.text)
         self.assertIn(f"{STATIC_PATH}/js/index.js", response.text)
+        self.assertIn(
+            "Select a genome above to continue to the new Ensembl website.",
+            response.text,
+        )
+        self.assertNotIn(
+            "You will be redirected to the new Ensembl website, where you will find the latest genomic information.",
+            response.text,
+        )
 
     @patch("app.api.resources.resolver_view.get_search_results")
     def test_resolve_404(self, mock_get_search_results):
@@ -230,16 +238,16 @@ class TestResolverAPI(unittest.TestCase):
         mock_record_outcome.assert_called_once_with("stable_id", "not_found", "json")
 
     @patch("app.api.resources.resolver_view.get_search_results")
-    def test_resolve_404_html_includes_archive_url(self, mock_get_search_results):
-        """Offer the main Ensembl archive when a stable ID has no match."""
+    def test_resolve_404_html_redirects_to_archive(self, mock_get_search_results):
+        """Redirect to the main Ensembl archive when a stable ID has no match."""
         mock_get_search_results.return_value = {}
 
         response = self.client.get("/id/foo", follow_redirects=False)
 
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("No results", response.text)
-        self.assertIn("https://jun2026.archive.ensembl.org/id/foo", response.text)
-        self.assertIn("Go to archive", response.text)
+        self.assertEqual(response.status_code, 308)
+        self.assertEqual(
+            response.headers["location"], "https://jun2026.archive.ensembl.org/id/foo"
+        )
 
     @patch("app.api.resources.resolver_view.get_search_results")
     @patch("app.api.resources.resolver_view.get_metadata")

@@ -116,10 +116,10 @@ class TestUrlResolver(unittest.TestCase):
     @patch(
         "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
     )
-    def test_records_interstitial_outcome(
+    def test_records_archive_fallback_outcome_for_unresolved_browser_url(
         self, mock_species_lookup, mock_record_outcome
     ):
-        """Record browser interstitials separately from ordinary not-found results."""
+        """Record immediate archive redirects for unresolved browser URLs."""
         mock_species_lookup.side_effect = SpeciesMappingNotFoundError("not found")
 
         response = self.client.get(
@@ -128,8 +128,11 @@ class TestUrlResolver(unittest.TestCase):
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, 404)
-        mock_record_outcome.assert_called_once_with("interstitial", "html")
+        self.assertEqual(response.status_code, 308)
+        self.assertEqual(
+            response.headers["location"], "https://jun2026.archive.ensembl.org/foo"
+        )
+        mock_record_outcome.assert_called_once_with("archive_fallback", "html")
 
     @patch(
         "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
@@ -238,10 +241,10 @@ class TestUrlResolver(unittest.TestCase):
     @patch(
         "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
     )
-    def test_resolve_gene_phenotype_paths_with_html_interstitial(
+    def test_resolve_gene_phenotype_paths_redirect_to_archive(
         self, mock_species_lookup
     ):
-        """Offer new Ensembl and archive choices for gene phenotype pages."""
+        """Redirect unsupported gene phenotype pages to their archives."""
         test_cases = [
             (
                 "https://staging.ensembl.org/Homo_sapiens/Gene/Phenotype"
@@ -268,21 +271,18 @@ class TestUrlResolver(unittest.TestCase):
                     follow_redirects=False,
                 )
 
-                self.assertEqual(response.status_code, 404)
-                self.assertNotIn("location", response.headers)
-                self.assertIn("This page could not be resolved", response.text)
-                self.assertIn(f"{ENSEMBL_URL}/genome-selector", response.text)
-                self.assertIn(expected_url, response.text)
+                self.assertEqual(response.status_code, 308)
+                self.assertEqual(response.headers["location"], expected_url)
                 mock_species_lookup.assert_not_called()
                 self.mock_genome_tag_lookup.assert_not_called()
 
     @patch(
         "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
     )
-    def test_resolve_gene_compara_paths_with_html_interstitial(
+    def test_resolve_gene_compara_paths_redirect_to_archive(
         self, mock_species_lookup
     ):
-        """Offer new Ensembl and archive choices for legacy Compara pages."""
+        """Redirect unsupported legacy Compara pages to their archives."""
         archive_hosts = [
             ("staging.ensembl.org", "jun2026.archive.ensembl.org"),
             ("staging-plants.ensembl.org", "eg63-plants.ensembl.org"),
@@ -307,16 +307,11 @@ class TestUrlResolver(unittest.TestCase):
                         follow_redirects=False,
                     )
 
-                    self.assertEqual(response.status_code, 404)
-                    self.assertNotIn("location", response.headers)
-                    self.assertIn("This page could not be resolved", response.text)
-                    self.assertIn(f"{ENSEMBL_URL}/genome-selector", response.text)
-                    self.assertIn(
-                        (
-                            f"https://{archive_host}/Homo_sapiens/Gene/{page}"
-                            "?g=ENSG00000012048"
-                        ),
-                        response.text,
+                    self.assertEqual(response.status_code, 308)
+                    self.assertEqual(
+                        response.headers["location"],
+                        f"https://{archive_host}/Homo_sapiens/Gene/{page}"
+                        "?g=ENSG00000012048",
                     )
                     mock_species_lookup.assert_not_called()
                     self.mock_genome_tag_lookup.assert_not_called()
@@ -961,6 +956,37 @@ class TestUrlResolver(unittest.TestCase):
     @patch(
         "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
     )
+    def test_unresolved_plant_variant_html_redirects_to_plant_archive(
+        self, mock_species_lookup
+    ):
+        """Redirect browser users immediately to the matching division archive."""
+        mock_species_lookup.return_value = self.genome_uuid
+        legacy_url = (
+            "https://plants.ensembl.org/Triticum_aestivum_mattis/Variation/Explore"
+            "?db=core;g=TraesCS5B02G111700;r=5D:253902284-253903488;"
+            "v=BA00494366;vdb=variation;vf=480705"
+        )
+        archive_url = (
+            "https://eg63-plants.ensembl.org/Triticum_aestivum_mattis/Variation/Explore"
+            "?db=core;g=TraesCS5B02G111700;r=5D:253902284-253903488;"
+            "v=BA00494366;vdb=variation;vf=480705"
+        )
+
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={"url": legacy_url},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 308)
+        self.assertEqual(response.headers["location"], archive_url)
+        self.mock_variant_search.assert_called_once_with(
+            self.genome_uuid, "BA00494366"
+        )
+
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_missing_required_query_parameter(self, mock_species_lookup):
         """Return 400 when a URL shape is known but its parameter is missing."""
         mock_species_lookup.return_value = self.genome_uuid
@@ -1233,8 +1259,10 @@ class TestUrlResolver(unittest.TestCase):
     @patch(
         "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
     )
-    def test_resolve_unknown_page_with_html_interstitial(self, mock_species_lookup):
-        """Render a choice page for browser users on unsupported legacy paths."""
+    def test_resolve_unknown_page_with_html_redirects_to_archive(
+        self, mock_species_lookup
+    ):
+        """Redirect browser users to the archive for unsupported legacy paths."""
         mock_species_lookup.side_effect = SpeciesMappingNotFoundError("not found")
 
         response = self.client.get(
@@ -1243,36 +1271,29 @@ class TestUrlResolver(unittest.TestCase):
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, 404)
-        self.assertNotIn("location", response.headers)
-        self.assertIn("This page could not be resolved", response.text)
-        self.assertIn(f"{ENSEMBL_URL}/genome-selector", response.text)
-        self.assertIn(
-            f'<meta http-equiv="refresh" content="10;url={ENSEMBL_URL}/genome-selector"',
-            response.text,
+        self.assertEqual(response.status_code, 308)
+        self.assertEqual(
+            response.headers["location"], "https://jun2026.archive.ensembl.org/foo"
         )
-        self.assertIn("https://jun2026.archive.ensembl.org/foo", response.text)
-        self.assertIn(f"{STATIC_PATH}/css/styles.css", response.text)
         mock_species_lookup.assert_called_once_with("foo")
 
     @patch(
         "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
     )
-    def test_resolve_unknown_stable_id_with_html_interstitial(
+    def test_resolve_unknown_stable_id_with_html_redirects_to_archive(
         self, mock_species_lookup
     ):
-        """Offer the archive stable-ID URL when a legacy ID cannot be resolved."""
+        """Redirect to the archive stable-ID URL when a legacy ID cannot resolve."""
         response = self.client.get(
             self.mock_url_resolver_api_url,
             params={"url": "https://staging.ensembl.org/id/foo"},
             follow_redirects=False,
         )
 
-        self.assertEqual(response.status_code, 404)
-        self.assertNotIn("location", response.headers)
-        self.assertIn("This page could not be resolved", response.text)
-        self.assertIn(f"{ENSEMBL_URL}/genome-selector", response.text)
-        self.assertIn("https://jun2026.archive.ensembl.org/id/foo", response.text)
+        self.assertEqual(response.status_code, 308)
+        self.assertEqual(
+            response.headers["location"], "https://jun2026.archive.ensembl.org/id/foo"
+        )
         self.mock_genome_tag_lookup.assert_not_called()
         mock_species_lookup.assert_not_called()
 

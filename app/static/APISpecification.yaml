@@ -322,7 +322,7 @@ paths:
   /legacy:
     get:
       summary: Resolve legacy Ensembl URL
-      description: Resolves a supported legacy Ensembl URL to its new Ensembl equivalent, redirects to the configured archive host when no matching genome UUID exists, or shows an interstitial page for unsupported browser requests.
+      description: Resolves a supported legacy Ensembl URL to its new Ensembl equivalent, or redirects browser requests for unresolved URLs to the matching configured archive host.
       tags:
         - URL Resolver
       parameters:
