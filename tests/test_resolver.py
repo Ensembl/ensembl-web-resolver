@@ -250,6 +250,15 @@ class TestResolverAPI(unittest.TestCase):
         )
 
     @patch("app.api.resources.resolver_view.get_search_results")
+    def test_invalid_stable_id_does_not_redirect_to_archive(self, mock_get_search_results):
+        """Reject unsafe stable-ID values before building an archive redirect."""
+        response = self.client.get("/id/evil.example@attacker", follow_redirects=False)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertNotIn("location", response.headers)
+        mock_get_search_results.assert_not_called()
+
+    @patch("app.api.resources.resolver_view.get_search_results")
     @patch("app.api.resources.resolver_view.get_metadata")
     def test_resolve_metadata_error_includes_exception_details(
         self, mock_get_metadata, mock_get_search_results
