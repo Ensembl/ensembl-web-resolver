@@ -178,6 +178,10 @@ class TestResolverAPI(unittest.TestCase):
             response.json()[0]["genome_browser_url"],
             f"{ENSEMBL_URL}/genome-browser/genome1?focus=transcript:{transcript_id}",
         )
+        self.assertEqual(
+            response.json()[0]["redirect_url"],
+            f"{ENSEMBL_URL}/feature-explorer/genome1/transcript:{transcript_id}?view=protein",
+        )
 
     @patch("app.api.resources.resolver_view.get_search_results")
     @patch("app.api.resources.resolver_view.get_metadata")

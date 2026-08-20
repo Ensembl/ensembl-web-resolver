@@ -24,6 +24,12 @@ def build_stable_id_resolver_content(metadata_results) -> list[StableIdResolverC
                 metadata.get("stable_id_type", "gene"),
                 metadata.get("parent_transcript_id"),
             ),
+            redirect_url=build_redirect_url(
+                genome_id,
+                metadata["unversioned_stable_id"],
+                metadata.get("stable_id_type", "gene"),
+                metadata.get("parent_transcript_id"),
+            ),
             release_type=metadata.get("release", {}).get("type", ""),
             release_name=metadata.get("release", {}).get("name", ""),
             **metadata,
@@ -31,6 +37,21 @@ def build_stable_id_resolver_content(metadata_results) -> list[StableIdResolverC
         results.append(content)
 
     return results
+
+
+def build_redirect_url(
+    genome_id: str,
+    stable_id: str,
+    stable_id_type: str = "gene",
+    parent_transcript_id: str | None = None,
+) -> str:
+    if stable_id_type == "protein":
+        return build_feature_explorer_url(
+            genome_id, stable_id, stable_id_type, parent_transcript_id
+        )
+    return build_genome_browser_url(
+        genome_id, stable_id, stable_id_type, parent_transcript_id
+    )
 
 
 def build_feature_explorer_url(
