@@ -10,15 +10,27 @@ class MetadataNotFoundError(Exception):
 
 
 def get_metadata(matches: List[SearchMatch] = []):
+    type_priority = {"gene": 0, "transcript": 1, "protein": 2}
+    matches_by_genome = {}
+
+    for match in matches:
+        genome_id = match.get("genome_id")
+        current_match = matches_by_genome.get(genome_id)
+        if current_match is None or type_priority.get(
+            match.get("type") or match.get("doc_type") or "gene", 0
+        ) < type_priority.get(
+            current_match.get("type") or current_match.get("doc_type") or "gene", 0
+        ):
+            matches_by_genome[genome_id] = match
 
     metadata_results = {}
 
-    for match in matches:
+    for match in matches_by_genome.values():
         genome_id = match.get("genome_id")
         try:
             session = requests.Session()
             with session.get(
-                url=f"{ENSEMBL_URL}/api/metadata/genome/{genome_id}/details", timeout=10
+                url=f"{ENSEMBL_URL}/api/metadata/genome/{genome_id}/explain", timeout=10
             ) as response:
                 response.raise_for_status()
                 metadata_results[genome_id] = response.json()

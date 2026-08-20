@@ -5,6 +5,7 @@ import requests
 
 from app.api.utils.metadata import (
     MetadataNotFoundError,
+    get_metadata,
     get_genome_tag_from_genome_id,
     search_variant,
 )
@@ -12,6 +13,30 @@ from app.core.config import ENSEMBL_URL
 
 
 class TestMetadata(unittest.TestCase):
+    @patch("app.api.utils.metadata.requests.Session")
+    def test_get_metadata_keeps_highest_priority_match_per_genome(
+        self, mock_session_class
+    ):
+        response = MagicMock()
+        response.json.side_effect = lambda: {"assembly": None}
+        mock_session_class.return_value.get.return_value.__enter__.return_value = (
+            response
+        )
+        matches = [
+            {"genome_id": "genome-1", "type": "protein"},
+            {"genome_id": "genome-1", "type": "transcript"},
+            {"genome_id": "genome-2", "type": "protein"},
+            {"genome_id": "genome-2", "type": "gene"},
+        ]
+
+        result = get_metadata(matches)
+
+        self.assertEqual(
+            [result[genome]["stable_id_type"] for genome in ("genome-1", "genome-2")],
+            ["transcript", "gene"],
+        )
+        self.assertEqual(mock_session_class.call_count, 2)
+
     @patch("app.api.utils.metadata.requests.Session")
     def test_get_genome_tag_from_genome_id(self, mock_session_class):
         genome_id = "genome_uuid1"
