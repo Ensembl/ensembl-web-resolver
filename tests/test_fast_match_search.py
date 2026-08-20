@@ -146,6 +146,20 @@ class TestFastMatchSearch(unittest.TestCase):
     @patch("app.api.utils.search.fm_py")
     @patch("app.api.utils.search.FAST_MATCH_ENABLED", True)
     @patch("app.api.utils.search.FAST_MATCH_DB_PATH", "/data/stable-ids.redb")
+    def test_preserves_dotted_species_specific_stable_ids(self, mock_fm_py):
+        mock_fm_py.find_key.return_value = "genome-1|transcript|"
+        stable_id = "OsAzu_12g0006100.01"
+        params = SearchPayload(stable_id=stable_id, type="transcript")
+
+        result = get_search_results(params)
+
+        self.assertEqual(
+            result["matches"][0]["unversioned_stable_id"], stable_id
+        )
+
+    @patch("app.api.utils.search.fm_py")
+    @patch("app.api.utils.search.FAST_MATCH_ENABLED", True)
+    @patch("app.api.utils.search.FAST_MATCH_DB_PATH", "/data/stable-ids.redb")
     def test_returns_empty_matches_for_a_miss(self, mock_fm_py):
         mock_fm_py.find_key.return_value = None
 

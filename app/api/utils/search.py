@@ -69,9 +69,12 @@ def get_fast_match_results(params: SearchPayload):
         )
         return {"matches": []}
 
-    # Unversioned IDs are unchanged; only conventional terminal numeric
-    # version suffixes (for example, ``ENSG00000127720.3``) are removed.
-    unversioned_stable_id = re.sub(r"\.\d+$", "", params.stable_id)
+    # Only remove numeric version suffixes from canonical Ensembl IDs. Other
+    # namespaces may use dotted suffixes as part of the stable ID itself
+    # (for example, ``OsAzu_12g0006100.01``).
+    unversioned_stable_id = re.sub(
+        r"^(ENS[A-Z]*\d+)\.\d+$", r"\1", params.stable_id
+    )
     matches = []
     seen_matches = set()
 
