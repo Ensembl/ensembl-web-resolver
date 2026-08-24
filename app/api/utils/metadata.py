@@ -1,4 +1,5 @@
 import requests
+import re
 from typing import List
 
 from app.api.models.resolver import SearchMatch
@@ -10,15 +11,27 @@ class MetadataNotFoundError(Exception):
 
 
 def get_metadata(matches: List[SearchMatch] = []):
+    type_priority = {"gene": 0, "transcript": 1, "protein": 2}
+    matches_by_genome = {}
+
+    for match in matches:
+        genome_id = match.get("genome_id")
+        current_match = matches_by_genome.get(genome_id)
+        if current_match is None or type_priority.get(
+            match.get("type") or match.get("doc_type") or "gene", 0
+        ) < type_priority.get(
+            current_match.get("type") or current_match.get("doc_type") or "gene", 0
+        ):
+            matches_by_genome[genome_id] = match
 
     metadata_results = {}
 
-    for match in matches:
+    for match in matches_by_genome.values():
         genome_id = match.get("genome_id")
         try:
             session = requests.Session()
             with session.get(
-                url=f"{ENSEMBL_URL}/api/metadata/genome/{genome_id}/details", timeout=10
+                url=f"{ENSEMBL_URL}/api/metadata/genome/{genome_id}/explain", timeout=10
             ) as response:
                 response.raise_for_status()
                 metadata_results[genome_id] = response.json()
@@ -38,7 +51,78 @@ def get_metadata(matches: List[SearchMatch] = []):
                 f"Failed to fetch metadata for genome '{genome_id}': {e}"
             ) from e
 
-    return metadata_results
+    return _filter_metadata_releases(metadata_results)
+
+
+def _filter_metadata_releases(metadata_results):
+    """Filter releases according to release type and recency.
+
+    Archive releases are always discarded. The latest integrated release is
+    always kept, while partial releases are kept only when they are not older
+    than that assembly's latest integrated release. If no integrated release
+    exists, the newest non-archive release is kept as a fallback.
+    """
+    by_assembly = {}
+    for genome_id, metadata in metadata_results.items():
+        assembly = metadata.get("assembly") or {}
+        assembly_key = assembly.get("accession_id") or assembly.get("name") or genome_id
+        by_assembly.setdefault(assembly_key, []).append((genome_id, metadata))
+
+    selected_genomes = set()
+    for releases in by_assembly.values():
+        integrated = [
+            release
+            for release in releases
+            if (release[1].get("release") or {}).get("type") == "integrated"
+        ]
+        non_archive = [
+            release
+            for release in releases
+            if (release[1].get("release") or {}).get("type") != "archive"
+        ]
+
+        if integrated:
+            latest_integrated = max(
+                integrated, key=lambda release: _release_sort_key(release[1])
+            )
+            latest_integrated_key = _release_sort_key(latest_integrated[1])
+            selected_genomes.add(latest_integrated[0])
+            selected_genomes.update(
+                genome_id
+                for genome_id, metadata in non_archive
+                if (metadata.get("release") or {}).get("type") == "partial"
+                and _release_sort_key(metadata) >= latest_integrated_key
+            )
+        elif non_archive:
+            latest = max(non_archive, key=lambda release: _release_sort_key(release[1]))
+            selected_genomes.add(latest[0])
+
+    return {
+        genome_id: metadata
+        for genome_id, metadata in metadata_results.items()
+        if genome_id in selected_genomes
+    }
+
+
+def _release_sort_key(metadata):
+    """Build a sortable key so the newest release can be selected.
+
+    Release names normally contain an ISO-like date such as ``2026-07`` or
+    ``2026-04-09``. These components are converted to numbers and compared in
+    year/month/day order. The leading ``1`` makes dated releases sort after
+    undated names; the release name is retained as a final deterministic
+    tie-breaker.
+    """
+    release_name = str((metadata.get("release") or {}).get("name") or "")
+    date_match = re.search(r"(\d{4})-(\d{2})(?:-(\d{2}))?", release_name)
+    if date_match:
+        year, month, day = date_match.groups()
+        # Missing days represent a month-level release and sort before any
+        # dated release in that same month.
+        return (1, int(year), int(month), int(day or 0), release_name)
+    # Keep undated releases usable as a fallback, but rank them below dated
+    # releases when both forms are available.
+    return (0, 0, 0, 0, release_name)
 
 
 def get_genome_id_from_assembly_accession_id(accession_id: str):

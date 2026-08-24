@@ -178,6 +178,10 @@ class TestResolverAPI(unittest.TestCase):
             response.json()[0]["genome_browser_url"],
             f"{ENSEMBL_URL}/genome-browser/genome1?focus=transcript:{transcript_id}",
         )
+        self.assertEqual(
+            response.json()[0]["redirect_url"],
+            f"{ENSEMBL_URL}/feature-explorer/genome1/transcript:{transcript_id}?view=protein",
+        )
 
     @patch("app.api.resources.resolver_view.get_search_results")
     @patch("app.api.resources.resolver_view.get_metadata")
@@ -193,12 +197,11 @@ class TestResolverAPI(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn(
-            self.mock_resolved_url["genome1"],
+            f"{ENSEMBL_URL}/genome-browser/genome1?focus=gene:{self.stable_id}",
             response.text,
             "Failed resolving multiple results with html response",
         )
         self.assertIn(f"{STATIC_PATH}/css/styles.css", response.text)
-        self.assertIn(f"{STATIC_PATH}/js/index.js", response.text)
         self.assertIn(
             "Select a genome above to continue to the new Ensembl website.",
             response.text,

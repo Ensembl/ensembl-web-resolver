@@ -94,6 +94,7 @@ class StableIdResolverContent(MetadataResult):
     stable_id_type: Literal["gene", "transcript", "protein"] = "gene"
     feature_explorer_url: str | None = None
     genome_browser_url: str | None = None
+    redirect_url: str | None = None
     release_type: str | None = None
     release_name: str | None = None
 
