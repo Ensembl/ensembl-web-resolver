@@ -38,6 +38,46 @@ class TestMetadata(unittest.TestCase):
         self.assertEqual(mock_session_class.call_count, 2)
 
     @patch("app.api.utils.metadata.requests.Session")
+    def test_get_metadata_keeps_latest_integrated_release_per_assembly(
+        self, mock_session_class
+    ):
+        responses = {
+            "genome-38-integrated": {
+                "assembly": {"accession_id": "GCA-38", "name": "GRCh38"},
+                "release": {"type": "integrated", "name": "2026-07"},
+            },
+            "genome-38-partial": {
+                "assembly": {"accession_id": "GCA-38", "name": "GRCh38"},
+                "release": {"type": "partial", "name": "2026-04-09"},
+            },
+            "genome-38-archive": {
+                "assembly": {"accession_id": "GCA-38", "name": "GRCh38"},
+                "release": {"type": "archive", "name": "2025-02"},
+            },
+            "genome-37-integrated": {
+                "assembly": {"accession_id": "GCA-37", "name": "GRCh37"},
+                "release": {"type": "integrated", "name": "2026-07"},
+            },
+        }
+
+        def response_for_genome(url, timeout):
+            response = MagicMock()
+            genome_id = url.split("/genome/")[1].split("/")[0]
+            response.json.return_value = responses[genome_id]
+            context = MagicMock()
+            context.__enter__.return_value = response
+            return context
+
+        mock_session_class.return_value.get.side_effect = response_for_genome
+        matches = [{"genome_id": genome_id} for genome_id in responses]
+
+        result = get_metadata(matches)
+
+        self.assertEqual(
+            list(result), ["genome-38-integrated", "genome-37-integrated"]
+        )
+
+    @patch("app.api.utils.metadata.requests.Session")
     def test_get_genome_tag_from_genome_id(self, mock_session_class):
         genome_id = "genome_uuid1"
         response = MagicMock()
