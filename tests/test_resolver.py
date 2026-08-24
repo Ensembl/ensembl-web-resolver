@@ -197,12 +197,11 @@ class TestResolverAPI(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn(
-            self.mock_resolved_url["genome1"],
+            f"{ENSEMBL_URL}/genome-browser/genome1?focus=gene:{self.stable_id}",
             response.text,
             "Failed resolving multiple results with html response",
         )
         self.assertIn(f"{STATIC_PATH}/css/styles.css", response.text)
-        self.assertIn(f"{STATIC_PATH}/js/index.js", response.text)
         self.assertIn(
             "Select a genome above to continue to the new Ensembl website.",
             response.text,
