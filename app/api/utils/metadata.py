@@ -55,11 +55,12 @@ def get_metadata(matches: List[SearchMatch] = []):
 
 
 def _filter_metadata_releases(metadata_results):
-    """Keep the newest integrated release for each assembly.
+    """Filter releases according to release type and recency.
 
-    Partial and archive releases are retained only when an assembly has no
-    integrated release available. This allows distinct assemblies such as
-    GRCh37 and GRCh38 to remain visible.
+    Archive releases are always discarded. The latest integrated release is
+    always kept, while partial releases are kept only when they are not older
+    than that assembly's latest integrated release. If no integrated release
+    exists, the newest non-archive release is kept as a fallback.
     """
     by_assembly = {}
     for genome_id, metadata in metadata_results.items():
@@ -67,21 +68,40 @@ def _filter_metadata_releases(metadata_results):
         assembly_key = assembly.get("accession_id") or assembly.get("name") or genome_id
         by_assembly.setdefault(assembly_key, []).append((genome_id, metadata))
 
-    filtered = {}
+    selected_genomes = set()
     for releases in by_assembly.values():
         integrated = [
             release
             for release in releases
             if (release[1].get("release") or {}).get("type") == "integrated"
         ]
-        candidates = integrated or releases
-        genome_id, metadata = max(
-            candidates,
-            key=lambda release: _release_sort_key(release[1]),
-        )
-        filtered[genome_id] = metadata
+        non_archive = [
+            release
+            for release in releases
+            if (release[1].get("release") or {}).get("type") != "archive"
+        ]
 
-    return filtered
+        if integrated:
+            latest_integrated = max(
+                integrated, key=lambda release: _release_sort_key(release[1])
+            )
+            latest_integrated_key = _release_sort_key(latest_integrated[1])
+            selected_genomes.add(latest_integrated[0])
+            selected_genomes.update(
+                genome_id
+                for genome_id, metadata in non_archive
+                if (metadata.get("release") or {}).get("type") == "partial"
+                and _release_sort_key(metadata) >= latest_integrated_key
+            )
+        elif non_archive:
+            latest = max(non_archive, key=lambda release: _release_sort_key(release[1]))
+            selected_genomes.add(latest[0])
+
+    return {
+        genome_id: metadata
+        for genome_id, metadata in metadata_results.items()
+        if genome_id in selected_genomes
+    }
 
 
 def _release_sort_key(metadata):

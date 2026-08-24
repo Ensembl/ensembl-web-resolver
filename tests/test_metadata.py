@@ -50,6 +50,10 @@ class TestMetadata(unittest.TestCase):
                 "assembly": {"accession_id": "GCA-38", "name": "GRCh38"},
                 "release": {"type": "partial", "name": "2026-04-09"},
             },
+            "genome-38-newer-partial": {
+                "assembly": {"accession_id": "GCA-38", "name": "GRCh38"},
+                "release": {"type": "partial", "name": "2026-08"},
+            },
             "genome-38-archive": {
                 "assembly": {"accession_id": "GCA-38", "name": "GRCh38"},
                 "release": {"type": "archive", "name": "2025-02"},
@@ -74,7 +78,8 @@ class TestMetadata(unittest.TestCase):
         result = get_metadata(matches)
 
         self.assertEqual(
-            list(result), ["genome-38-integrated", "genome-37-integrated"]
+            list(result),
+            ["genome-38-integrated", "genome-38-newer-partial", "genome-37-integrated"],
         )
 
     @patch("app.api.utils.metadata.requests.Session")
