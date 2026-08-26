@@ -97,11 +97,21 @@ def _filter_metadata_releases(metadata_results):
             latest = max(non_archive, key=lambda release: _release_sort_key(release[1]))
             selected_genomes.add(latest[0])
 
-    return {
+    filtered = {
         genome_id: metadata
         for genome_id, metadata in metadata_results.items()
         if genome_id in selected_genomes
     }
+
+    # Prefer reference assemblies when at least one reference result remains.
+    # If every remaining result is non-reference, keep the release-filtered
+    # results rather than returning an empty list.
+    reference_results = {
+        genome_id: metadata
+        for genome_id, metadata in filtered.items()
+        if metadata.get("is_reference") is True
+    }
+    return reference_results or filtered
 
 
 def _release_sort_key(metadata):
