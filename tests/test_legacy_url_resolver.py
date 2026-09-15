@@ -1297,6 +1297,48 @@ class TestUrlResolver(unittest.TestCase):
         self.mock_genome_tag_lookup.assert_not_called()
         mock_species_lookup.assert_not_called()
 
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
+    def test_resolve_regulatory_feature_without_species_lookup(
+        self, mock_species_lookup
+    ):
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": (
+                    "https://www.ensembl.org/Homo_sapiens/Regulation/Summary"
+                    "?db=funcgen;fdb=funcgen;r=5:173234196-173236754"
+                    ";rf=ENSR5_B39D92"
+                )
+            },
+            headers={"accept": "application/json"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "resolved_url": (
+                    "https://regulation.ensembl.org/"
+                    "regulatory_features/Homo_sapiens/ENSR5_B39D92"
+                )
+            },
+        )
+        mock_species_lookup.assert_not_called()
+
+    def test_regulatory_feature_requires_rf(self):
+        response = self.client.get(
+            self.mock_url_resolver_api_url,
+            params={
+                "url": "https://www.ensembl.org/Homo_sapiens/Regulation/Summary"
+            },
+            headers={"accept": "application/json"},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("rf", response.json()["details"])
+
 
 if __name__ == "__main__":
     unittest.main()
