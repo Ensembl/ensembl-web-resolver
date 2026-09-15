@@ -9,3 +9,4 @@ SPECIES_MAPPING_TABLE=species_genome_uuid_mapping
 APP_PREFIX=/
 FAST_MATCH_ENABLED=true
 FAST_MATCH_DB_PATH=/path/to/your/fast_match_db.redb
+REGULATION_URL=https://regulation.ensembl.org

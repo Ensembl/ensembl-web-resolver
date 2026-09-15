@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Callable
 from urllib.parse import parse_qsl, quote, urlparse, urlunparse
 
-from app.core.config import ENSEMBL_URL
+from app.core.config import ENSEMBL_URL, REGULATION_URL
 
 
 class LegacyUrlResolverError(Exception):
@@ -111,6 +111,17 @@ def _build_blast_url(genome_id: str, query_params: dict[str, list[str]]) -> str:
     path, but the new BLAST tool is shared across genomes.
     """
     return f"{ENSEMBL_URL}/tools/blast"
+
+
+def _build_regulatory_feature_url(
+    species_url: str, query_params: dict[str, list[str]]
+) -> str:
+    """Build the Regulation site URL for a legacy regulatory feature page."""
+    feature_id = _require_query_value(query_params, "rf")
+    return (
+        f"{REGULATION_URL}/regulatory_features/"
+        f"{_quote_url_part(species_url)}/{_quote_url_part(feature_id)}"
+    )
 
 
 def _build_location_url(genome_id: str, query_params: dict[str, list[str]]) -> str:
@@ -418,6 +429,13 @@ def _is_species_vep_path(path_segments: tuple[str, ...]) -> bool:
     ) == ("tools", "vep")
 
 
+def _is_regulatory_feature_path(path_segments: tuple[str, ...]) -> bool:
+    """Check for the species-scoped legacy regulatory feature page."""
+    return len(path_segments) == 3 and tuple(
+        segment.lower() for segment in path_segments[1:]
+    ) == ("regulation", "summary")
+
+
 def _find_species_rule(
     legacy_path: tuple[str, ...], query_params: dict[str, list[str]]
 ) -> LegacyUrlRule | None:
@@ -521,6 +539,11 @@ def resolve_legacy_ensembl_url(
     # the supported mappings, e.g. /Homo_sapiens/Gene/Summary?g=...
     species_url = path_segments[0]
     legacy_path = path_segments[1:]
+
+    # The Regulation site retains the legacy species URL name and feature ID;
+    # no genome UUID/tag lookup is required for this destination.
+    if _is_regulatory_feature_path(path_segments):
+        return _build_regulatory_feature_url(species_url, query_params)
 
     variant_views = {
         ("Variation", "Explore"): None,
