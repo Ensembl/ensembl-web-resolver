@@ -39,7 +39,7 @@ For local development outside the cluster, override it with
 `https://www.ensembl.org/api/metadata`.
 
 `SEARCH_API_URL` sets the variant search API base URL, defaulting to
-`http://ensembl-genome-search-svc:8011/api`. Variant requests append
+`http://ensembl-search-hub-svc:8083/api`. Variant requests append
 `/search/variants`.
 
 For a Kubernetes ConfigMap:
@@ -48,7 +48,7 @@ For a Kubernetes ConfigMap:
 data:
   ENSEMBL_URL: "https://www.ensembl.org"
   METADATA_API_URL: "http://metadata-api-svc:8014/api/metadata"
-  SEARCH_API_URL: "http://ensembl-genome-search-svc:8011/api"
+  SEARCH_API_URL: "http://ensembl-search-hub-svc:8083/api"
 ```
 
 Include the path prefix served by the internal service. If it serves

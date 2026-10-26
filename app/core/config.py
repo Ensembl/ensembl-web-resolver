@@ -56,7 +56,7 @@ METADATA_API_URL = config(
 SEARCH_API_URL = config(
     "SEARCH_API_URL",
     cast=str,
-    default="http://ensembl-genome-search-svc:8011/api",
+    default="http://ensembl-search-hub-svc:8083/api",
 ).rstrip("/")
 REGULATION_URL = config(
     "REGULATION_URL", cast=str, default="https://regulation.ensembl.org"
