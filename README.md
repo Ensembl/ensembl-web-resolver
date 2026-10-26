@@ -30,6 +30,27 @@ python3 -m uvicorn app.main:app --port 8001 --reload
 
 `APP_PREFIX` defaults to `/`. Set it only when the app should be served under a path prefix, for example `/api/resolver`.
 
+### Public URLs and internal metadata requests
+
+`ENSEMBL_URL` is the public website base URL used for redirects and variant
+search. Keep it set to `https://www.ensembl.org` in production.
+`METADATA_API_URL` independently sets the metadata API base URL, defaulting to
+`http://metadata-api-svc:8014/api/metadata` when omitted.
+For local development outside the cluster, override it with
+`https://www.ensembl.org/api/metadata`.
+
+For a Kubernetes ConfigMap:
+
+```yaml
+data:
+  ENSEMBL_URL: "https://www.ensembl.org"
+  METADATA_API_URL: "http://metadata-api-svc:8014/api/metadata"
+```
+
+Include the path prefix served by the internal service. If it serves
+`/genome/...` directly, use `http://metadata-api-svc:8014` instead.
+Deploy the resolver version supporting this setting before applying the ConfigMap.
+
 ### Resolver outcome metrics
 
 In addition to HTTP metrics, `/metrics` exposes `resolver_requests_total`.

@@ -48,6 +48,11 @@ FAST_MATCH_ENABLED: bool = config("FAST_MATCH_ENABLED", cast=bool, default=True)
 FAST_MATCH_DB_PATH: str = config("FAST_MATCH_DB_PATH", cast=str, default="")
 DEFAULT_APP = config("DEFAULT_APP", cast=str, default="feature-explorer")
 ENSEMBL_URL = config("ENSEMBL_URL", cast=str, default="https://www.ensembl.org")
+METADATA_API_URL = config(
+    "METADATA_API_URL",
+    cast=str,
+    default="http://metadata-api-svc:8014/api/metadata",
+).rstrip("/")
 REGULATION_URL = config(
     "REGULATION_URL", cast=str, default="https://regulation.ensembl.org"
 )
