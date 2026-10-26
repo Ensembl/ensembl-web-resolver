@@ -11,7 +11,7 @@ from app.api.utils.metadata import (
     search_variant,
 )
 from app.api.utils.commons import build_feature_explorer_url
-from app.core.config import ENSEMBL_URL, METADATA_API_URL
+from app.core.config import ENSEMBL_URL, SEARCH_API_URL, METADATA_API_URL
 
 
 class TestMetadata(unittest.TestCase):
@@ -219,7 +219,7 @@ class TestMetadata(unittest.TestCase):
 
         self.assertEqual(result, response.json.return_value["matches"][0])
         session.post.assert_called_once_with(
-            url=f"{ENSEMBL_URL}/api/search/variants",
+            url=f"{SEARCH_API_URL}/search/variants",
             json={"genome_ids": [genome_id], "query": "rs99"},
             timeout=10,
         )

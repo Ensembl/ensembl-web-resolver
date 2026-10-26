@@ -3,7 +3,7 @@ import re
 from typing import List
 
 from app.api.models.resolver import SearchMatch
-from app.core.config import ENSEMBL_URL, METADATA_API_URL
+from app.core.config import SEARCH_API_URL, METADATA_API_URL
 
 
 class MetadataNotFoundError(Exception):
@@ -190,7 +190,7 @@ def search_variant(genome_id: str, variant_id: str) -> dict | None:
     try:
         session = requests.Session()
         with session.post(
-            url=f"{ENSEMBL_URL}/api/search/variants",
+            url=f"{SEARCH_API_URL}/search/variants",
             json={"genome_ids": [genome_id], "query": variant_id},
             timeout=10,
         ) as response:

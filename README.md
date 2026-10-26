@@ -30,14 +30,17 @@ python3 -m uvicorn app.main:app --port 8001 --reload
 
 `APP_PREFIX` defaults to `/`. Set it only when the app should be served under a path prefix, for example `/api/resolver`.
 
-### Public URLs and internal metadata requests
+### Public URLs and internal API requests
 
-`ENSEMBL_URL` is the public website base URL used for redirects and variant
-search. Keep it set to `https://www.ensembl.org` in production.
+`ENSEMBL_URL` is the public website base URL used for redirects. Keep it set to `https://www.ensembl.org` in production.
 `METADATA_API_URL` independently sets the metadata API base URL, defaulting to
 `http://metadata-api-svc:8014/api/metadata` when omitted.
 For local development outside the cluster, override it with
 `https://www.ensembl.org/api/metadata`.
+
+`SEARCH_API_URL` sets the variant search API base URL, defaulting to
+`http://ensembl-genome-search-svc:8011/api`. Variant requests append
+`/search/variants`.
 
 For a Kubernetes ConfigMap:
 
@@ -45,6 +48,7 @@ For a Kubernetes ConfigMap:
 data:
   ENSEMBL_URL: "https://www.ensembl.org"
   METADATA_API_URL: "http://metadata-api-svc:8014/api/metadata"
+  SEARCH_API_URL: "http://ensembl-genome-search-svc:8011/api"
 ```
 
 Include the path prefix served by the internal service. If it serves
