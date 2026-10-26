@@ -6,13 +6,41 @@ import requests
 from app.api.utils.metadata import (
     MetadataNotFoundError,
     get_metadata,
+    get_genome_id_from_assembly_accession_id,
     get_genome_tag_from_genome_id,
     search_variant,
 )
-from app.core.config import ENSEMBL_URL
+from app.api.utils.commons import build_feature_explorer_url
+from app.core.config import ENSEMBL_URL, SEARCH_API_URL, METADATA_API_URL
 
 
 class TestMetadata(unittest.TestCase):
+    @patch("app.api.utils.metadata.METADATA_API_URL", "http://metadata-api-svc:8014")
+    @patch("app.api.utils.metadata.requests.Session")
+    def test_internal_metadata_base_preserves_public_feature_urls(
+        self, mock_session_class
+    ):
+        session = mock_session_class.return_value
+        response = session.get.return_value.__enter__.return_value
+        response.json.return_value = {"genome_tag": "human"}
+
+        get_metadata([{"genome_id": "genome-1"}])
+        get_genome_tag_from_genome_id("genome-1")
+        get_genome_id_from_assembly_accession_id("GCA_123.1")
+
+        self.assertEqual(
+            [call.kwargs["url"] for call in session.get.call_args_list],
+            [
+                "http://metadata-api-svc:8014/genome/genome-1/explain",
+                "http://metadata-api-svc:8014/genome/genome-1/explain",
+                "http://metadata-api-svc:8014/genomeid?assembly_accession_id=GCA_123.1",
+            ],
+        )
+        self.assertEqual(
+            build_feature_explorer_url("genome-1", "ENSG00000221914"),
+            f"{ENSEMBL_URL}/feature-explorer/genome-1/gene:ENSG00000221914",
+        )
+
     @patch("app.api.utils.metadata.requests.Session")
     def test_get_metadata_keeps_highest_priority_match_per_genome(
         self, mock_session_class
@@ -123,7 +151,7 @@ class TestMetadata(unittest.TestCase):
 
         self.assertEqual(genome_tag, "GCA_01234567.1")
         session.get.assert_called_once_with(
-            url=f"{ENSEMBL_URL}/api/metadata/genome/{genome_id}/explain",
+            url=f"{METADATA_API_URL}/genome/{genome_id}/explain",
             timeout=10,
         )
         response.raise_for_status.assert_called_once_with()
@@ -191,7 +219,7 @@ class TestMetadata(unittest.TestCase):
 
         self.assertEqual(result, response.json.return_value["matches"][0])
         session.post.assert_called_once_with(
-            url=f"{ENSEMBL_URL}/api/search/variants",
+            url=f"{SEARCH_API_URL}/search/variants",
             json={"genome_ids": [genome_id], "query": "rs99"},
             timeout=10,
         )

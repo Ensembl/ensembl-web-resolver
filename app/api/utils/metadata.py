@@ -3,7 +3,7 @@ import re
 from typing import List
 
 from app.api.models.resolver import SearchMatch
-from app.core.config import ENSEMBL_URL
+from app.core.config import SEARCH_API_URL, METADATA_API_URL
 
 
 class MetadataNotFoundError(Exception):
@@ -31,7 +31,7 @@ def get_metadata(matches: List[SearchMatch] = []):
         try:
             session = requests.Session()
             with session.get(
-                url=f"{ENSEMBL_URL}/api/metadata/genome/{genome_id}/explain", timeout=10
+                url=f"{METADATA_API_URL}/genome/{genome_id}/explain", timeout=10
             ) as response:
                 response.raise_for_status()
                 metadata_results[genome_id] = response.json()
@@ -139,7 +139,7 @@ def get_genome_id_from_assembly_accession_id(accession_id: str):
     try:
         session = requests.Session()
         metadata_api_url = (
-            f"{ENSEMBL_URL}/api/metadata/genomeid?assembly_accession_id={accession_id}"
+            f"{METADATA_API_URL}/genomeid?assembly_accession_id={accession_id}"
         )
         with session.get(url=metadata_api_url, timeout=10) as response:
             response.raise_for_status()
@@ -164,7 +164,7 @@ def get_genome_tag_from_genome_id(genome_id: str) -> str | None:
     """
     try:
         session = requests.Session()
-        metadata_api_url = f"{ENSEMBL_URL}/api/metadata/genome/{genome_id}/explain"
+        metadata_api_url = f"{METADATA_API_URL}/genome/{genome_id}/explain"
         with session.get(url=metadata_api_url, timeout=10) as response:
             response.raise_for_status()
             payload = response.json()
@@ -190,7 +190,7 @@ def search_variant(genome_id: str, variant_id: str) -> dict | None:
     try:
         session = requests.Session()
         with session.post(
-            url=f"{ENSEMBL_URL}/api/search/variants",
+            url=f"{SEARCH_API_URL}/search/variants",
             json={"genome_ids": [genome_id], "query": variant_id},
             timeout=10,
         ) as response:
