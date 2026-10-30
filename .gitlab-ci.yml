@@ -1,88 +1,26 @@
-# Stages for the CI/CD job
+# include template to setup review app
+include:
+  - project: 'ensembl-web/ensembl-gitlab-ci-templates'
+    ref: 'main'
+    file:
+      - 'branch-rules/.branch-rules-template.yaml'
+      - 'deploy/.deploy-main-template.yaml'
+      - 'deploy/.deploy-review-template.yaml'
+      - 'review/.setup-BE-review-template.yaml'
+
 stages:
   - setup
   - test
   - build
-  - deploy
+  - deploy-review
+  - deploy-test
+  - deploy-prod
 
 variables:
   DOCKER_TLS_CERTDIR: ""
   DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}
-  BASE: ensembl-k8s-manifests/ensembl-web-resolver
   NFS_SERVER: ${HL_NFS_SERVER_CODON}
   NFS_PATH: ${HL_NFS_PATH_CODON}
-
-# Template to build docker image
-.build:
-  stage: build
-  image: docker
-  services:
-    - docker:dind
-  variables:
-    # Required for `docker build --secret`; prevents the token entering image layers.
-    DOCKER_BUILDKIT: "1"
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - docker build --build-arg GITLAB_USER=gitlab-ci-token --secret id=gitlab_token,env=CI_JOB_TOKEN -t ${DOCKER_IMAGE} --no-cache -f Dockerfile .
-    - docker push ${DOCKER_IMAGE}
-    # remove local image from shared runner
-    - docker rmi ${DOCKER_IMAGE}
-    - docker logout $CI_REGISTRY
-
-  rules:
-    - if: "$CI_DEPLOY_FREEZE == null"
-
-.deploy:
-  stage: deploy
-  image: dockerhub.ebi.ac.uk/ensembl-web/deploy-tools:latest
-  before_script:
-    - kubectl config use-context ${AGENT}
-    - kubectl config set-context --current --namespace=${NS}
-  script:
-    - git clone https://gitlab.ebi.ac.uk/ensembl-web/ensembl-k8s-manifests.git
-    - git -C ensembl-k8s-manifests/ checkout k8s123-migration
-    - sed -i "s#<NFS_SERVER>#${NFS_SERVER}#g" ${BASE}/deployment.yaml
-    - sed -i "s#<NFS_PATH>#${NFS_PATH}#g" ${BASE}/deployment.yaml
-    - cd ensembl-k8s-manifests/ensembl-web-resolver
-    - kustomize edit set image DOCKER_IMAGE=${DOCKER_IMAGE}
-    - kubectl apply -k ./
-
-.deploy_rules:
-  rules:
-    - if: '$CI_DEPLOY_FREEZE == null && $CI_COMMIT_BRANCH == "main"'
-      when: on_success
-
-# Build docker image for all branches
-build:
-  extends: .build
-  needs: ["Test"]
-
-# Prod:WP40:HL:
-Prod:
-  extends:
-    - .deploy
-    - .deploy_rules
-  environment:
-    name: production
-  variables:
-    AGENT: ${PROD_AGENT}
-    NS: ${PROD_NS}
-
-# Setup Review app in its own namespace named by branch name (CI_COMMIT_REF_SLUG)
-Setup:Review:
-  stage: setup
-  image: dockerhub.ebi.ac.uk/ensembl-web/deploy-tools:latest
-  environment:
-    name: development
-  script:
-    - kubectl create namespace ${CI_COMMIT_REF_SLUG} --dry-run=client -o yaml | kubectl apply -f -
-    - kubectl create configmap metadata-api-configmap --from-env-file=.env.sample --dry-run=client -o yaml | kubectl apply -f -
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push" &&
-        $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000" &&
-        $CI_COMMIT_REF_NAME !~  "/^nodeploy\/.*$/"
-      when: always
 
 # Run Tests
 Test:
@@ -101,38 +39,79 @@ Test:
   artifacts:
     when: always
 
-#Review:WP51:HL:
-Review:
-  extends: .deploy
+# Jobs extended from templates to setup and deploy review environment, dev, staging, prod and fallback environments
+# Create a review deployment (runs once per new branch)
+Setup Review:
+  extends: .setup-review-newk8s
+  stage: setup
   environment:
     name: development
-  rules:
-    - if: '$CI_DEPLOY_FREEZE == null && $CI_COMMIT_BRANCH != "dev"  && $CI_COMMIT_BRANCH != "main"'
-      when: on_success
   variables:
-    AGENT: ${REVIEW_AGENT}
-    NS: ${CI_COMMIT_REF_SLUG}
+    GIT_STRATEGY: none
+    AGENT: ${DEV_AGENT}
+    DEV_NS: ${DEV_NS}
+    REVIEW_NS: ${CI_COMMIT_REF_SLUG}
+    BE_INGRESS: ""
 
-#Prod:WP41:HX:
-Fallback:
-  extends:
-    - .deploy
-    - .deploy_rules
+# Deploy review environment
+Deploy Review:
+  extends: .deploy-review
+  stage: deploy-review
+  variables:
+    AGENT: ${DEV_AGENT}
+    REVIEW_NS: ${CI_COMMIT_REF_SLUG}
   environment:
-    name: fallback
-  variables:
-    AGENT: ${FALLBACK_AGENT}
-    NS: ${FALLBACK_NS}
-    NFS_SERVER: ${HX_NFS_SERVER_CODON}
-    NFS_PATH: ${HX_NFS_PATH_CODON}
+    name: development
+    url: https://${REVIEW_NS}.review.ensembl.org
+    on_stop: Stop Review
 
-# Dev: dev-2020.ensembl.org
+#Build docker image
+Docker:
+  stage: build
+  image: docker
+  services:
+    - docker:dind
+  variables:
+    # Required for `docker build --secret`; prevents the token entering image layers.
+    DOCKER_BUILDKIT: "1"
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t ${DOCKER_IMAGE} --no-cache -f Dockerfile .
+    - docker push ${DOCKER_IMAGE}
+    - docker rmi ${DOCKER_IMAGE}
+    - docker logout $CI_REGISTRY
+
+#Deploy to k8s
+# Deploy Dev
 Dev:
-  extends:
-    - .deploy
-    - .deploy_rules
+  stage: deploy-test
+  extends: .deploy-main
   environment:
     name: development
   variables:
     AGENT: ${DEV_AGENT}
     NS: ${DEV_NS}
+
+#Deploy prod & fallback environment
+Prod:
+  stage: deploy-prod
+  extends: .deploy-main
+  environment:
+    name: production
+  when: manual
+  variables:
+    AGENT: ${PROD_AGENT}
+    NS: ${PROD_NS}
+
+Fallback:
+  stage: deploy-prod
+  extends: .deploy-main
+  environment:
+    name: fallback
+  when: manual
+  variables:
+    AGENT: ${FALLBACK_AGENT}
+    NS: ${FALLBACK_NS}
+    NFS_SERVER: ${HX_NFS_SERVER_CODON}
+    NFS_PATH: ${HX_NFS_PATH_CODON}
