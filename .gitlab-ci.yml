@@ -65,6 +65,22 @@ Deploy Review:
     url: https://${REVIEW_NS}.review.ensembl.org
     on_stop: Stop Review
 
+Stop Review:
+  extends: .stop-review
+  stage: deploy-review
+  variables:
+    # Must match deploy-review; its job variables are not inherited here.
+    AGENT: ${DEV_AGENT}
+    REVIEW_NS: ${CI_COMMIT_REF_SLUG}
+    GIT_STRATEGY: none
+  rules:
+    - if: $CI_DEPLOY_FREEZE == null && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "main" && $CI_COMMIT_BRANCH != "dev"
+      when: manual
+      allow_failure: true
+  environment:
+    name: development
+    action: stop
+
 #Build docker image
 Docker:
   stage: build
