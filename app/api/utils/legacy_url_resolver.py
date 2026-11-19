@@ -135,6 +135,8 @@ def _build_location_url(genome_id: str, query_params: dict[str, list[str]]) -> s
         The resolved new Ensembl genome browser URL.
     """
     location = _require_query_value(query_params, "r")
+    # Legacy ranges accept two dots; the new genome browser expects a hyphen.
+    location = location.replace("..", "-")
     encoded_location = quote(location, safe=":-")
     return (
         f"{ENSEMBL_URL}/genome-browser/{_quote_url_part(genome_id)}"

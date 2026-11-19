@@ -654,6 +654,43 @@ class TestUrlResolver(unittest.TestCase):
     @patch(
         "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
     )
+    def test_resolve_location_range_separators(self, mock_species_lookup):
+        """Resolve dotted and hyphenated ranges identically in both response modes."""
+        mock_species_lookup.return_value = self.genome_uuid
+        expected_url = (
+            f"{ENSEMBL_URL}/genome-browser/{self.genome_tag}"
+            "?focus=location:17:7676589-7676599"
+            "&location=17:7676589-7676599"
+        )
+
+        for page in ("View", "Genome"):
+            for separator in ("-", "..", "%2E%2E"):
+                for accept in ("application/json", "text/html"):
+                    with self.subTest(page=page, separator=separator, accept=accept):
+                        response = self.client.get(
+                            self.mock_url_resolver_api_url,
+                            params={
+                                "url": (
+                                    "http://www.ensembl.org/Homo_sapiens/Location/"
+                                    f"{page}?r=17:7676589{separator}7676599"
+                                )
+                            },
+                            headers={"accept": accept},
+                            follow_redirects=False,
+                        )
+
+                        if accept == "application/json":
+                            self.assertEqual(response.status_code, 200)
+                            self.assertEqual(
+                                response.json(), {"resolved_url": expected_url}
+                            )
+                        else:
+                            self.assertEqual(response.status_code, 308)
+                            self.assertEqual(response.headers["location"], expected_url)
+
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_location_view_with_semicolon_query(self, mock_species_lookup):
         """Resolve old-style semicolon-delimited query strings."""
         mock_species_lookup.return_value = self.genome_uuid
