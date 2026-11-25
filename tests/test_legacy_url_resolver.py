@@ -44,6 +44,38 @@ class TestUrlResolver(unittest.TestCase):
     @patch(
         "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
     )
+    def test_favicon_uses_current_icon_before_legacy_mappings(
+        self, mock_species_lookup
+    ):
+        self.mock_static_mapping.return_value = "https://jun2026.archive.ensembl.org/"
+        icon_path = f"{STATIC_PATH}/icons/favicon.svg"
+        for path in ("/favicon.ico", "/favicon.svg"):
+            for source in (path, f"https://www.ensembl.org{path}?v=1"):
+                for accept in ("text/html", "application/json"):
+                    with self.subTest(source=source, accept=accept):
+                        response = self.client.get(
+                            self.mock_url_resolver_api_url,
+                            params={"url": source},
+                            headers={"accept": accept},
+                            follow_redirects=False,
+                        )
+                        target = f"{ENSEMBL_URL.rstrip('/')}{icon_path}"
+                        if accept == "application/json":
+                            self.assertEqual(response.status_code, 200)
+                            self.assertEqual(response.json(), {"resolved_url": target})
+                        else:
+                            self.assertEqual(response.status_code, 308)
+                            self.assertEqual(response.headers["location"], target)
+
+        self.mock_static_mapping.assert_not_called()
+        mock_species_lookup.assert_not_called()
+        icon_response = self.client.get(icon_path)
+        self.assertEqual(icon_response.status_code, 200)
+        self.assertIn("image/svg+xml", icon_response.headers["content-type"])
+
+    @patch(
+        "app.api.resources.legacy_url_resolver_view.get_genome_uuid_from_species_url"
+    )
     def test_resolve_static_path_mapping_with_redirect(self, mock_species_lookup):
         """Resolve configured static legacy paths before species URL rules."""
         self.mock_static_mapping.return_value = "https://www.ensembl.org/tools/blast"

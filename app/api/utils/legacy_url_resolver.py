@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Callable
 from urllib.parse import parse_qsl, quote, urlparse, urlunparse
 
-from app.core.config import ENSEMBL_URL, REGULATION_URL
+from app.core.config import ENSEMBL_URL, REGULATION_URL, STATIC_PATH
 
 
 class LegacyUrlResolverError(Exception):
@@ -515,6 +515,10 @@ def resolve_legacy_ensembl_url(
     """
     parsed_url = urlparse(legacy_url)
     path_segments = _normalise_path(parsed_url.path)
+
+    # Link-preview clients must receive the current icon, not the archive icon.
+    if parsed_url.path in ("/favicon.ico", "/favicon.svg"):
+        return f"{ENSEMBL_URL.rstrip('/')}{STATIC_PATH}/icons/favicon.svg"
 
     # Generic documentation/info pages are not available on new Ensembl. Send
     # them to the matching archive host before static mappings can claim them.
